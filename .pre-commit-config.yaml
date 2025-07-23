@@ -1,0 +1,55 @@
+# Pre-commit configuration for Omega-PHR
+# See https://pre-commit.com for more information
+repos:
+  # General code quality and formatting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--unsafe']
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-json
+
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=88']
+
+  # Python import sorting with isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=88']
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3.11
+
+# Files to exclude from all hooks
+exclude: |
+  (?x)^(
+    \.git/|
+    \.venv/|
+    \.pytest_cache/|
+    __pycache__/|
+    \.mypy_cache/|
+    \.ruff_cache/|
+    node_modules/|
+    omega_phr\.egg-info/|
+    .*_pb2\.py|
+    .*_pb2_grpc\.py|
+    migrations/
+  )$
+
+# Minimum pre-commit version
+minimum_pre_commit_version: '3.7.0'
