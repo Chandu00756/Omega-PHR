@@ -1,0 +1,317 @@
+version: '3.8'
+
+services:
+  # Timeline Lattice Service
+  timeline-lattice:
+    build:
+      context: .
+      dockerfile: docker/timeline.Dockerfile
+    container_name: omega-phr-timeline
+    ports:
+      - "50051:50051"
+      - "8081:8081"  # Metrics port
+    environment:
+      - TIMELINE_HOST=0.0.0.0
+      - TIMELINE_PORT=50051
+      - TIMELINE_LOG_LEVEL=INFO
+      - TIMELINE_ENABLE_METRICS=true
+      - TIMELINE_METRICS_PORT=8081
+      - TIMELINE_DATA_PATH=/data/timeline
+      - TIMELINE_ENABLE_PERSISTENCE=true
+    volumes:
+      - timeline_data:/data/timeline
+    networks:
+      - omega-phr
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.connect((\"localhost\", 50051)); s.close()'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Hive Orchestrator Service
+  hive-orchestrator:
+    build:
+      context: .
+      dockerfile: docker/hive.Dockerfile
+    container_name: omega-phr-hive
+    ports:
+      - "50052:50052"
+      - "8082:8082"  # Metrics port
+    environment:
+      - HIVE_HOST=0.0.0.0
+      - HIVE_PORT=50052
+      - HIVE_LOG_LEVEL=INFO
+      - HIVE_ENABLE_METRICS=true
+      - HIVE_METRICS_PORT=8082
+      - HIVE_DATA_PATH=/data/hive
+      - HIVE_ENABLE_PERSISTENCE=true
+      - HIVE_MAX_AGENTS=1000
+      - HIVE_AGENT_POOL_SIZE=100
+      - RAY_ADDRESS=ray://ray-head:10001
+      - RAY_NAMESPACE=omega-phr-hive
+    volumes:
+      - hive_data:/data/hive
+    networks:
+      - omega-phr
+    depends_on:
+      - ray-head
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.connect((\"localhost\", 50052)); s.close()'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Memory Inversion Service
+  memory-inversion:
+    build:
+      context: .
+      dockerfile: docker/memory_inversion.Dockerfile
+    container_name: omega-phr-memory
+    ports:
+      - "50053:50053"
+      - "8083:8083"  # Metrics port
+    environment:
+      - MEMORY_HOST=0.0.0.0
+      - MEMORY_PORT=50053
+      - MEMORY_LOG_LEVEL=INFO
+      - MEMORY_ENABLE_METRICS=true
+      - MEMORY_METRICS_PORT=8083
+      - MEMORY_DATA_PATH=/data/memory
+      - MEMORY_SNAPSHOT_RETENTION_HOURS=24
+    volumes:
+      - memory_data:/data/memory
+    networks:
+      - omega-phr
+    restart: unless-stopped
+
+  # Recursive Loop Synthesis Service
+  recursive-loop-synth:
+    build:
+      context: .
+      dockerfile: docker/recursive_loop_synth.Dockerfile
+    container_name: omega-phr-loops
+    ports:
+      - "50054:50054"
+      - "8084:8084"  # Metrics port
+    environment:
+      - LOOPS_HOST=0.0.0.0
+      - LOOPS_PORT=50054
+      - LOOPS_LOG_LEVEL=INFO
+      - LOOPS_ENABLE_METRICS=true
+      - LOOPS_METRICS_PORT=8084
+      - LOOPS_DATA_PATH=/data/loops
+      - LOOPS_MAX_LOOP_DEPTH=10000
+      - LOOPS_ENTROPY_THRESHOLD=0.95
+    volumes:
+      - loops_data:/data/loops
+    networks:
+      - omega-phr
+    restart: unless-stopped
+
+  # Omega Register Service
+  omega-register:
+    build:
+      context: .
+      dockerfile: docker/omega_register.Dockerfile
+    container_name: omega-phr-register
+    ports:
+      - "50055:50055"
+      - "8085:8085"  # Metrics port
+    environment:
+      - OMEGA_HOST=0.0.0.0
+      - OMEGA_PORT=50055
+      - OMEGA_LOG_LEVEL=INFO
+      - OMEGA_ENABLE_METRICS=true
+      - OMEGA_METRICS_PORT=8085
+      - OMEGA_DATA_PATH=/data/omega
+      - OMEGA_QUARANTINE_ENABLED=true
+      - OMEGA_VAULT_ENCRYPTION_KEY=your-secret-key-here
+    volumes:
+      - omega_data:/data/omega
+    networks:
+      - omega-phr
+    restart: unless-stopped
+
+  # Telemetry Exporter Service
+  telemetry-exporter:
+    build:
+      context: .
+      dockerfile: docker/telemetry_exporter.Dockerfile
+    container_name: omega-phr-telemetry
+    ports:
+      - "50056:50056"
+      - "8086:8086"  # Metrics port
+    environment:
+      - TELEMETRY_HOST=0.0.0.0
+      - TELEMETRY_PORT=50056
+      - TELEMETRY_LOG_LEVEL=INFO
+      - TELEMETRY_ENABLE_METRICS=true
+      - TELEMETRY_METRICS_PORT=8086
+      - TELEMETRY_DATA_PATH=/data/telemetry
+      - TELEMETRY_EXPORT_INTERVAL=60
+    volumes:
+      - telemetry_data:/data/telemetry
+    networks:
+      - omega-phr
+    depends_on:
+      - prometheus
+      - grafana
+    restart: unless-stopped
+
+  # Ray Head Node for Distributed Computing
+  ray-head:
+    image: rayproject/ray:2.8.0-py311
+    container_name: omega-phr-ray-head
+    ports:
+      - "8265:8265"  # Ray Dashboard
+      - "10001:10001"  # Ray Client
+    command: ["ray", "start", "--head", "--port=6379", "--dashboard-host=0.0.0.0", "--dashboard-port=8265"]
+    networks:
+      - omega-phr
+    volumes:
+      - ray_data:/tmp/ray
+    restart: unless-stopped
+
+  # Ray Worker Node
+  ray-worker:
+    image: rayproject/ray:2.8.0-py311
+    container_name: omega-phr-ray-worker
+    command: ["ray", "start", "--address=ray-head:6379"]
+    networks:
+      - omega-phr
+    depends_on:
+      - ray-head
+    volumes:
+      - ray_worker_data:/tmp/ray
+    restart: unless-stopped
+    deploy:
+      replicas: 2  # Start with 2 worker nodes
+
+  # Prometheus for Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: omega-phr-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - omega-phr
+    restart: unless-stopped
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: omega-phr-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=omega-phr-admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - omega-phr
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ScyllaDB for High-Performance Storage
+  scylladb:
+    image: scylladb/scylla:5.2
+    container_name: omega-phr-scylla
+    ports:
+      - "9042:9042"  # CQL
+      - "9160:9160"  # Thrift
+      - "7000:7000"  # Inter-node communication
+      - "7001:7001"  # TLS inter-node communication
+    volumes:
+      - scylla_data:/var/lib/scylla
+    networks:
+      - omega-phr
+    command: ["--seeds", "scylladb", "--smp", "2", "--memory", "2G"]
+    restart: unless-stopped
+
+  # Redis for Caching and Session Storage
+  redis:
+    image: redis:7.0-alpine
+    container_name: omega-phr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - omega-phr
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
+    restart: unless-stopped
+
+  # NGINX Load Balancer and Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: omega-phr-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    networks:
+      - omega-phr
+    depends_on:
+      - timeline-lattice
+      - hive-orchestrator
+      - memory-inversion
+      - recursive-loop-synth
+      - omega-register
+      - telemetry-exporter
+    restart: unless-stopped
+
+# Named volumes for persistent data
+volumes:
+  timeline_data:
+    driver: local
+  hive_data:
+    driver: local
+  memory_data:
+    driver: local
+  loops_data:
+    driver: local
+  omega_data:
+    driver: local
+  telemetry_data:
+    driver: local
+  ray_data:
+    driver: local
+  ray_worker_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  scylla_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# Networks
+networks:
+  omega-phr:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16

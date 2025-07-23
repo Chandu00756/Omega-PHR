@@ -1,0 +1,8 @@
+[console_scripts]
+omega-phr = omega_phr.cli:main
+phr-hive = services.hive_orchestrator.main:main
+phr-loops = services.recursive_loop_synth.main:main
+phr-memory = services.memory_inversion.main:main
+phr-register = services.omega_register.main:main
+phr-telemetry = services.telemetry_exporter.main:main
+phr-timeline = services.timeline_lattice.main:main

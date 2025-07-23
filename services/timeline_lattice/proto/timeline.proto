@@ -1,0 +1,321 @@
+syntax = "proto3";
+
+package timeline;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/Chandu00756/Omega-PHR/timeline";
+
+// Timeline Lattice Service - Enterprise gRPC Protocol Definition
+// Handles temporal paradox simulation, causality testing, and bitemporal operations
+service TimelineLatticeService {
+  // Core timeline operations
+  rpc CreateTimeline(CreateTimelineRequest) returns (CreateTimelineResponse);
+  rpc AppendEvent(AppendEventRequest) returns (AppendEventResponse);
+  rpc GetEvents(GetEventsRequest) returns (GetEventsResponse);
+  rpc GetTimeline(GetTimelineRequest) returns (GetTimelineResponse);
+
+  // Temporal paradox operations
+  rpc TestParadox(TestParadoxRequest) returns (TestParadoxResponse);
+  rpc ResolveParadox(ResolveParadoxRequest) returns (ResolveParadoxResponse);
+  rpc ValidateCausality(ValidateCausalityRequest) returns (ValidateCausalityResponse);
+
+  // Bitemporal operations
+  rpc BranchTimeline(BranchTimelineRequest) returns (BranchTimelineResponse);
+  rpc MergeTimelines(MergeTimelinesRequest) returns (MergeTimelinesResponse);
+  rpc RewindTimeline(RewindTimelineRequest) returns (RewindTimelineResponse);
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (CreateSnapshotResponse);
+
+  // Advanced temporal analysis
+  rpc AnalyzeTemporalFlow(AnalyzeTemporalFlowRequest) returns (AnalyzeTemporalFlowResponse);
+  rpc DetectAnomalies(DetectAnomaliesRequest) returns (DetectAnomaliesResponse);
+  rpc ComputeEntropyMetrics(ComputeEntropyMetricsRequest) returns (ComputeEntropyMetricsResponse);
+
+  // Streaming operations
+  rpc StreamEvents(StreamEventsRequest) returns (stream EventUpdate);
+  rpc StreamParadoxes(StreamParadoxesRequest) returns (stream ParadoxUpdate);
+
+  // Health and diagnostics
+  rpc GetHealth(HealthRequest) returns (HealthResponse);
+  rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
+}
+
+// Timeline data structures
+message Timeline {
+  string timeline_id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  string creator_id = 6;
+  TimelineStatus status = 7;
+  repeated string tags = 8;
+  TimelineMetadata metadata = 9;
+  BitemporalIndex bitemporal_index = 10;
+}
+
+enum TimelineStatus {
+  TIMELINE_STATUS_UNSPECIFIED = 0;
+  TIMELINE_STATUS_ACTIVE = 1;
+  TIMELINE_STATUS_BRANCHED = 2;
+  TIMELINE_STATUS_MERGED = 3;
+  TIMELINE_STATUS_ARCHIVED = 4;
+  TIMELINE_STATUS_QUARANTINED = 5;
+}
+
+message TimelineMetadata {
+  int64 total_events = 1;
+  int64 branch_count = 2;
+  int64 merge_count = 3;
+  double entropy_score = 4;
+  double complexity_rating = 5;
+  repeated string paradox_indicators = 6;
+  map<string, string> custom_attributes = 7;
+}
+
+message BitemporalIndex {
+  google.protobuf.Timestamp valid_time_start = 1;
+  google.protobuf.Timestamp valid_time_end = 2;
+  google.protobuf.Timestamp transaction_time_start = 3;
+  google.protobuf.Timestamp transaction_time_end = 4;
+}
+
+// Event data structures
+message Event {
+  string event_id = 1;
+  string timeline_id = 2;
+  string actor_id = 3;
+  EventType event_type = 4;
+  google.protobuf.Any payload = 5;
+  google.protobuf.Timestamp valid_at = 6;
+  google.protobuf.Timestamp recorded_at = 7;
+  EventMetadata metadata = 8;
+  CryptographicSignature signature = 9;
+  CausalityChain causality_chain = 10;
+}
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+  EVENT_TYPE_INITIALIZATION = 1;
+  EVENT_TYPE_STATE_CHANGE = 2;
+  EVENT_TYPE_INTERACTION = 3;
+  EVENT_TYPE_DECISION = 4;
+  EVENT_TYPE_ANOMALY = 5;
+  EVENT_TYPE_PARADOX = 6;
+  EVENT_TYPE_BRANCH = 7;
+  EVENT_TYPE_MERGE = 8;
+  EVENT_TYPE_CORRECTION = 9;
+}
+
+message EventMetadata {
+  string source_system = 1;
+  string event_schema_version = 2;
+  int32 sequence_number = 3;
+  repeated string dependencies = 4;
+  map<string, string> tags = 5;
+  double confidence_score = 6;
+  int32 retry_count = 7;
+}
+
+message CryptographicSignature {
+  string algorithm = 1;
+  bytes signature = 2;
+  string public_key_id = 3;
+  google.protobuf.Timestamp signed_at = 4;
+}
+
+message CausalityChain {
+  repeated string predecessor_events = 1;
+  repeated string successor_events = 2;
+  double causal_strength = 3;
+  string causal_type = 4;
+}
+
+// Request/Response messages for operations
+message CreateTimelineRequest {
+  string timeline_id = 1;
+  string name = 2;
+  string description = 3;
+  string creator_id = 4;
+  repeated string tags = 5;
+  map<string, string> custom_attributes = 6;
+}
+
+message CreateTimelineResponse {
+  Timeline timeline = 1;
+  OperationStatus status = 2;
+  string message = 3;
+}
+
+message AppendEventRequest {
+  Event event = 1;
+  bool validate_causality = 2;
+  bool enable_paradox_detection = 3;
+  string idempotency_key = 4;
+}
+
+message AppendEventResponse {
+  string event_id = 1;
+  OperationStatus status = 2;
+  string message = 3;
+  repeated ParadoxResult detected_paradoxes = 4;
+  CausalityValidation causality_validation = 5;
+}
+
+// Common operation status
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+  OPERATION_STATUS_SUCCESS = 1;
+  OPERATION_STATUS_FAILED = 2;
+  OPERATION_STATUS_PARTIAL = 3;
+  OPERATION_STATUS_PENDING = 4;
+  OPERATION_STATUS_TIMEOUT = 5;
+}
+
+// Health and monitoring
+message HealthRequest {
+  bool include_detailed_status = 1;
+}
+
+message HealthResponse {
+  HealthStatus status = 1;
+  string version = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  map<string, string> details = 4;
+}
+
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+  HEALTH_STATUS_CRITICAL = 4;
+}
+
+// Paradox analysis structures
+message ParadoxResult {
+  string paradox_id = 1;
+  string timeline_id = 2;
+  ParadoxType paradox_type = 3;
+  ParadoxSeverity severity = 4;
+  double confidence = 5;
+  string description = 6;
+  repeated string affected_events = 7;
+  google.protobuf.Timestamp detected_at = 8;
+}
+
+enum ParadoxType {
+  PARADOX_TYPE_UNSPECIFIED = 0;
+  PARADOX_TYPE_CAUSAL_LOOP = 1;
+  PARADOX_TYPE_GRANDFATHER = 2;
+  PARADOX_TYPE_BOOTSTRAP = 3;
+  PARADOX_TYPE_INFORMATION = 4;
+  PARADOX_TYPE_QUANTUM = 5;
+  PARADOX_TYPE_BRANCHING = 6;
+  PARADOX_TYPE_CONSISTENCY = 7;
+  PARADOX_TYPE_ENTROPY = 8;
+}
+
+enum ParadoxSeverity {
+  PARADOX_SEVERITY_UNSPECIFIED = 0;
+  PARADOX_SEVERITY_LOW = 1;
+  PARADOX_SEVERITY_MEDIUM = 2;
+  PARADOX_SEVERITY_HIGH = 3;
+  PARADOX_SEVERITY_CRITICAL = 4;
+  PARADOX_SEVERITY_CATASTROPHIC = 5;
+}
+
+message CausalityValidation {
+  bool is_valid = 1;
+  double confidence = 2;
+  repeated string violations = 3;
+  repeated string dependencies_verified = 4;
+}
+
+// Placeholder for additional messages
+message GetEventsRequest { string timeline_id = 1; }
+message GetEventsResponse { repeated Event events = 1; }
+message GetTimelineRequest { string timeline_id = 1; }
+message GetTimelineResponse { Timeline timeline = 1; }
+message TestParadoxRequest { string timeline_id = 1; }
+message TestParadoxResponse { repeated ParadoxResult paradoxes = 1; }
+message ResolveParadoxRequest { string paradox_id = 1; }
+message ResolveParadoxResponse { bool success = 1; }
+message ValidateCausalityRequest { string timeline_id = 1; }
+message ValidateCausalityResponse { bool is_valid = 1; }
+message BranchTimelineRequest { string timeline_id = 1; }
+message BranchTimelineResponse { Timeline timeline = 1; }
+message MergeTimelinesRequest { string target_id = 1; }
+message MergeTimelinesResponse { Timeline timeline = 1; }
+message RewindTimelineRequest { string timeline_id = 1; }
+message RewindTimelineResponse { Timeline timeline = 1; }
+message CreateSnapshotRequest { string timeline_id = 1; }
+message CreateSnapshotResponse { string snapshot_id = 1; }
+message AnalyzeTemporalFlowRequest { string timeline_id = 1; }
+message AnalyzeTemporalFlowResponse { double entropy = 1; }
+message DetectAnomaliesRequest { string timeline_id = 1; }
+message DetectAnomaliesResponse { repeated string anomalies = 1; }
+message ComputeEntropyMetricsRequest { string timeline_id = 1; }
+message ComputeEntropyMetricsResponse { double entropy = 1; }
+message StreamEventsRequest { string timeline_id = 1; }
+message EventUpdate { Event event = 1; }
+message StreamParadoxesRequest { string timeline_id = 1; }
+message ParadoxUpdate { ParadoxResult paradox = 1; }
+message MetricsRequest { bool detailed = 1; }
+message MetricsResponse { map<string, double> metrics = 1; }
+  string primary_timeline = 1;
+  string secondary_timeline = 2;
+  string merge_strategy = 3;
+}
+
+message MergeResponse {
+  bool success = 1;
+  string message = 2;
+  string result_timeline = 3;
+}
+
+message ParadoxTestRequest {
+  Event event = 1;
+}
+
+message ParadoxTestResponse {
+  bool has_paradox = 1;
+  string paradox_type = 2;
+  float severity = 3;
+  repeated string timeline_conflicts = 4;
+  repeated string causal_loops = 5;
+  repeated string containment_actions = 6;
+  float entropy_score = 7;
+}
+
+message TimelineInfoRequest {
+  string timeline_id = 1;
+}
+
+message TimelineInfoResponse {
+  string timeline_id = 1;
+  int32 event_count = 2;
+  int64 created_at = 3;
+  float consistency_score = 4;
+  float entropy_level = 5;
+  bool has_paradoxes = 6;
+  map<string, string> metadata = 7;
+}
+
+message ListTimelinesRequest {}
+
+message ListTimelinesResponse {
+  repeated string timeline_ids = 1;
+}
+
+service TimelineService {
+  rpc AppendEvent(AppendRequest) returns (AppendResponse);
+  rpc BranchTimeline(BranchRequest) returns (BranchResponse);
+  rpc RewindTimeline(RewindRequest) returns (RewindResponse);
+  rpc MergeTimelines(MergeRequest) returns (MergeResponse);
+  rpc TestParadox(ParadoxTestRequest) returns (ParadoxTestResponse);
+  rpc GetTimelineInfo(TimelineInfoRequest) returns (TimelineInfoResponse);
+  rpc ListTimelines(ListTimelinesRequest) returns (ListTimelinesResponse);
+}

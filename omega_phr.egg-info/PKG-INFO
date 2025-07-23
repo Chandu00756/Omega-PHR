@@ -1,0 +1,505 @@
+Metadata-Version: 2.4
+Name: omega-phr
+Version: 0.9.3
+Summary: Omega-Paradox Hive Recursion: AI Security Testing Framework
+Author-email: Venkata Sai Chandu Chitikam <chandu@portalvii.com>
+License: Apache-2.0
+Project-URL: homepage, https://github.com/Chandu00756/omega-phr
+Project-URL: repository, https://github.com/Chandu00756/omega-phr
+Project-URL: documentation, https://omega-phr.readthedocs.io
+Project-URL: changelog, https://github.com/Chandu00756/omega-phr/blob/main/CHANGELOG.md
+Project-URL: issues, https://github.com/Chandu00756/omega-phr/issues
+Keywords: ai-security,adversarial-testing,temporal-paradox,hive-attacks,memory-inversion,recursive-loops
+Classifier: Development Status :: 5 - Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Security
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Testing
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: grpcio>=1.63.0
+Requires-Dist: grpcio-tools>=1.63.0
+Requires-Dist: protobuf>=4.25.3
+Requires-Dist: grpcio-reflection>=1.63.0
+Requires-Dist: grpcio-health-checking>=1.63.0
+Requires-Dist: cassandra-driver>=3.29.1
+Requires-Dist: scylla-driver>=3.26.6
+Requires-Dist: aioredis>=2.0.1
+Requires-Dist: redis-py-cluster>=2.1.3
+Requires-Dist: ray[default]>=2.22.0
+Requires-Dist: torch>=2.3.0
+Requires-Dist: transformers>=4.42.0
+Requires-Dist: numpy>=1.26.4
+Requires-Dist: scipy>=1.13.0
+Requires-Dist: scikit-learn>=1.5.0
+Requires-Dist: nltk>=3.8.1
+Requires-Dist: fastapi>=0.111.0
+Requires-Dist: uvicorn[standard]>=0.30.0
+Requires-Dist: starlette>=0.37.0
+Requires-Dist: websockets>=12.0
+Requires-Dist: asyncio>=3.4.3
+Requires-Dist: aiofiles>=23.2.0
+Requires-Dist: prometheus-client>=0.20.0
+Requires-Dist: opentelemetry-api>=1.25.0
+Requires-Dist: opentelemetry-sdk>=1.25.0
+Requires-Dist: opentelemetry-exporter-prometheus>=1.12.0
+Requires-Dist: structlog>=24.2.0
+Requires-Dist: pydantic>=2.8.0
+Requires-Dist: pydantic-settings>=2.3.0
+Requires-Dist: orjson>=3.10.0
+Requires-Dist: msgpack>=1.0.8
+Requires-Dist: cryptography>=42.0.8
+Requires-Dist: pyjwt[crypto]>=2.8.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: python-jose[cryptography]>=3.3.0
+Requires-Dist: httpx>=0.27.0
+Requires-Dist: asyncio-mqtt>=0.16.2
+Requires-Dist: websocket-client>=1.8.0
+Requires-Dist: tenacity>=8.4.0
+Requires-Dist: click>=8.1.7
+Requires-Dist: rich>=13.7.0
+Requires-Dist: typer>=0.12.0
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: watchdog>=4.0.0
+Requires-Dist: pydantic-yaml>=1.3.0
+Requires-Dist: psutil>=5.9.8
+Requires-Dist: setproctitle>=1.3.3
+Requires-Dist: uvloop>=0.19.0
+Requires-Dist: orjson>=3.10.0
+Requires-Dist: msgpack>=1.0.8
+Provides-Extra: dev
+Requires-Dist: ruff>=0.5.0; extra == "dev"
+Requires-Dist: black>=24.4.0; extra == "dev"
+Requires-Dist: isort>=5.13.0; extra == "dev"
+Requires-Dist: mypy>=1.10.0; extra == "dev"
+Requires-Dist: pylint>=3.2.0; extra == "dev"
+Requires-Dist: pytest>=8.2.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.7; extra == "dev"
+Requires-Dist: pytest-cov>=5.0.0; extra == "dev"
+Requires-Dist: pytest-xdist>=3.6.0; extra == "dev"
+Requires-Dist: pytest-benchmark>=4.0.0; extra == "dev"
+Requires-Dist: pytest-mock>=3.14.0; extra == "dev"
+Requires-Dist: factory-boy>=3.3.0; extra == "dev"
+Requires-Dist: pre-commit>=3.7.1; extra == "dev"
+Requires-Dist: commitizen>=3.27.0; extra == "dev"
+Requires-Dist: bandit>=1.7.9; extra == "dev"
+Requires-Dist: safety>=3.2.0; extra == "dev"
+Requires-Dist: mkdocs>=1.6.0; extra == "dev"
+Requires-Dist: mkdocs-material>=9.5.0; extra == "dev"
+Requires-Dist: mkdocs-mermaid2-plugin>=1.1.0; extra == "dev"
+Requires-Dist: jupyter>=1.0.0; extra == "dev"
+Requires-Dist: ipykernel>=6.29.0; extra == "dev"
+Requires-Dist: matplotlib>=3.9.0; extra == "dev"
+Requires-Dist: seaborn>=0.13.0; extra == "dev"
+Requires-Dist: plotly>=5.22.0; extra == "dev"
+Provides-Extra: enterprise
+Requires-Dist: gunicorn>=22.0.0; extra == "enterprise"
+Requires-Dist: gevent>=24.2.0; extra == "enterprise"
+Requires-Dist: psutil>=5.9.0; extra == "enterprise"
+Requires-Dist: setproctitle>=1.3.0; extra == "enterprise"
+Provides-Extra: gpu
+Requires-Dist: torch-gpu>=2.3.0; extra == "gpu"
+Requires-Dist: nvidia-ml-py>=12.555.0; extra == "gpu"
+Requires-Dist: pynvml>=11.5.0; extra == "gpu"
+Provides-Extra: cloud
+Requires-Dist: google-cloud-storage>=2.17.0; extra == "cloud"
+Requires-Dist: google-cloud-secret-manager>=2.20.0; extra == "cloud"
+Requires-Dist: google-cloud-monitoring>=2.21.0; extra == "cloud"
+Requires-Dist: boto3>=1.34.0; extra == "cloud"
+Requires-Dist: azure-storage-blob>=12.20.0; extra == "cloud"
+Dynamic: license-file
+
+# Omega-Paradox Hive Recursion (Ω-PHR)
+
+## Revolutionary AI Security Testing Framework
+
+The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking advancement in AI security testing, introducing the world's first comprehensive framework that simultaneously integrates temporal paradox testing, synthetic adversarial hive attacks, recursive memory inversion, and generative infinite loop fuzzing.
+
+## Architecture Overview
+
+### Core Components
+
+1. **Timeline Lattice Service** - Temporal paradox simulation and causality testing
+2. **Hive Orchestrator** - Autonomous adversarial swarm coordination
+3. **Memory Inversion Engine** - Recursive memory manipulation and rollback
+4. **Recursive Loop Synthesizer** - Generative infinite loop detection and containment
+5. **Ω-State Register** - Entropy quarantine and anomaly containment
+6. **Telemetry Exporter** - Real-time monitoring and metrics collection
+
+### Key Features
+
+- **Multi-dimensional stress testing** across temporal, hive, memory, and recursive axes
+- **Entropy-based containment** for runaway processes and paradox states
+- **Real-time monitoring** with Prometheus integration
+- **Scalable architecture** using Ray for distributed processing
+- **Production-ready** with Docker containerization and Kubernetes deployment
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Docker and Docker Compose
+- 8GB+ RAM (16GB recommended)
+- CUDA-compatible GPU (optional, for production workloads)
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/chanduchitikam/omega-phr.git
+cd omega-phr
+```
+
+2. Set up the development environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e .[dev]
+```
+
+3. Install pre-commit hooks:
+
+```bash
+pre-commit install
+```
+
+4. Generate Protocol Buffer stubs:
+
+```bash
+make proto
+```
+
+### Running Locally
+
+#### Option 1: Individual Services (Development)
+
+```bash
+# Terminal 1 - Timeline Lattice Service
+cd services/timeline_lattice
+python main.py
+
+# Terminal 2 - Hive Orchestrator
+cd services/hive_orchestrator
+python main.py
+
+# Terminal 3 - Memory Inversion Service
+cd services/memory_inversion
+python main.py
+
+# Terminal 4 - Recursive Loop Synthesizer
+cd services/recursive_loop_synth
+python main.py
+
+# Terminal 5 - Telemetry Exporter
+cd services/telemetry_exporter
+python main.py
+```
+
+#### Option 2: Docker Compose (Integration Testing)
+
+```bash
+docker-compose up --build
+```
+
+### Running Tests
+
+```bash
+# Unit tests
+pytest tests/unit -m unit
+
+# Integration tests
+pytest tests/integration -m integration
+
+# End-to-end tests
+pytest tests/e2e -m e2e
+
+# All tests with coverage
+pytest --cov=omega_phr --cov-report=html
+```
+
+## Usage Examples
+
+### Basic Temporal Paradox Testing
+
+```python
+from omega_phr.timeline import TimelineLattice
+from omega_phr.models import Event
+
+# Initialize timeline lattice
+lattice = TimelineLattice()
+
+# Create temporal paradox scenario
+event = Event(
+    event_id="test-001",
+    actor_id="ai-agent",
+    timeline_id="alpha",
+    payload={"prompt": "What year is it?"},
+    valid_at_us=1234567890000000
+)
+
+# Test temporal consistency
+result = lattice.test_paradox(event)
+print(f"Paradox detected: {result.has_paradox}")
+```
+
+### Hive Attack Orchestration
+
+```python
+from omega_phr.hive import HiveOrchestrator
+from omega_phr.attackers import InjectionAttacker, LogicBombAttacker
+
+# Initialize hive with multiple attack strategies
+hive = HiveOrchestrator()
+hive.add_attacker(InjectionAttacker(persona="social_engineer"))
+hive.add_attacker(LogicBombAttacker(persona="recursive_bomber"))
+
+# Execute coordinated attack
+results = await hive.coordinate_attack(target_model="gpt-4", scenario="jailbreak")
+print(f"Attack success rate: {results.success_rate}")
+```
+
+### Memory Inversion Testing
+
+```python
+from omega_phr.memory import MemoryInverter
+
+# Initialize memory inverter
+inverter = MemoryInverter()
+
+# Test memory rollback scenario
+original_state = {"context": "I am a helpful AI assistant"}
+inverted = inverter.invert_memory(original_state, strategy="contradiction")
+
+print(f"Original: {original_state}")
+print(f"Inverted: {inverted}")
+```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SCYLLA_HOSTS` | `127.0.0.1` | Cassandra/ScyllaDB hosts |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
+| `RAY_HEAD_NODE` | `ray://localhost:10001` | Ray cluster head node |
+| `PROMETHEUS_PORT` | `9090` | Prometheus metrics port |
+| `LOG_LEVEL` | `INFO` | Logging level |
+| `OMEGA_STATE_THRESHOLD` | `0.1` | Entropy threshold for Ω-state detection |
+
+### Service Configuration Files
+
+- `services/timeline_lattice/config.yaml` - Timeline service configuration
+- `services/hive_orchestrator/config.yaml` - Hive orchestrator settings
+- `services/memory_inversion/config.yaml` - Memory inversion parameters
+- `services/recursive_loop_synth/config.yaml` - Loop synthesis configuration
+
+## Architecture Deep Dive
+
+### Timeline Lattice
+
+The Timeline Lattice implements a novel approach to temporal consistency testing using:
+
+- **Layered Temporal Realities (LTR)**: Multiple timeline branches with causal validation
+- **Event Sourcing**: Immutable event log with cryptographic signatures
+- **Temporal Paradox Detection**: Real-time contradiction analysis
+- **Timeline Merge/Fork Operations**: Dynamic timeline manipulation
+
+### Hive Orchestrator
+
+The Hive Orchestrator coordinates multiple autonomous agents using:
+
+- **Ray Actors**: Distributed agent execution across cluster nodes
+- **Attack Strategy Patterns**: Pluggable attack methodologies
+- **Swarm Intelligence**: Emergent coordination behaviors
+- **Real-time Communication**: Actor message passing and state synchronization
+
+### Memory Inversion Engine
+
+The Memory Inversion Engine provides:
+
+- **Reversible Operations**: Rollback capabilities for all memory modifications
+- **Inversion Strategies**: Multiple approaches to memory manipulation
+- **Consistency Validation**: Detection of memory-based contradictions
+- **Forensic Logging**: Complete audit trail of all operations
+
+### Recursive Loop Synthesizer
+
+The Loop Synthesizer implements:
+
+- **Generative Loop Creation**: AI-driven generation of recursive scenarios
+- **Entropy Monitoring**: Real-time entropy analysis for loop detection
+- **Containment Protocols**: Automatic quarantine of runaway processes
+- **Loop Classification**: Taxonomy of different loop types and behaviors
+
+## Monitoring and Observability
+
+### Metrics
+
+The framework exposes comprehensive metrics via Prometheus:
+
+- Timeline consistency scores
+- Hive attack success rates
+- Memory inversion statistics
+- Loop detection and containment metrics
+- System resource utilization
+
+### Logging
+
+Structured logging using `structlog` with:
+
+- JSON output format for machine parsing
+- Correlation IDs for request tracing
+- Sensitive data redaction
+- Multiple log levels and filtering
+
+### Dashboards
+
+Pre-built Grafana dashboards for:
+
+- Real-time system overview
+- Attack campaign analysis
+- Performance monitoring
+- Alert management
+
+## Security Considerations
+
+### Containment Protocols
+
+- **Entropy Quarantine**: Automatic isolation of high-entropy states
+- **Process Sandboxing**: Containerized execution environments
+- **Network Isolation**: Restricted inter-service communication
+- **Resource Limits**: CPU, memory, and time constraints
+
+### Data Protection
+
+- **Encryption at Rest**: All persistent data encrypted
+- **Secure Communication**: TLS for all inter-service communication
+- **Access Control**: Role-based permissions and API keys
+- **Audit Logging**: Complete audit trail for compliance
+
+## Performance and Scalability
+
+### Horizontal Scaling
+
+- **Microservices Architecture**: Independent service scaling
+- **Ray Cluster**: Distributed processing across multiple nodes
+- **Database Sharding**: Partitioned data storage
+- **Load Balancing**: Intelligent request distribution
+
+### Performance Optimizations
+
+- **Async I/O**: Non-blocking operations throughout
+- **Connection Pooling**: Efficient resource utilization
+- **Caching Strategies**: Redis-based caching layers
+- **Batch Processing**: Optimized bulk operations
+
+## Deployment
+
+### Local Development
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Scale specific services
+docker-compose up --scale hive_orchestrator=3
+```
+
+### Production (Kubernetes)
+
+```bash
+# Deploy to Kubernetes cluster
+kubectl apply -f k8s/
+
+# Check deployment status
+kubectl get pods -l app=omega-phr
+```
+
+### Google Cloud Platform
+
+```bash
+# Deploy using Cloud Build
+gcloud builds submit --config cloudbuild.yaml
+
+# Deploy to GKE
+gcloud container clusters get-credentials omega-phr-cluster
+kubectl apply -f k8s/gcp/
+```
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make changes and add tests
+4. Run the test suite: `pytest`
+5. Commit changes: `git commit -am 'Add my feature'`
+6. Push to branch: `git push origin feature/my-feature`
+7. Submit a pull request
+
+### Code Quality Standards
+
+- **Type Hints**: All public APIs must include type annotations
+- **Documentation**: Docstrings required for all public functions/classes
+- **Testing**: Minimum 90% test coverage for new code
+- **Linting**: Code must pass `ruff` and `black` formatting
+- **Security**: All dependencies scanned for vulnerabilities
+
+## Research and Publications
+
+### Academic Impact
+
+This framework has been designed to support cutting-edge research in:
+
+- AI safety and robustness testing
+- Adversarial machine learning
+- Temporal reasoning in AI systems
+- Multi-agent system security
+- Emergent behavior analysis
+
+### Citation
+
+If you use Ω-PHR in your research, please cite:
+
+```bibtex
+@software{chitikam2025omegaphr,
+  title={Omega-Paradox Hive Recursion: Revolutionary AI Security Testing Framework},
+  author={Chitikam, Venkata Sai Chandu},
+  year={2025},
+  url={https://github.com/chanduchitikam/omega-phr},
+  version={1.0.0}
+}
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Support and Community
+
+- **Documentation**: [https://omega-phr.readthedocs.io](https://omega-phr.readthedocs.io)
+- **Issues**: [GitHub Issues](https://github.com/chanduchitikam/omega-phr/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/chanduchitikam/omega-phr/discussions)
+- **Discord**: [Ω-PHR Community](https://discord.gg/omega-phr)
+
+## Acknowledgments
+
+- MITRE ATLAS for threat modeling frameworks
+- NIST AI RMF for governance guidelines
+- Ray team for distributed computing platform
+- ScyllaDB team for high-performance database engine
+
+---
+
+**Ω-PHR**: Where temporal paradoxes meet adversarial swarms in the quantum realm of AI security testing.

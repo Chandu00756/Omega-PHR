@@ -1,0 +1,45 @@
+"""
+Timeline Lattice Service Requirements
+Research-grade temporal data management dependencies
+"""
+
+# Core async framework
+grpcio==1.63.0
+grpcio-tools==1.63.0
+grpcio-health-checking==1.63.0
+
+# Database drivers
+cassandra-driver==3.29.0
+sqlite3
+
+# Data models and validation
+pydantic==2.8.2
+pydantic-settings==2.3.4
+
+# Async support
+asyncio
+uvloop==0.19.0
+
+# Cryptography
+cryptography==42.0.8
+ed25519==1.5
+
+# Monitoring and observability
+prometheus-client==0.20.0
+structlog==24.2.0
+
+# Configuration
+python-dotenv==1.0.1
+
+# Testing (development)
+pytest==8.1.1
+pytest-asyncio==0.23.7
+pytest-mock==3.14.0
+
+# Development tools
+black==24.2.0
+ruff==0.4.4
+mypy==1.10.0
+
+# Temporal data utilities
+python-dateutil==2.9.0

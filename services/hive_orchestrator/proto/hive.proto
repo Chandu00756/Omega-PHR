@@ -1,0 +1,331 @@
+syntax = "proto3";
+
+package hive;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Chandu00756/Omega-PHR/services/hive/proto";
+
+// Hive Orchestrator Service
+// Manages distributed adversarial attack agents and swarm coordination
+service HiveService {
+    // Agent Management
+    rpc CreateAgent(CreateAgentRequest) returns (CreateAgentResponse);
+    rpc DeployAgent(DeployAgentRequest) returns (DeployAgentResponse);
+    rpc TerminateAgent(TerminateAgentRequest) returns (TerminateAgentResponse);
+    rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
+    rpc GetAgentStatus(GetAgentStatusRequest) returns (GetAgentStatusResponse);
+
+    // Attack Coordination
+    rpc LaunchAttack(LaunchAttackRequest) returns (LaunchAttackResponse);
+    rpc CoordinateSwarm(CoordinateSwarmRequest) returns (CoordinateSwarmResponse);
+    rpc StopAttack(StopAttackRequest) returns (StopAttackResponse);
+    rpc GetAttackStatus(GetAttackStatusRequest) returns (GetAttackStatusResponse);
+
+    // Hive Intelligence
+    rpc CollectIntelligence(CollectIntelligenceRequest) returns (CollectIntelligenceResponse);
+    rpc AnalyzeVulnerabilities(AnalyzeVulnerabilitiesRequest) returns (AnalyzeVulnerabilitiesResponse);
+    rpc GeneratePayloads(GeneratePayloadsRequest) returns (GeneratePayloadsResponse);
+
+    // Real-time Communication
+    rpc AgentComms(stream AgentMessage) returns (stream HiveCommand);
+    rpc MonitorAttacks(MonitorAttacksRequest) returns (stream AttackEvent);
+}
+
+// Agent Types
+enum AgentType {
+    UNKNOWN_AGENT = 0;
+    INJECTION_ATTACKER = 1;
+    LOGIC_BOMB_ATTACKER = 2;
+    SOCIAL_ENGINEERING_ATTACKER = 3;
+    POLYMORPHIC_ATTACKER = 4;
+    RECONNAISSANCE_SCOUT = 5;
+    PAYLOAD_GENERATOR = 6;
+    VULNERABILITY_SCANNER = 7;
+}
+
+// Attack Strategies
+enum AttackStrategy {
+    UNKNOWN_STRATEGY = 0;
+    COORDINATED_SWARM = 1;
+    STEALTH_INFILTRATION = 2;
+    OVERWHELMING_FORCE = 3;
+    ADAPTIVE_EVOLUTION = 4;
+    PSYCHOLOGICAL_MANIPULATION = 5;
+    TEMPORAL_EXPLOITATION = 6;
+}
+
+// Agent Configuration
+message AgentConfig {
+    string agent_id = 1;
+    AgentType agent_type = 2;
+    map<string, string> parameters = 3;
+    repeated string capabilities = 4;
+    int32 priority_level = 5;
+    bool stealth_mode = 6;
+    int32 max_actions_per_second = 7;
+    string target_system = 8;
+}
+
+// Agent Status
+message AgentStatus {
+    string agent_id = 1;
+    AgentType agent_type = 2;
+    string state = 3; // INITIALIZING, ACTIVE, SUSPENDED, TERMINATED
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp last_activity = 5;
+    int32 actions_executed = 6;
+    int32 vulnerabilities_found = 7;
+    float success_rate = 8;
+    string current_target = 9;
+    map<string, string> metadata = 10;
+}
+
+// Attack Configuration
+message AttackConfig {
+    string attack_id = 1;
+    AttackStrategy strategy = 2;
+    repeated string agent_ids = 3;
+    repeated string target_systems = 4;
+    map<string, string> parameters = 5;
+    int32 duration_seconds = 6;
+    int32 intensity_level = 7;
+    bool enable_adaptation = 8;
+    bool collect_intelligence = 9;
+}
+
+// Attack Status
+message AttackStatus {
+    string attack_id = 1;
+    AttackStrategy strategy = 2;
+    string state = 3; // PLANNED, LAUNCHING, ACTIVE, PAUSED, COMPLETED, FAILED
+    google.protobuf.Timestamp started_at = 4;
+    google.protobuf.Timestamp estimated_completion = 5;
+    int32 participating_agents = 6;
+    int32 targets_compromised = 7;
+    int32 vulnerabilities_exploited = 8;
+    float overall_success_rate = 9;
+    repeated string active_agent_ids = 10;
+    map<string, string> metrics = 11;
+}
+
+// Intelligence Data
+message Intelligence {
+    string target_id = 1;
+    string intelligence_type = 2; // VULNERABILITY, CREDENTIAL, TOPOLOGY, BEHAVIOR
+    bytes data = 3;
+    float confidence_score = 4;
+    google.protobuf.Timestamp collected_at = 5;
+    string source_agent_id = 6;
+    map<string, string> metadata = 7;
+}
+
+// Vulnerability Information
+message Vulnerability {
+    string vulnerability_id = 1;
+    string target_system = 2;
+    string vulnerability_type = 3;
+    string severity = 4; // LOW, MEDIUM, HIGH, CRITICAL
+    string description = 5;
+    repeated string exploitation_methods = 6;
+    float exploitability_score = 7;
+    bytes proof_of_concept = 8;
+    google.protobuf.Timestamp discovered_at = 9;
+    string discoverer_agent_id = 10;
+}
+
+// Generated Payload
+message Payload {
+    string payload_id = 1;
+    string payload_type = 2;
+    bytes content = 3;
+    string target_platform = 4;
+    repeated string delivery_methods = 5;
+    float effectiveness_score = 6;
+    bool obfuscated = 7;
+    string generation_method = 8;
+    map<string, string> metadata = 9;
+}
+
+// Agent Communication Messages
+message AgentMessage {
+    string agent_id = 1;
+    string message_type = 2;
+    bytes payload = 3;
+    google.protobuf.Timestamp timestamp = 4;
+    string target_agent_id = 5; // For agent-to-agent communication
+    map<string, string> metadata = 6;
+}
+
+message HiveCommand {
+    string command_id = 1;
+    string command_type = 2;
+    repeated string target_agent_ids = 3;
+    bytes payload = 4;
+    int32 priority = 5;
+    google.protobuf.Timestamp expires_at = 6;
+    map<string, string> parameters = 7;
+}
+
+// Attack Events for Monitoring
+message AttackEvent {
+    string event_id = 1;
+    string attack_id = 2;
+    string agent_id = 3;
+    string event_type = 4;
+    string target_system = 5;
+    bytes event_data = 6;
+    google.protobuf.Timestamp timestamp = 7;
+    string severity = 8;
+    map<string, string> metadata = 9;
+}
+
+// Request/Response Messages
+
+// Agent Management
+message CreateAgentRequest {
+    AgentConfig config = 1;
+    bool auto_deploy = 2;
+}
+
+message CreateAgentResponse {
+    string agent_id = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+message DeployAgentRequest {
+    string agent_id = 1;
+    string deployment_target = 2;
+    map<string, string> deployment_config = 3;
+}
+
+message DeployAgentResponse {
+    bool success = 1;
+    string message = 2;
+    string deployment_id = 3;
+}
+
+message TerminateAgentRequest {
+    string agent_id = 1;
+    bool force_termination = 2;
+}
+
+message TerminateAgentResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ListAgentsRequest {
+    AgentType agent_type_filter = 1;
+    string state_filter = 2;
+    int32 page_size = 3;
+    string page_token = 4;
+}
+
+message ListAgentsResponse {
+    repeated AgentStatus agents = 1;
+    string next_page_token = 2;
+}
+
+message GetAgentStatusRequest {
+    string agent_id = 1;
+}
+
+message GetAgentStatusResponse {
+    AgentStatus status = 1;
+}
+
+// Attack Coordination
+message LaunchAttackRequest {
+    AttackConfig config = 1;
+    bool dry_run = 2;
+}
+
+message LaunchAttackResponse {
+    string attack_id = 1;
+    bool success = 2;
+    string message = 3;
+    google.protobuf.Timestamp estimated_start_time = 4;
+}
+
+message CoordinateSwarmRequest {
+    string attack_id = 1;
+    repeated string agent_ids = 2;
+    string coordination_strategy = 3;
+    map<string, string> parameters = 4;
+}
+
+message CoordinateSwarmResponse {
+    bool success = 1;
+    string message = 2;
+    int32 coordinated_agents = 3;
+}
+
+message StopAttackRequest {
+    string attack_id = 1;
+    bool immediate = 2;
+}
+
+message StopAttackResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetAttackStatusRequest {
+    string attack_id = 1;
+}
+
+message GetAttackStatusResponse {
+    AttackStatus status = 1;
+}
+
+// Intelligence
+message CollectIntelligenceRequest {
+    repeated string target_systems = 1;
+    repeated string intelligence_types = 2;
+    int32 collection_duration_seconds = 3;
+    repeated string agent_ids = 4; // Specific agents to use
+}
+
+message CollectIntelligenceResponse {
+    bool success = 1;
+    string message = 2;
+    string collection_id = 3;
+    repeated Intelligence initial_data = 4;
+}
+
+message AnalyzeVulnerabilitiesRequest {
+    repeated string target_systems = 1;
+    bool deep_scan = 2;
+    repeated string vulnerability_types = 3;
+}
+
+message AnalyzeVulnerabilitiesResponse {
+    bool success = 1;
+    string message = 2;
+    repeated Vulnerability vulnerabilities = 3;
+    string analysis_id = 4;
+}
+
+message GeneratePayloadsRequest {
+    repeated Vulnerability target_vulnerabilities = 1;
+    repeated string delivery_methods = 2;
+    bool obfuscate = 3;
+    int32 payload_count = 4;
+}
+
+message GeneratePayloadsResponse {
+    bool success = 1;
+    string message = 2;
+    repeated Payload payloads = 3;
+    string generation_id = 4;
+}
+
+// Monitoring
+message MonitorAttacksRequest {
+    repeated string attack_ids = 1;
+    repeated string event_types = 2;
+    bool include_agent_communications = 3;
+}

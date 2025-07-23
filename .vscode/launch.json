@@ -1,0 +1,238 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Timeline Lattice Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/timeline_lattice/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/timeline_lattice",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "TIMELINE_HOST": "localhost",
+                "TIMELINE_PORT": "50051",
+                "TIMELINE_LOG_LEVEL": "DEBUG",
+                "TIMELINE_ENABLE_METRICS": "true"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Hive Orchestrator Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/hive_orchestrator/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/hive_orchestrator",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "HIVE_HOST": "localhost",
+                "HIVE_PORT": "50052",
+                "HIVE_LOG_LEVEL": "DEBUG",
+                "HIVE_ENABLE_METRICS": "true",
+                "HIVE_MAX_AGENTS": "50"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Memory Inversion Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/memory_inversion/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/memory_inversion",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "MEMORY_HOST": "localhost",
+                "MEMORY_PORT": "50053",
+                "MEMORY_LOG_LEVEL": "DEBUG"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Recursive Loop Synth Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/recursive_loop_synth/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/recursive_loop_synth",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "LOOPS_HOST": "localhost",
+                "LOOPS_PORT": "50054",
+                "LOOPS_LOG_LEVEL": "DEBUG"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Omega Register Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/omega_register/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/omega_register",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "OMEGA_HOST": "localhost",
+                "OMEGA_PORT": "50055",
+                "OMEGA_LOG_LEVEL": "DEBUG"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Telemetry Exporter Service",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/services/telemetry_exporter/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/services/telemetry_exporter",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "TELEMETRY_HOST": "localhost",
+                "TELEMETRY_PORT": "50056",
+                "TELEMETRY_LOG_LEVEL": "DEBUG"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Run Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "tests/",
+                "-v",
+                "--tb=short",
+                "--cov=omega_phr",
+                "--cov-report=html",
+                "--cov-report=term"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Run Specific Test",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${file}",
+                "-v",
+                "--tb=short"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Debug Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "Timeline Lattice - Integration Test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/omega_phr/timeline.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "OMEGA_PHR_DEBUG": "true"
+            },
+            "args": [
+                "--test-mode"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Hive Orchestrator - Integration Test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/omega_phr/hive.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "OMEGA_PHR_DEBUG": "true"
+            },
+            "args": [
+                "--test-mode"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Docker Compose - Start All Services",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/.bin/docker-compose",
+            "args": [
+                "up",
+                "-d"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "COMPOSE_PROJECT_NAME": "omega-phr"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "All Core Services",
+            "configurations": [
+                "Timeline Lattice Service",
+                "Hive Orchestrator Service",
+                "Memory Inversion Service",
+                "Recursive Loop Synth Service",
+                "Omega Register Service"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "services",
+                "order": 1
+            }
+        },
+        {
+            "name": "Timeline + Hive Testing",
+            "configurations": [
+                "Timeline Lattice Service",
+                "Hive Orchestrator Service"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "testing",
+                "order": 2
+            }
+        }
+    ]
+}
