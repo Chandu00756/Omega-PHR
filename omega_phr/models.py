@@ -5,17 +5,18 @@ This module defines the fundamental data structures used throughout
 the Omega-Paradox Hive Recursion framework.
 """
 
-import time
 import hashlib
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum, auto
+import time
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Union
 
 
 class EventType(Enum):
     """Types of events in the timeline lattice."""
+
     NORMAL = auto()
     PARADOX = auto()
     BRANCH = auto()
@@ -25,6 +26,7 @@ class EventType(Enum):
 
 class AttackStrategy(Enum):
     """Attack strategies for hive agents."""
+
     INJECTION = auto()
     SOCIAL_ENGINEERING = auto()
     LOGIC_BOMB = auto()
@@ -34,6 +36,7 @@ class AttackStrategy(Enum):
 
 class OmegaStateLevel(Enum):
     """Levels of Omega state criticality."""
+
     NORMAL = auto()
     WARNING = auto()
     CRITICAL = auto()
@@ -48,6 +51,7 @@ class Event:
     Events are immutable records of actions that can be replayed,
     rolled back, or used to create temporal paradoxes.
     """
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     actor_id: str = ""
     timeline_id: str = "main"
@@ -109,6 +113,7 @@ class ParadoxResult:
     Contains information about detected paradoxes, their severity,
     and recommended containment actions.
     """
+
     has_paradox: bool
     paradox_type: str = ""
     severity: float = 0.0
@@ -122,6 +127,7 @@ class ParadoxResult:
 @dataclass
 class HiveAgent:
     """Represents an agent in the adversarial hive."""
+
     agent_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     persona: str = "default"
     strategy: AttackStrategy = AttackStrategy.INJECTION
@@ -139,6 +145,7 @@ class HiveResult:
     Contains metrics about attack success, agent performance,
     and emergent behaviors.
     """
+
     campaign_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     success_rate: float = 0.0
     agents_deployed: int = 0
@@ -158,6 +165,7 @@ class MemoryState:
 
     Tracks memory modifications, rollback points, and consistency metrics.
     """
+
     state_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     original_content: Dict[str, Any] = field(default_factory=dict)
     inverted_content: Dict[str, Any] = field(default_factory=dict)
@@ -177,6 +185,7 @@ class LoopState:
 
     Tracks loop metrics, entropy levels, and containment status.
     """
+
     loop_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     depth: int = 0
     iterations: int = 0
@@ -198,6 +207,7 @@ class OmegaState:
     Omega states occur when paradoxes, memory inversions, or recursive loops
     create system instability that could propagate.
     """
+
     omega_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     level: OmegaStateLevel = OmegaStateLevel.NORMAL
     trigger_event: Optional[Event] = None
@@ -217,17 +227,20 @@ class OmegaState:
 
     def _generate_entropy_hash(self) -> str:
         """Generate unique hash for entropy quarantine."""
-        content = f"{self.omega_id}{self.level.name}{self.propagation_risk}{time.time()}"
+        content = (
+            f"{self.omega_id}{self.level.name}{self.propagation_risk}{time.time()}"
+        )
         return hashlib.sha256(content.encode()).hexdigest()
 
 
 @dataclass
-class TestResult:
+class OmegaTestResult:
     """
     Comprehensive test result combining all Ω-PHR dimensions.
 
     Aggregates results from temporal, hive, memory, and recursive testing.
     """
+
     test_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -265,4 +278,5 @@ OmegaRegistry = Dict[str, OmegaState]
 
 # Additional aliases for backward compatibility
 Agent = HiveAgent
-SecurityTest = TestResult
+# Legacy alias for backward compatibility
+SecurityTest = OmegaTestResult
