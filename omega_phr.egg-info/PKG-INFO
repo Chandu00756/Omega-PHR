@@ -4,11 +4,11 @@ Version: 0.9.3
 Summary: Omega-Paradox Hive Recursion: AI Security Testing Framework
 Author-email: Venkata Sai Chandu Chitikam <chandu@portalvii.com>
 License: Apache-2.0
-Project-URL: homepage, https://github.com/Chandu00756/omega-phr
-Project-URL: repository, https://github.com/Chandu00756/omega-phr
-Project-URL: documentation, https://omega-phr.readthedocs.io
-Project-URL: changelog, https://github.com/Chandu00756/omega-phr/blob/main/CHANGELOG.md
-Project-URL: issues, https://github.com/Chandu00756/omega-phr/issues
+Project-URL: homepage, <https://github.com/Chandu00756/Omega-PHR>
+Project-URL: repository, <https://github.com/Chandu00756/Omega-PHR>
+Project-URL: documentation, <https://omega-phr.readthedocs.io>
+Project-URL: changelog, <https://github.com/Chandu00756/Omega-PHR/blob/main/CHANGELOG.md>
+Project-URL: issues, <https://github.com/Chandu00756/Omega-PHR/issues>
 Keywords: ai-security,adversarial-testing,temporal-paradox,hive-attacks,memory-inversion,recursive-loops
 Classifier: Development Status :: 5 - Stable
 Classifier: Intended Audience :: Science/Research
@@ -46,7 +46,7 @@ Requires-Dist: aiofiles>=23.2.0
 Requires-Dist: prometheus-client>=0.20.0
 Requires-Dist: opentelemetry-api>=1.25.0
 Requires-Dist: opentelemetry-sdk>=1.25.0
-Requires-Dist: opentelemetry-exporter-prometheus>=1.12.0
+Requires-Dist: opentelemetry-exporter-prometheus>=0.56b0
 Requires-Dist: structlog>=24.2.0
 Requires-Dist: pydantic>=2.8.0
 Requires-Dist: pydantic-settings>=2.3.0
@@ -56,6 +56,8 @@ Requires-Dist: cryptography>=42.0.8
 Requires-Dist: pyjwt[crypto]>=2.8.0
 Requires-Dist: passlib[bcrypt]>=1.7.4
 Requires-Dist: python-jose[cryptography]>=3.3.0
+Requires-Dist: keyring>=24.0.0
+Requires-Dist: google-cloud-secret-manager>=2.16.0
 Requires-Dist: httpx>=0.27.0
 Requires-Dist: asyncio-mqtt>=0.16.2
 Requires-Dist: websocket-client>=1.8.0
@@ -117,7 +119,9 @@ Dynamic: license-file
 
 ## Revolutionary AI Security Testing Framework
 
-The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking advancement in AI security testing, introducing the world's first comprehensive framework that simultaneously integrates temporal paradox testing, synthetic adversarial hive attacks, recursive memory inversion, and generative infinite loop fuzzing.
+The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking advancement in AI security testing,
+introducing the world's first comprehensive framework that simultaneously integrates temporal paradox testing,
+synthetic adversarial hive attacks, recursive memory inversion, and generative infinite loop fuzzing.
 
 ## Architecture Overview
 
@@ -145,18 +149,18 @@ The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking ad
 - Python 3.11+
 - Docker and Docker Compose
 - 8GB+ RAM (16GB recommended)
-- CUDA-compatible GPU (optional, for production workloads)
+- CUDA-compatible GPU (optional, for research workloads)
 
 ### Installation
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/chanduchitikam/omega-phr.git
+git clone https://github.com/Chandu00756/Omega-PHR.git
 cd omega-phr
 ```
 
-2. Set up the development environment:
+2.Set up the development environment:
 
 ```bash
 python -m venv .venv
@@ -164,13 +168,13 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .[dev]
 ```
 
-3. Install pre-commit hooks:
+3.Install pre-commit hooks:
 
 ```bash
 pre-commit install
 ```
 
-4. Generate Protocol Buffer stubs:
+4.Generate Protocol Buffer stubs:
 
 ```bash
 make proto
@@ -473,11 +477,11 @@ This framework has been designed to support cutting-edge research in:
 If you use Ω-PHR in your research, please cite:
 
 ```bibtex
-@software{chitikam2025omegaphr,
+@software{chandu2025omegaphr,
   title={Omega-Paradox Hive Recursion: Revolutionary AI Security Testing Framework},
   author={Chitikam, Venkata Sai Chandu},
   year={2025},
-  url={https://github.com/chanduchitikam/omega-phr},
+  url={https://github.com/Chandu00756/Omega-PHR},
   version={1.0.0}
 }
 ```
@@ -489,8 +493,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## Support and Community
 
 - **Documentation**: [https://omega-phr.readthedocs.io](https://omega-phr.readthedocs.io)
-- **Issues**: [GitHub Issues](https://github.com/chanduchitikam/omega-phr/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/chanduchitikam/omega-phr/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Chandu00756/Omega-PHR/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Chandu00756/Omega-PHR/discussions)
 - **Discord**: [Ω-PHR Community](https://discord.gg/omega-phr)
 
 ## Acknowledgments

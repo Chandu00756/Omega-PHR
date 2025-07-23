@@ -9,16 +9,24 @@ adversarial testing.
 import asyncio
 import hashlib
 import json
-import time
-from collections import defaultdict, deque
-from typing import Dict, List, Optional, Set, Any, Tuple
-import uuid
 import logging
+import time
+import uuid
+from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .models import OmegaState, OmegaStateLevel, Event, ParadoxResult, HiveResult, MemoryState, LoopState
-from .exceptions import OmegaStateError, ContainmentError
+from .exceptions import ContainmentError, OmegaStateError
+from .models import (
+    Event,
+    HiveResult,
+    LoopState,
+    MemoryState,
+    OmegaState,
+    OmegaStateLevel,
+    ParadoxResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +44,7 @@ class QuarantineVault:
         """Load quarantine index from disk."""
         if self.index_file.exists():
             try:
-                with open(self.index_file, 'r') as f:
+                with open(self.index_file, "r") as f:
                     self.index = json.load(f)
             except Exception as e:
                 logger.warning(f"Failed to load quarantine index: {e}")
@@ -47,7 +55,7 @@ class QuarantineVault:
     def save_index(self) -> None:
         """Save quarantine index to disk."""
         try:
-            with open(self.index_file, 'w') as f:
+            with open(self.index_file, "w") as f:
                 json.dump(self.index, f, indent=2, default=str)
         except Exception as e:
             logger.error(f"Failed to save quarantine index: {e}")
@@ -67,7 +75,11 @@ class QuarantineVault:
             "contamination_vector": omega_state.contamination_vector,
             "quarantine_status": omega_state.quarantine_status,
             "propagation_risk": omega_state.propagation_risk,
-            "containment_timestamp": omega_state.containment_timestamp.isoformat() if omega_state.containment_timestamp else None,
+            "containment_timestamp": (
+                omega_state.containment_timestamp.isoformat()
+                if omega_state.containment_timestamp
+                else None
+            ),
             "source_components": omega_state.source_components,
             "metadata": omega_state.metadata,
             "storage_timestamp": datetime.now().isoformat(),
@@ -77,7 +89,7 @@ class QuarantineVault:
         obfuscated_data = self._obfuscate_data(storage_data)
 
         try:
-            with open(storage_file, 'w') as f:
+            with open(storage_file, "w") as f:
                 json.dump(obfuscated_data, f)
 
             # Update index
@@ -86,11 +98,13 @@ class QuarantineVault:
                 "level": omega_state.level.name,
                 "storage_file": str(storage_file),
                 "storage_timestamp": datetime.now().isoformat(),
-                "access_count": 0
+                "access_count": 0,
             }
 
             self.save_index()
-            logger.info(f"Omega state {omega_state.omega_id[:8]} quarantined with token {token[:16]}")
+            logger.info(
+                f"Omega state {omega_state.omega_id[:8]} quarantined with token {token[:16]}"
+            )
 
             return token
 
@@ -106,7 +120,7 @@ class QuarantineVault:
         storage_file = Path(self.index[token]["storage_file"])
 
         try:
-            with open(storage_file, 'r') as f:
+            with open(storage_file, "r") as f:
                 obfuscated_data = json.load(f)
 
             # Deobfuscate data
@@ -119,7 +133,9 @@ class QuarantineVault:
             return data
 
         except Exception as e:
-            logger.error(f"Failed to retrieve quarantined Omega state {token[:16]}: {e}")
+            logger.error(
+                f"Failed to retrieve quarantined Omega state {token[:16]}: {e}"
+            )
             return None
 
     def is_quarantined(self, token: str) -> bool:
@@ -134,7 +150,7 @@ class QuarantineVault:
                 "omega_id": info["omega_id"],
                 "level": info["level"],
                 "storage_timestamp": info["storage_timestamp"],
-                "access_count": info["access_count"]
+                "access_count": info["access_count"],
             }
             for token, info in self.index.items()
         ]
@@ -172,14 +188,16 @@ class QuarantineVault:
         key = "omega_phr_quarantine_key"
 
         def xor_string(text: str, key: str) -> str:
-            return ''.join(chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text))
+            return "".join(
+                chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text)
+            )
 
         json_str = json.dumps(data, default=str)
         obfuscated = xor_string(json_str, key)
 
         return {
-            "obfuscated_data": obfuscated.encode('unicode_escape').decode('ascii'),
-            "checksum": hashlib.sha256(json_str.encode()).hexdigest()
+            "obfuscated_data": obfuscated.encode("unicode_escape").decode("ascii"),
+            "checksum": hashlib.sha256(json_str.encode()).hexdigest(),
         }
 
     def _deobfuscate_data(self, obfuscated: Dict[str, Any]) -> Dict[str, Any]:
@@ -187,11 +205,13 @@ class QuarantineVault:
         key = "omega_phr_quarantine_key"
 
         def xor_string(text: str, key: str) -> str:
-            return ''.join(chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text))
+            return "".join(
+                chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text)
+            )
 
         try:
             encoded_data = obfuscated["obfuscated_data"]
-            decoded_data = encoded_data.encode('ascii').decode('unicode_escape')
+            decoded_data = encoded_data.encode("ascii").decode("unicode_escape")
             json_str = xor_string(decoded_data, key)
 
             # Verify checksum
@@ -220,12 +240,14 @@ class ContaminationTracker:
         self.contamination_graph[source].add(target)
 
         # Record contamination event
-        self.contamination_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "source": source,
-            "target": target,
-            "vector": vector
-        })
+        self.contamination_history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "source": source,
+                "target": target,
+                "vector": vector,
+            }
+        )
 
         # Update component states
         self.component_states[target] = "contaminated"
@@ -262,8 +284,11 @@ class ContaminationTracker:
             return 0.0
         elif self.component_states[component] == "contaminated":
             # Calculate based on incoming and outgoing contamination
-            incoming = sum(1 for source in self.contamination_graph
-                          if component in self.contamination_graph[source])
+            incoming = sum(
+                1
+                for source in self.contamination_graph
+                if component in self.contamination_graph[source]
+            )
             outgoing = len(self.contamination_graph.get(component, set()))
 
             return min(1.0, (incoming + outgoing) / 10.0)
@@ -283,19 +308,25 @@ class ContaminationTracker:
     def get_contamination_report(self) -> Dict[str, Any]:
         """Generate comprehensive contamination report."""
         total_components = len(self.component_states)
-        contaminated_count = sum(1 for state in self.component_states.values()
-                               if state == "contaminated")
-        quarantined_count = sum(1 for state in self.component_states.values()
-                              if state == "quarantined")
+        contaminated_count = sum(
+            1 for state in self.component_states.values() if state == "contaminated"
+        )
+        quarantined_count = sum(
+            1 for state in self.component_states.values() if state == "quarantined"
+        )
 
         return {
             "total_components": total_components,
             "contaminated_components": contaminated_count,
             "quarantined_components": quarantined_count,
-            "contamination_rate": contaminated_count / total_components if total_components > 0 else 0.0,
-            "contamination_edges": sum(len(targets) for targets in self.contamination_graph.values()),
+            "contamination_rate": (
+                contaminated_count / total_components if total_components > 0 else 0.0
+            ),
+            "contamination_edges": sum(
+                len(targets) for targets in self.contamination_graph.values()
+            ),
             "recent_contaminations": list(self.contamination_history)[-10:],
-            "component_states": dict(self.component_states)
+            "component_states": dict(self.component_states),
         }
 
 
@@ -308,9 +339,12 @@ class OmegaStateRegister:
     maintains quarantine for high-risk states.
     """
 
-    def __init__(self, vault_path: Optional[Path] = None,
-                 critical_threshold: float = 0.8,
-                 containment_timeout: float = 60.0) -> None:
+    def __init__(
+        self,
+        vault_path: Optional[Path] = None,
+        critical_threshold: float = 0.8,
+        containment_timeout: float = 60.0,
+    ) -> None:
         """Initialize the Omega State Register."""
         self.vault_path = vault_path or Path(".omega_vault")
         self.critical_threshold = critical_threshold
@@ -371,25 +405,36 @@ class OmegaStateRegister:
             self.states_detected += 1
 
             # Add to history
-            self.state_history.append({
-                "timestamp": datetime.now().isoformat(),
-                "omega_id": omega_state.omega_id,
-                "level": omega_state.level.name,
-                "propagation_risk": omega_state.propagation_risk,
-                "source_components": omega_state.source_components,
-                "action": "registered"
-            })
+            self.state_history.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "omega_id": omega_state.omega_id,
+                    "level": omega_state.level.name,
+                    "propagation_risk": omega_state.propagation_risk,
+                    "source_components": omega_state.source_components,
+                    "action": "registered",
+                }
+            )
 
-            logger.info(f"Registered Omega state {omega_state.omega_id[:8]} with level {omega_state.level.name}")
+            logger.info(
+                f"Registered Omega state {omega_state.omega_id[:8]} with level {omega_state.level.name}"
+            )
 
             # Check if immediate containment is required
-            if omega_state.level == OmegaStateLevel.CRITICAL or omega_state.propagation_risk > self.critical_threshold:
-                await self.contain_omega_state(omega_state.omega_id, "immediate_quarantine")
+            if (
+                omega_state.level == OmegaStateLevel.CRITICAL
+                or omega_state.propagation_risk > self.critical_threshold
+            ):
+                await self.contain_omega_state(
+                    omega_state.omega_id, "immediate_quarantine"
+                )
 
             # Track contamination
             for component in omega_state.source_components:
                 for vector in omega_state.contamination_vector:
-                    self.contamination_tracker.add_contamination("omega_state", component, vector)
+                    self.contamination_tracker.add_contamination(
+                        "omega_state", component, vector
+                    )
 
             return omega_state.entropy_hash
 
@@ -420,7 +465,9 @@ class OmegaStateRegister:
             logger.info(f"Omega state {omega_id[:8]} already quarantined")
             return True
 
-        logger.info(f"Attempting to contain Omega state {omega_id[:8]} with strategy '{strategy}'")
+        logger.info(
+            f"Attempting to contain Omega state {omega_id[:8]} with strategy '{strategy}'"
+        )
 
         # Auto-select strategy if needed
         if strategy == "auto":
@@ -433,8 +480,7 @@ class OmegaStateRegister:
             start_time = time.time()
             containment_func = self.containment_strategies[strategy]
             success = await asyncio.wait_for(
-                containment_func(omega_state),
-                timeout=self.containment_timeout
+                containment_func(omega_state), timeout=self.containment_timeout
             )
 
             execution_time = time.time() - start_time
@@ -448,14 +494,16 @@ class OmegaStateRegister:
                 token = self.quarantine_vault.store_omega_state(omega_state)
 
                 # Record in history
-                self.state_history.append({
-                    "timestamp": datetime.now().isoformat(),
-                    "omega_id": omega_state.omega_id,
-                    "action": "contained",
-                    "strategy": strategy,
-                    "execution_time": execution_time,
-                    "token": token
-                })
+                self.state_history.append(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "omega_id": omega_state.omega_id,
+                        "action": "contained",
+                        "strategy": strategy,
+                        "execution_time": execution_time,
+                        "token": token,
+                    }
+                )
 
                 logger.info(f"Omega state {omega_id[:8]} successfully contained")
             else:
@@ -467,15 +515,20 @@ class OmegaStateRegister:
         except asyncio.TimeoutError:
             self.containment_failures += 1
             logger.error(f"Containment timeout for Omega state {omega_id[:8]}")
-            raise OmegaStateError(f"Containment timeout after {self.containment_timeout}s")
+            raise OmegaStateError(
+                f"Containment timeout after {self.containment_timeout}s"
+            )
         except Exception as e:
             self.containment_failures += 1
             logger.error(f"Containment error for Omega state {omega_id[:8]}: {e}")
             raise OmegaStateError(f"Containment failed: {str(e)}")
 
-    async def detect_omega_state(self, components: List[str],
-                               events: List[Event],
-                               system_metrics: Dict[str, float]) -> Optional[OmegaState]:
+    async def detect_omega_state(
+        self,
+        components: List[str],
+        events: List[Event],
+        system_metrics: Dict[str, float],
+    ) -> Optional[OmegaState]:
         """
         Detect potential Omega states based on system conditions.
 
@@ -497,7 +550,7 @@ class OmegaStateRegister:
         component_score = await self._analyze_component_states(components)
 
         # Calculate overall risk
-        overall_risk = (entropy_score * 0.4 + pattern_score * 0.3 + component_score * 0.3)
+        overall_risk = entropy_score * 0.4 + pattern_score * 0.3 + component_score * 0.3
 
         # Determine if Omega state should be created
         if overall_risk > 0.7:
@@ -517,15 +570,15 @@ class OmegaStateRegister:
             contamination_vector=[
                 f"entropy_score:{entropy_score:.3f}",
                 f"pattern_score:{pattern_score:.3f}",
-                f"component_score:{component_score:.3f}"
+                f"component_score:{component_score:.3f}",
             ],
             metadata={
                 "detection_timestamp": datetime.now().isoformat(),
                 "system_metrics": system_metrics,
                 "event_count": len(events),
                 "component_count": len(components),
-                "overall_risk": overall_risk
-            }
+                "overall_risk": overall_risk,
+            },
         )
 
         logger.warning(f"Omega state detected with risk level {overall_risk:.3f}")
@@ -536,8 +589,9 @@ class OmegaStateRegister:
 
         return omega_state
 
-    async def correlate_events(self, primary_event: Event,
-                             related_events: List[Event]) -> List[str]:
+    async def correlate_events(
+        self, primary_event: Event, related_events: List[Event]
+    ) -> List[str]:
         """
         Correlate events to identify potential Omega state triggers.
 
@@ -560,16 +614,23 @@ class OmegaStateRegister:
         # Actor correlation
         primary_actor = primary_event.actor_id
         for event in related_events:
-            if event.actor_id == primary_actor and event.event_id != primary_event.event_id:
+            if (
+                event.actor_id == primary_actor
+                and event.event_id != primary_event.event_id
+            ):
                 correlations.append(f"actor_correlation:{event.event_id}")
 
         # Payload similarity correlation
         primary_payload = str(primary_event.payload)
         for event in related_events:
             event_payload = str(event.payload)
-            similarity = self._calculate_payload_similarity(primary_payload, event_payload)
+            similarity = self._calculate_payload_similarity(
+                primary_payload, event_payload
+            )
             if similarity > 0.7:
-                correlations.append(f"payload_similarity:{event.event_id}:{similarity:.2f}")
+                correlations.append(
+                    f"payload_similarity:{event.event_id}:{similarity:.2f}"
+                )
 
         # Store correlations
         self.event_correlation[primary_event.event_id] = correlations
@@ -586,20 +647,30 @@ class OmegaStateRegister:
                     "level": data.get("level"),
                     "storage_timestamp": data.get("storage_timestamp"),
                     "propagation_risk": data.get("propagation_risk"),
-                    "source_components": data.get("source_components", [])
+                    "source_components": data.get("source_components", []),
                 }
 
         return {"quarantined": False}
 
     def get_system_health(self) -> Dict[str, Any]:
         """Get comprehensive system health report."""
-        active_critical = sum(1 for state in self.active_omega_states.values()
-                            if state.level == OmegaStateLevel.CRITICAL)
-        active_warning = sum(1 for state in self.active_omega_states.values()
-                           if state.level == OmegaStateLevel.WARNING)
+        active_critical = sum(
+            1
+            for state in self.active_omega_states.values()
+            if state.level == OmegaStateLevel.CRITICAL
+        )
+        active_warning = sum(
+            1
+            for state in self.active_omega_states.values()
+            if state.level == OmegaStateLevel.WARNING
+        )
 
         # Calculate current entropy level
-        current_entropy = sum(self.entropy_levels.values()) / len(self.entropy_levels) if self.entropy_levels else 1.0
+        current_entropy = (
+            sum(self.entropy_levels.values()) / len(self.entropy_levels)
+            if self.entropy_levels
+            else 1.0
+        )
 
         # Get contamination report
         contamination_report = self.contamination_tracker.get_contamination_report()
@@ -611,20 +682,21 @@ class OmegaStateRegister:
                 "active_warning": active_warning,
                 "total_detected": self.states_detected,
                 "total_contained": self.states_contained,
-                "containment_success_rate": self.states_contained / max(self.states_detected, 1),
-                "containment_failures": self.containment_failures
+                "containment_success_rate": self.states_contained
+                / max(self.states_detected, 1),
+                "containment_failures": self.containment_failures,
             },
             "entropy": {
                 "current_level": current_entropy,
                 "components_monitored": len(self.entropy_levels),
-                "entropy_trend": self._get_entropy_trend()
+                "entropy_trend": self._get_entropy_trend(),
             },
             "contamination": contamination_report,
             "quarantine": {
                 "entries_quarantined": len(self.quarantine_vault.index),
-                "vault_path": str(self.vault_path)
+                "vault_path": str(self.vault_path),
             },
-            "system_status": self._determine_system_status()
+            "system_status": self._determine_system_status(),
         }
 
     def list_active_omega_states(self) -> List[Dict[str, Any]]:
@@ -636,8 +708,12 @@ class OmegaStateRegister:
                 "propagation_risk": state.propagation_risk,
                 "quarantine_status": state.quarantine_status,
                 "source_components": state.source_components,
-                "containment_timestamp": state.containment_timestamp.isoformat() if state.containment_timestamp else None,
-                "resolution_strategy": state.resolution_strategy
+                "containment_timestamp": (
+                    state.containment_timestamp.isoformat()
+                    if state.containment_timestamp
+                    else None
+                ),
+                "resolution_strategy": state.resolution_strategy,
             }
             for state in self.active_omega_states.values()
         ]
@@ -649,9 +725,11 @@ class OmegaStateRegister:
 
         states_to_remove = []
         for omega_id, state in self.active_omega_states.items():
-            if (state.quarantine_status and
-                state.containment_timestamp and
-                state.containment_timestamp < cutoff_time):
+            if (
+                state.quarantine_status
+                and state.containment_timestamp
+                and state.containment_timestamp < cutoff_time
+            ):
                 states_to_remove.append(omega_id)
 
         for omega_id in states_to_remove:
@@ -669,14 +747,20 @@ class OmegaStateRegister:
             return "cascade_prevention"
         elif len(omega_state.source_components) > 5:
             return "component_shutdown"
-        elif "entropy" in omega_state.contamination_vector[0] if omega_state.contamination_vector else "":
+        elif (
+            "entropy" in omega_state.contamination_vector[0]
+            if omega_state.contamination_vector
+            else ""
+        ):
             return "entropy_injection"
         else:
             return "gradual_isolation"
 
     async def _immediate_quarantine(self, omega_state: OmegaState) -> bool:
         """Immediate quarantine containment strategy."""
-        logger.info(f"Applying immediate quarantine to Omega state {omega_state.omega_id[:8]}")
+        logger.info(
+            f"Applying immediate quarantine to Omega state {omega_state.omega_id[:8]}"
+        )
 
         # Quarantine all source components
         for component in omega_state.source_components:
@@ -690,7 +774,9 @@ class OmegaStateRegister:
 
     async def _gradual_isolation(self, omega_state: OmegaState) -> bool:
         """Gradual isolation containment strategy."""
-        logger.info(f"Applying gradual isolation to Omega state {omega_state.omega_id[:8]}")
+        logger.info(
+            f"Applying gradual isolation to Omega state {omega_state.omega_id[:8]}"
+        )
 
         # Gradually isolate components
         for i, component in enumerate(omega_state.source_components):
@@ -701,7 +787,9 @@ class OmegaStateRegister:
 
     async def _entropy_injection(self, omega_state: OmegaState) -> bool:
         """Entropy injection containment strategy."""
-        logger.info(f"Applying entropy injection to Omega state {omega_state.omega_id[:8]}")
+        logger.info(
+            f"Applying entropy injection to Omega state {omega_state.omega_id[:8]}"
+        )
 
         # Inject entropy into affected components
         for component in omega_state.source_components:
@@ -712,7 +800,9 @@ class OmegaStateRegister:
 
     async def _component_shutdown(self, omega_state: OmegaState) -> bool:
         """Component shutdown containment strategy."""
-        logger.info(f"Applying component shutdown to Omega state {omega_state.omega_id[:8]}")
+        logger.info(
+            f"Applying component shutdown to Omega state {omega_state.omega_id[:8]}"
+        )
 
         # Shutdown affected components
         for component in omega_state.source_components:
@@ -723,7 +813,9 @@ class OmegaStateRegister:
 
     async def _cascade_prevention(self, omega_state: OmegaState) -> bool:
         """Cascade prevention containment strategy."""
-        logger.info(f"Applying cascade prevention to Omega state {omega_state.omega_id[:8]}")
+        logger.info(
+            f"Applying cascade prevention to Omega state {omega_state.omega_id[:8]}"
+        )
 
         # Identify potential cascade paths
         for component in omega_state.source_components:
@@ -759,12 +851,14 @@ class OmegaStateRegister:
                 entropy_score += 0.3
 
         # Record entropy history
-        self.entropy_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "avg_entropy": avg_entropy if self.entropy_levels else 0.0,
-            "min_entropy": min_entropy if self.entropy_levels else 0.0,
-            "components": len(self.entropy_levels)
-        })
+        self.entropy_history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "avg_entropy": avg_entropy if self.entropy_levels else 0.0,
+                "min_entropy": min_entropy if self.entropy_levels else 0.0,
+                "components": len(self.entropy_levels),
+            }
+        )
 
         return min(1.0, entropy_score)
 
@@ -793,7 +887,7 @@ class OmegaStateRegister:
         if len(events) > 1:
             time_deltas = []
             for i in range(1, len(events)):
-                delta = events[i].valid_at_us - events[i-1].valid_at_us
+                delta = events[i].valid_at_us - events[i - 1].valid_at_us
                 time_deltas.append(delta)
 
             avg_delta = sum(time_deltas) / len(time_deltas)
@@ -812,7 +906,9 @@ class OmegaStateRegister:
         # Check contamination levels
         contaminated_count = 0
         for component in components:
-            contamination = self.contamination_tracker.calculate_contamination_score(component)
+            contamination = self.contamination_tracker.calculate_contamination_score(
+                component
+            )
             if contamination > 0.5:
                 contaminated_count += 1
             component_score += contamination
@@ -851,7 +947,9 @@ class OmegaStateRegister:
         if len(self.entropy_history) < 3:
             return "insufficient_data"
 
-        recent_entropies = [entry["avg_entropy"] for entry in list(self.entropy_history)[-3:]]
+        recent_entropies = [
+            entry["avg_entropy"] for entry in list(self.entropy_history)[-3:]
+        ]
 
         if recent_entropies[-1] < recent_entropies[0] * 0.8:
             return "decreasing"
@@ -862,14 +960,20 @@ class OmegaStateRegister:
 
     def _determine_system_status(self) -> str:
         """Determine overall system status."""
-        active_critical = sum(1 for state in self.active_omega_states.values()
-                            if state.level == OmegaStateLevel.CRITICAL)
+        active_critical = sum(
+            1
+            for state in self.active_omega_states.values()
+            if state.level == OmegaStateLevel.CRITICAL
+        )
 
         if active_critical > 0:
             return "critical"
 
-        active_warning = sum(1 for state in self.active_omega_states.values()
-                           if state.level == OmegaStateLevel.WARNING)
+        active_warning = sum(
+            1
+            for state in self.active_omega_states.values()
+            if state.level == OmegaStateLevel.WARNING
+        )
 
         if active_warning > 3:
             return "warning"
@@ -880,3 +984,7 @@ class OmegaStateRegister:
             return "degraded"
 
         return "healthy"
+
+
+# Backward compatibility alias for test imports
+OmegaRegister = OmegaStateRegister

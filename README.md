@@ -2,7 +2,9 @@
 
 ## Revolutionary AI Security Testing Framework
 
-The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking advancement in AI security testing, introducing the world's first comprehensive framework that simultaneously integrates temporal paradox testing, synthetic adversarial hive attacks, recursive memory inversion, and generative infinite loop fuzzing.
+The Omega-Paradox Hive Recursion (Ω-PHR) project represents a groundbreaking advancement in AI security testing,
+introducing the world's first comprehensive framework that simultaneously integrates temporal paradox testing,
+synthetic adversarial hive attacks, recursive memory inversion, and generative infinite loop fuzzing.
 
 ## Architecture Overview
 
@@ -41,7 +43,7 @@ git clone https://github.com/Chandu00756/Omega-PHR.git
 cd omega-phr
 ```
 
-2. Set up the development environment:
+2.Set up the development environment:
 
 ```bash
 python -m venv .venv
@@ -49,13 +51,13 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .[dev]
 ```
 
-3. Install pre-commit hooks:
+3.Install pre-commit hooks:
 
 ```bash
 pre-commit install
 ```
 
-4. Generate Protocol Buffer stubs:
+4.Generate Protocol Buffer stubs:
 
 ```bash
 make proto

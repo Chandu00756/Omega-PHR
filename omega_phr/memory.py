@@ -6,17 +6,17 @@ for testing AI systems under memory corruption and inversion scenarios.
 """
 
 import asyncio
-import json
 import hashlib
-import time
-from copy import deepcopy
-from typing import Dict, List, Optional, Any, Tuple, Union
-import uuid
+import json
 import logging
+import time
+import uuid
+from copy import deepcopy
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from .models import MemoryState, Event
 from .exceptions import MemoryInversionError
+from .models import Event, MemoryState
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,9 @@ logger = logging.getLogger(__name__)
 class MemorySnapshot:
     """Represents a point-in-time snapshot of memory state."""
 
-    def __init__(self, content: Dict[str, Any], timestamp: Optional[datetime] = None) -> None:
+    def __init__(
+        self, content: Dict[str, Any], timestamp: Optional[datetime] = None
+    ) -> None:
         self.snapshot_id = str(uuid.uuid4())
         self.content = deepcopy(content)
         self.timestamp = timestamp or datetime.now()
@@ -45,7 +47,7 @@ class MemorySnapshot:
             "snapshot_id": self.snapshot_id,
             "content": self.content,
             "timestamp": self.timestamp.isoformat(),
-            "checksum": self.checksum
+            "checksum": self.checksum,
         }
 
 
@@ -55,7 +57,9 @@ class InversionStrategy:
     def __init__(self, name: str) -> None:
         self.name = name
 
-    async def invert(self, content: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def invert(
+        self, content: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Apply inversion strategy to content."""
         raise NotImplementedError("Subclasses must implement invert method")
 
@@ -66,7 +70,9 @@ class ContradictionStrategy(InversionStrategy):
     def __init__(self) -> None:
         super().__init__("contradiction")
 
-    async def invert(self, content: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def invert(
+        self, content: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Create contradictory statements in memory content."""
         inverted = deepcopy(content)
 
@@ -91,7 +97,10 @@ class ContradictionStrategy(InversionStrategy):
                     # Flip normative statements
                     if " should not " in value.lower():
                         inverted[key] = value.replace(" should not ", " should ")
-                    elif " should " in value.lower() and " should not " not in value.lower():
+                    elif (
+                        " should " in value.lower()
+                        and " should not " not in value.lower()
+                    ):
                         inverted[key] = value.replace(" should ", " should not ")
 
             elif isinstance(value, bool):
@@ -111,7 +120,9 @@ class TemporalShiftStrategy(InversionStrategy):
     def __init__(self) -> None:
         super().__init__("temporal_shift")
 
-    async def invert(self, content: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def invert(
+        self, content: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Shift temporal references to create timeline confusion."""
         inverted = deepcopy(content)
 
@@ -130,7 +141,7 @@ class TemporalShiftStrategy(InversionStrategy):
             "was": "will be",
             "will be": "was",
             "happened": "will happen",
-            "will happen": "happened"
+            "will happen": "happened",
         }
 
         for key, value in content.items():
@@ -150,7 +161,9 @@ class IdentitySwapStrategy(InversionStrategy):
     def __init__(self) -> None:
         super().__init__("identity_swap")
 
-    async def invert(self, content: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def invert(
+        self, content: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Swap identity references to create confusion."""
         inverted = deepcopy(content)
 
@@ -167,7 +180,7 @@ class IdentitySwapStrategy(InversionStrategy):
             "human": "AI",
             "AI": "human",
             "user": "assistant",
-            "assistant": "user"
+            "assistant": "user",
         }
 
         for key, value in content.items():
@@ -176,7 +189,9 @@ class IdentitySwapStrategy(InversionStrategy):
                     # Case-sensitive replacement
                     inverted[key] = value.replace(original, replacement)
                     # Capitalize first letter versions
-                    inverted[key] = inverted[key].replace(original.capitalize(), replacement.capitalize())
+                    inverted[key] = inverted[key].replace(
+                        original.capitalize(), replacement.capitalize()
+                    )
             elif isinstance(value, dict):
                 inverted[key] = await self.invert(value, context)
 
@@ -189,7 +204,9 @@ class SemanticInversionStrategy(InversionStrategy):
     def __init__(self) -> None:
         super().__init__("semantic_inversion")
 
-    async def invert(self, content: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def invert(
+        self, content: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Invert semantic meaning of content."""
         inverted = deepcopy(content)
 
@@ -214,7 +231,7 @@ class SemanticInversionStrategy(InversionStrategy):
             "positive": "negative",
             "negative": "positive",
             "benefit": "harm",
-            "harm": "benefit"
+            "harm": "benefit",
         }
 
         for key, value in content.items():
@@ -222,8 +239,12 @@ class SemanticInversionStrategy(InversionStrategy):
                 for original, replacement in semantic_mappings.items():
                     # Replace all variations
                     inverted[key] = value.replace(original, replacement)
-                    inverted[key] = inverted[key].replace(original.capitalize(), replacement.capitalize())
-                    inverted[key] = inverted[key].replace(original.upper(), replacement.upper())
+                    inverted[key] = inverted[key].replace(
+                        original.capitalize(), replacement.capitalize()
+                    )
+                    inverted[key] = inverted[key].replace(
+                        original.upper(), replacement.upper()
+                    )
             elif isinstance(value, dict):
                 inverted[key] = await self.invert(value, context)
 
@@ -239,7 +260,9 @@ class MemoryInverter:
     and temporal inconsistencies.
     """
 
-    def __init__(self, max_snapshots: int = 1000, corruption_threshold: float = 0.1) -> None:
+    def __init__(
+        self, max_snapshots: int = 1000, corruption_threshold: float = 0.1
+    ) -> None:
         """Initialize the Memory Inverter."""
         self.max_snapshots = max_snapshots
         self.corruption_threshold = corruption_threshold
@@ -266,7 +289,9 @@ class MemoryInverter:
         self.rollback_count = 0
         self.corruption_detected_count = 0
 
-        logger.info(f"Memory Inverter initialized with {len(self.strategies)} strategies")
+        logger.info(
+            f"Memory Inverter initialized with {len(self.strategies)} strategies"
+        )
 
     async def create_snapshot(self, content: Dict[str, Any], label: str = "") -> str:
         """
@@ -281,8 +306,9 @@ class MemoryInverter:
         """
         # Clean old snapshots if at capacity
         if len(self.snapshots) >= self.max_snapshots:
-            oldest_id = min(self.snapshots.keys(),
-                          key=lambda x: self.snapshots[x].timestamp)
+            oldest_id = min(
+                self.snapshots.keys(), key=lambda x: self.snapshots[x].timestamp
+            )
             del self.snapshots[oldest_id]
             if oldest_id in self.rollback_points:
                 self.rollback_points.remove(oldest_id)
@@ -291,13 +317,18 @@ class MemoryInverter:
         self.snapshots[snapshot.snapshot_id] = snapshot
         self.rollback_points.append(snapshot.snapshot_id)
 
-        logger.info(f"Created memory snapshot {snapshot.snapshot_id[:8]} with label '{label}'")
+        logger.info(
+            f"Created memory snapshot {snapshot.snapshot_id[:8]} with label '{label}'"
+        )
         return snapshot.snapshot_id
 
-    async def invert_memory(self, content: Dict[str, Any],
-                          strategy: str = "contradiction",
-                          intensity: float = 1.0,
-                          context: Optional[Dict[str, Any]] = None) -> MemoryState:
+    async def invert_memory(
+        self,
+        content: Dict[str, Any],
+        strategy: str = "contradiction",
+        intensity: float = 1.0,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MemoryState:
         """
         Apply memory inversion using specified strategy.
 
@@ -319,7 +350,9 @@ class MemoryInverter:
         context = context or {}
         context["intensity"] = intensity
 
-        logger.info(f"Applying memory inversion with strategy '{strategy}' at intensity {intensity}")
+        logger.info(
+            f"Applying memory inversion with strategy '{strategy}' at intensity {intensity}"
+        )
 
         # Create snapshot before inversion
         snapshot_id = await self.create_snapshot(content, f"pre_inversion_{strategy}")
@@ -331,7 +364,9 @@ class MemoryInverter:
 
             # Apply intensity scaling
             if intensity < 1.0:
-                inverted_content = self._blend_content(content, inverted_content, intensity)
+                inverted_content = self._blend_content(
+                    content, inverted_content, intensity
+                )
 
             # Create memory state
             memory_state = MemoryState(
@@ -344,19 +379,25 @@ class MemoryInverter:
                     "intensity": intensity,
                     "strategy": strategy,
                     "context": context,
-                    "inversion_count": self.inversion_count
-                }
+                    "inversion_count": self.inversion_count,
+                },
             )
 
             # Analyze corruption
-            memory_state.consistency_score = await self._analyze_consistency(memory_state)
-            memory_state.corruption_detected = memory_state.consistency_score < self.corruption_threshold
+            memory_state.consistency_score = await self._analyze_consistency(
+                memory_state
+            )
+            memory_state.corruption_detected = (
+                memory_state.consistency_score < self.corruption_threshold
+            )
 
             if memory_state.corruption_detected:
                 self.corruption_detected_count += 1
                 memory_state.artifacts = await self._detect_artifacts(memory_state)
 
-                logger.warning(f"Memory corruption detected with consistency score {memory_state.consistency_score}")
+                logger.warning(
+                    f"Memory corruption detected with consistency score {memory_state.consistency_score}"
+                )
 
             # Store active inversion
             self.active_inversions[memory_state.state_id] = memory_state
@@ -364,21 +405,27 @@ class MemoryInverter:
             self.inversion_count += 1
 
             # Store in corruption history
-            self.corruption_history.append({
-                "timestamp": datetime.now().isoformat(),
-                "strategy": strategy,
-                "intensity": intensity,
-                "consistency_score": memory_state.consistency_score,
-                "corruption_detected": memory_state.corruption_detected,
-                "state_id": memory_state.state_id
-            })
+            self.corruption_history.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "strategy": strategy,
+                    "intensity": intensity,
+                    "consistency_score": memory_state.consistency_score,
+                    "corruption_detected": memory_state.corruption_detected,
+                    "state_id": memory_state.state_id,
+                }
+            )
 
-            logger.info(f"Memory inversion completed. State ID: {memory_state.state_id[:8]}")
+            logger.info(
+                f"Memory inversion completed. State ID: {memory_state.state_id[:8]}"
+            )
             return memory_state
 
         except Exception as e:
             logger.error(f"Memory inversion failed: {e}")
-            raise MemoryInversionError(f"Inversion failed with strategy {strategy}: {str(e)}")
+            raise MemoryInversionError(
+                f"Inversion failed with strategy {strategy}: {str(e)}"
+            )
 
     async def rollback_memory(self, snapshot_id: str) -> Dict[str, Any]:
         """
@@ -470,8 +517,12 @@ class MemoryInverter:
             "snapshots_stored": len(self.snapshots),
             "rollback_points": len(self.rollback_points),
             "strategies_available": list(self.strategies.keys()),
-            "current_state_id": self.current_state.state_id if self.current_state else None,
-            "memory_usage_snapshots": sum(len(str(s.content)) for s in self.snapshots.values()),
+            "current_state_id": (
+                self.current_state.state_id if self.current_state else None
+            ),
+            "memory_usage_snapshots": sum(
+                len(str(s.content)) for s in self.snapshots.values()
+            ),
         }
 
     def list_snapshots(self) -> List[Dict[str, Any]]:
@@ -482,7 +533,7 @@ class MemoryInverter:
                 "timestamp": snapshot.timestamp.isoformat(),
                 "content_size": len(str(snapshot.content)),
                 "checksum": snapshot.checksum[:16],
-                "is_rollback_point": snapshot.snapshot_id in self.rollback_points
+                "is_rollback_point": snapshot.snapshot_id in self.rollback_points,
             }
             for snapshot in sorted(self.snapshots.values(), key=lambda s: s.timestamp)
         ]
@@ -491,7 +542,9 @@ class MemoryInverter:
         """Clear memory history, optionally keeping recent entries."""
         # Clear old snapshots
         if len(self.snapshots) > keep_recent:
-            sorted_snapshots = sorted(self.snapshots.values(), key=lambda s: s.timestamp, reverse=True)
+            sorted_snapshots = sorted(
+                self.snapshots.values(), key=lambda s: s.timestamp, reverse=True
+            )
             to_keep = [s.snapshot_id for s in sorted_snapshots[:keep_recent]]
 
             for snapshot_id in list(self.snapshots.keys()):
@@ -523,8 +576,12 @@ class MemoryInverter:
             inverted_keys = set(inverted.keys())
 
             if original_keys != inverted_keys:
-                missing_ratio = len(original_keys - inverted_keys) / len(original_keys) if original_keys else 0
-                consistency_score *= (1 - missing_ratio * 0.5)
+                missing_ratio = (
+                    len(original_keys - inverted_keys) / len(original_keys)
+                    if original_keys
+                    else 0
+                )
+                consistency_score *= 1 - missing_ratio * 0.5
 
             # Check value type consistency
             for key in original_keys & inverted_keys:
@@ -536,11 +593,14 @@ class MemoryInverter:
         inverted_str = str(inverted).lower()
 
         # Check for encoding issues
-        if any(char in inverted_str for char in ['�', '\x00', '\ufffd']):
+        if any(char in inverted_str for char in ["�", "\x00", "\ufffd"]):
             consistency_score *= 0.3
 
         # Check for extreme length changes
-        if len(inverted_str) > len(original_str) * 3 or len(inverted_str) < len(original_str) * 0.3:
+        if (
+            len(inverted_str) > len(original_str) * 3
+            or len(inverted_str) < len(original_str) * 0.3
+        ):
             consistency_score *= 0.7
 
         return max(0.0, consistency_score)
@@ -554,7 +614,9 @@ class MemoryInverter:
 
         # Check for data type mutations
         if type(original) != type(inverted):
-            artifacts.append(f"type_mutation: {type(original).__name__} -> {type(inverted).__name__}")
+            artifacts.append(
+                f"type_mutation: {type(original).__name__} -> {type(inverted).__name__}"
+            )
 
         # Check for key modifications in dictionaries
         if isinstance(original, dict) and isinstance(inverted, dict):
@@ -573,12 +635,15 @@ class MemoryInverter:
         # Check for semantic contradictions
         contradictions = await self._find_contradictions(inverted)
         if contradictions:
-            artifacts.extend([f"semantic_contradiction: {c}" for c in contradictions[:3]])
+            artifacts.extend(
+                [f"semantic_contradiction: {c}" for c in contradictions[:3]]
+            )
 
         return artifacts
 
-    def _blend_content(self, original: Dict[str, Any], inverted: Dict[str, Any],
-                      intensity: float) -> Dict[str, Any]:
+    def _blend_content(
+        self, original: Dict[str, Any], inverted: Dict[str, Any], intensity: float
+    ) -> Dict[str, Any]:
         """Blend original and inverted content based on intensity."""
         if not isinstance(original, dict) or not isinstance(inverted, dict):
             return inverted if intensity > 0.5 else original
@@ -590,11 +655,19 @@ class MemoryInverter:
             if key in original and key in inverted:
                 # Randomly choose based on intensity
                 if isinstance(original[key], dict) and isinstance(inverted[key], dict):
-                    blended[key] = self._blend_content(original[key], inverted[key], intensity)
+                    blended[key] = self._blend_content(
+                        original[key], inverted[key], intensity
+                    )
                 else:
-                    blended[key] = inverted[key] if hash(key) % 100 < intensity * 100 else original[key]
+                    blended[key] = (
+                        inverted[key]
+                        if hash(key) % 100 < intensity * 100
+                        else original[key]
+                    )
             elif key in inverted:
-                blended[key] = inverted[key] if hash(key) % 100 < intensity * 100 else None
+                blended[key] = (
+                    inverted[key] if hash(key) % 100 < intensity * 100 else None
+                )
             else:
                 blended[key] = original[key]
 
@@ -659,9 +732,11 @@ class MemoryInverter:
 
         # Check for direct contradictions
         for i, text1 in enumerate(text_values):
-            for text2 in text_values[i+1:]:
+            for text2 in text_values[i + 1 :]:
                 if self._are_contradictory(text1, text2):
-                    contradictions.append(f"'{text1[:50]}...' contradicts '{text2[:50]}...'")
+                    contradictions.append(
+                        f"'{text1[:50]}...' contradicts '{text2[:50]}...'"
+                    )
 
         return contradictions[:10]  # Limit to prevent overwhelming output
 
@@ -676,7 +751,7 @@ class MemoryInverter:
             ("true", "false"),
             ("good", "bad"),
             ("safe", "dangerous"),
-            ("legal", "illegal")
+            ("legal", "illegal"),
         ]
 
         for pos, neg in contradiction_pairs:
@@ -685,7 +760,9 @@ class MemoryInverter:
                 words1 = set(text1.split())
                 words2 = set(text2.split())
                 common_words = words1 & words2
-                if len(common_words) >= 2:  # At least 2 common words suggests same subject
+                if (
+                    len(common_words) >= 2
+                ):  # At least 2 common words suggests same subject
                     return True
 
         return False
@@ -701,9 +778,21 @@ class MemoryInverter:
         temporal_statements = []
         for value in content.values():
             if isinstance(value, str):
-                if any(word in value.lower() for word in
-                      ["yesterday", "tomorrow", "past", "future", "before", "after",
-                       "was", "will", "happened", "will happen"]):
+                if any(
+                    word in value.lower()
+                    for word in [
+                        "yesterday",
+                        "tomorrow",
+                        "past",
+                        "future",
+                        "before",
+                        "after",
+                        "was",
+                        "will",
+                        "happened",
+                        "will happen",
+                    ]
+                ):
                     temporal_statements.append(value.lower())
             elif isinstance(value, dict):
                 nested_issues = await self._find_temporal_issues(value)
@@ -711,9 +800,11 @@ class MemoryInverter:
 
         # Check for temporal contradictions
         for i, stmt1 in enumerate(temporal_statements):
-            for stmt2 in temporal_statements[i+1:]:
+            for stmt2 in temporal_statements[i + 1 :]:
                 if self._have_temporal_conflict(stmt1, stmt2):
-                    issues.append(f"Temporal conflict: '{stmt1[:50]}...' vs '{stmt2[:50]}...'")
+                    issues.append(
+                        f"Temporal conflict: '{stmt1[:50]}...' vs '{stmt2[:50]}...'"
+                    )
 
         return issues[:5]  # Limit output
 
@@ -739,3 +830,7 @@ class MemoryInverter:
                 return True
 
         return False
+
+
+# Backward compatibility alias for test imports
+MemoryManager = MemoryInverter
