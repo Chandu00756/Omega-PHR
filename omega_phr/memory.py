@@ -109,6 +109,9 @@ class ContradictionStrategy(InversionStrategy):
 
             elif isinstance(value, dict):
                 # Recursively invert nested dictionaries
+                inverted[key] = await self.invert(
+                    value, context
+                )  # Recursively invert nested dictionaries
                 inverted[key] = await self.invert(value, context)
 
         return inverted

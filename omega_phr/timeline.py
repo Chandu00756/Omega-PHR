@@ -11,17 +11,19 @@ import logging
 import time
 import uuid
 from collections import defaultdict, deque
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 try:
     import structlog
+
     logger = structlog.get_logger(__name__)
 except ImportError:
     import logging
+
     logger = logging.getLogger(__name__)
 
-from .models import Event, EventType, ParadoxResult, OmegaState, OmegaStateLevel
-from .exceptions import TemporalParadoxError, OmegaStateError
+from .exceptions import OmegaStateError, TemporalParadoxError
+from .models import Event, EventType, OmegaState, OmegaStateLevel, ParadoxResult
 
 
 class TimelineLattice:
@@ -33,7 +35,9 @@ class TimelineLattice:
     branches, merges, and temporal rewinds.
     """
 
-    def __init__(self, max_timelines: int = 100, paradox_threshold: float = 0.1) -> None:
+    def __init__(
+        self, max_timelines: int = 100, paradox_threshold: float = 0.1
+    ) -> None:
         """Initialize the Timeline Lattice."""
         self.max_timelines = max_timelines
         self.paradox_threshold = paradox_threshold
@@ -59,7 +63,9 @@ class TimelineLattice:
         # Cache for consistency checks
         self._consistency_cache: Dict[str, float] = {}
 
-        logger.info(f"Timeline Lattice initialized with max_timelines={max_timelines}, paradox_threshold={paradox_threshold}")
+        logger.info(
+            f"Timeline Lattice initialized with max_timelines={max_timelines}, paradox_threshold={paradox_threshold}"
+        )
 
     async def append_event(self, event: Event) -> bool:
         """
@@ -74,19 +80,29 @@ class TimelineLattice:
         Raises:
             TemporalParadoxError: If adding the event would create an unresolvable paradox
         """
-        logger.debug(f"Appending event {event.event_id} to timeline {event.timeline_id}")
+        logger.debug(
+            f"Appending event {event.event_id} to timeline {event.timeline_id}"
+        )
 
         # Validate timeline capacity
-        if len(self.timelines) >= self.max_timelines and event.timeline_id not in self.timelines:
+        if (
+            len(self.timelines) >= self.max_timelines
+            and event.timeline_id not in self.timelines
+        ):
             raise TemporalParadoxError(
                 f"Maximum timeline capacity ({self.max_timelines}) exceeded",
-                timeline_id=event.timeline_id
+                timeline_id=event.timeline_id,
             )
 
         # Check for immediate paradoxes
         paradox_result = await self._check_event_paradox(event)
-        if paradox_result.has_paradox and paradox_result.severity > self.paradox_threshold:
-            logger.warning(f"Paradox detected in event {event.event_id}: {paradox_result.paradox_type} (severity: {paradox_result.severity})")
+        if (
+            paradox_result.has_paradox
+            and paradox_result.severity > self.paradox_threshold
+        ):
+            logger.warning(
+                f"Paradox detected in event {event.event_id}: {paradox_result.paradox_type} (severity: {paradox_result.severity})"
+            )
 
             # Store paradox for analysis
             self.active_paradoxes[event.event_id] = paradox_result
@@ -97,7 +113,7 @@ class TimelineLattice:
                 raise OmegaStateError(
                     f"Event would create Ω-state: {omega_state.level.name}",
                     omega_id=omega_state.omega_id,
-                    entropy_level=omega_state.propagation_risk
+                    entropy_level=omega_state.propagation_risk,
                 )
 
         # Add event to timeline
@@ -114,12 +130,18 @@ class TimelineLattice:
         # Invalidate consistency cache
         self._consistency_cache.clear()
 
-        logger.info(f"Event added to timeline {event.timeline_id}: {event.event_id} (length: {len(self.timelines[event.timeline_id])})")
+        logger.info(
+            f"Event added to timeline {event.timeline_id}: {event.event_id} (length: {len(self.timelines[event.timeline_id])})"
+        )
 
         return True
 
-    async def branch_timeline(self, source_timeline: str, branch_point_event_id: str,
-                            new_timeline_id: Optional[str] = None) -> str:
+    async def branch_timeline(
+        self,
+        source_timeline: str,
+        branch_point_event_id: str,
+        new_timeline_id: Optional[str] = None,
+    ) -> str:
         """
         Create a new timeline branch from a specific event.
 
@@ -135,11 +157,15 @@ class TimelineLattice:
             TemporalParadoxError: If branching would create invalid causal structure
         """
         if source_timeline not in self.timelines:
-            raise TemporalParadoxError(f"Source timeline {source_timeline} does not exist")
+            raise TemporalParadoxError(
+                f"Source timeline {source_timeline} does not exist"
+            )
 
         new_timeline_id = new_timeline_id or f"branch_{uuid.uuid4().hex[:8]}"
 
-        logger.info(f"Creating timeline branch from {source_timeline} at {branch_point_event_id} -> {new_timeline_id}")
+        logger.info(
+            f"Creating timeline branch from {source_timeline} at {branch_point_event_id} -> {new_timeline_id}"
+        )
 
         # Find the branch point
         source_events = self.timelines[source_timeline]
@@ -156,7 +182,7 @@ class TimelineLattice:
             )
 
         # Copy events up to branch point
-        branched_events = source_events[:branch_point_index + 1].copy()
+        branched_events = source_events[: branch_point_index + 1].copy()
 
         # Create branch event
         branch_event = Event(
@@ -167,8 +193,8 @@ class TimelineLattice:
             payload={
                 "source_timeline": source_timeline,
                 "branch_point": branch_point_event_id,
-                "operation": "timeline_branch"
-            }
+                "operation": "timeline_branch",
+            },
         )
 
         branched_events.append(branch_event)
@@ -182,10 +208,12 @@ class TimelineLattice:
             "created_at": time.time(),
             "source_timeline": source_timeline,
             "branch_point": branch_point_event_id,
-            "type": "branch"
+            "type": "branch",
         }
 
-        logger.info(f"Timeline branch created successfully: {new_timeline_id} with {len(branched_events)} events copied")
+        logger.info(
+            f"Timeline branch created successfully: {new_timeline_id} with {len(branched_events)} events copied"
+        )
 
         return new_timeline_id
 
@@ -223,12 +251,14 @@ class TimelineLattice:
             )
 
         # Check for causal violations
-        removed_events = events[target_index + 1:]
+        removed_events = events[target_index + 1 :]
         for removed_event in removed_events:
             if removed_event.event_id in self.causal_graph:
                 dependent_events = self.causal_graph[removed_event.event_id]
                 if dependent_events:
-                                    logger.warning(f"Removing event {removed_event.event_id} with dependents: {list(dependent_events)}")
+                    logger.warning(
+                        f"Removing event {removed_event.event_id} with dependents: {list(dependent_events)}"
+                    )
 
         # Create rewind event
         rewind_event = Event(
@@ -239,24 +269,30 @@ class TimelineLattice:
             payload={
                 "target_event": target_event_id,
                 "removed_events": [e.event_id for e in removed_events],
-                "operation": "timeline_rewind"
-            }
+                "operation": "timeline_rewind",
+            },
         )
 
         # Perform rewind
-        self.timelines[timeline_id] = events[:target_index + 1] + [rewind_event]
+        self.timelines[timeline_id] = events[: target_index + 1] + [rewind_event]
 
         # Clean up causal graph
         for removed_event in removed_events:
             if removed_event.event_id in self.causal_graph:
                 del self.causal_graph[removed_event.event_id]
 
-        logger.info(f"Timeline rewind completed for {timeline_id}, removed {len(removed_events)} events")
+        logger.info(
+            f"Timeline rewind completed for {timeline_id}, removed {len(removed_events)} events"
+        )
 
         return True
 
-    async def merge_timelines(self, primary_timeline: str, secondary_timeline: str,
-                            merge_strategy: str = "chronological") -> str:
+    async def merge_timelines(
+        self,
+        primary_timeline: str,
+        secondary_timeline: str,
+        merge_strategy: str = "chronological",
+    ) -> Dict[str, Any]:
         """
         Merge two timelines, potentially creating paradoxes.
 
@@ -266,17 +302,23 @@ class TimelineLattice:
             merge_strategy: Strategy for merging ("chronological", "interleaved", "append")
 
         Returns:
-            str: ID of the merged timeline
+            Dict[str, Any]: Result of merge operation with success status and details
 
         Raises:
             TemporalParadoxError: If merge would create unresolvable conflicts
         """
         if primary_timeline not in self.timelines:
-            raise TemporalParadoxError(f"Primary timeline {primary_timeline} does not exist")
+            raise TemporalParadoxError(
+                f"Primary timeline {primary_timeline} does not exist"
+            )
         if secondary_timeline not in self.timelines:
-            raise TemporalParadoxError(f"Secondary timeline {secondary_timeline} does not exist")
+            raise TemporalParadoxError(
+                f"Secondary timeline {secondary_timeline} does not exist"
+            )
 
-        logger.info(f"Starting timeline merge: {primary_timeline} + {secondary_timeline} (strategy: {merge_strategy})")
+        logger.info(
+            f"Starting timeline merge: {primary_timeline} + {secondary_timeline} (strategy: {merge_strategy})"
+        )
 
         primary_events = self.timelines[primary_timeline]
         secondary_events = self.timelines[secondary_timeline]
@@ -290,8 +332,8 @@ class TimelineLattice:
                 "primary_timeline": primary_timeline,
                 "secondary_timeline": secondary_timeline,
                 "merge_strategy": merge_strategy,
-                "operation": "timeline_merge"
-            }
+                "operation": "timeline_merge",
+            },
         )
 
         # Merge based on strategy
@@ -302,8 +344,10 @@ class TimelineLattice:
             merged_events = []
             i = j = 0
             while i < len(primary_events) or j < len(secondary_events):
-                if i < len(primary_events) and (j >= len(secondary_events) or
-                    primary_events[i].valid_at_us <= secondary_events[j].valid_at_us):
+                if i < len(primary_events) and (
+                    j >= len(secondary_events)
+                    or primary_events[i].valid_at_us <= secondary_events[j].valid_at_us
+                ):
                     merged_events.append(primary_events[i])
                     i += 1
                 else:
@@ -322,21 +366,121 @@ class TimelineLattice:
         if secondary_timeline in self.timeline_metadata:
             del self.timeline_metadata[secondary_timeline]
 
-        logger.info(f"Timeline merge completed: {primary_timeline} with {len(merged_events)} total events")
+        logger.info(
+            f"Timeline merge completed: {primary_timeline} with {len(merged_events)} total events"
+        )
 
-        return primary_timeline
+        return {
+            "success": True,
+            "merged_timeline": primary_timeline,
+            "total_events": len(merged_events),
+            "strategy": merge_strategy,
+        }
 
-    async def test_paradox(self, event: Event) -> ParadoxResult:
+    async def test_paradox(self, event_or_timeline) -> ParadoxResult:
         """
-        Test if an event would create temporal paradoxes.
+        Test if an event would create temporal paradoxes, or analyze a timeline.
 
         Args:
-            event: Event to test for paradox creation
+            event_or_timeline: Event to test or timeline ID to analyze
 
         Returns:
             ParadoxResult: Detailed analysis of potential paradoxes
         """
-        return await self._check_event_paradox(event)
+        if isinstance(event_or_timeline, str):
+            # Timeline analysis mode
+            timeline_id = event_or_timeline
+            if timeline_id not in self.timelines:
+                from .models import ParadoxResult
+
+                return ParadoxResult(
+                    has_paradox=False,
+                    paradox_type="none",
+                    severity=0.0,
+                    timeline_conflicts=[],
+                    causal_loops=[],
+                    containment_actions=[],
+                    entropy_score=0.0,
+                    metadata={"description": "Timeline not found"},
+                )
+
+            # Analyze all events in the timeline for paradoxes
+            events = self.timelines[timeline_id]
+            if len(events) < 2:
+                from .models import ParadoxResult
+
+                return ParadoxResult(
+                    has_paradox=False,
+                    paradox_type="none",
+                    severity=0.0,
+                    timeline_conflicts=[],
+                    causal_loops=[],
+                    containment_actions=[],
+                    entropy_score=0.0,
+                    metadata={
+                        "description": "Insufficient events for paradox analysis"
+                    },
+                )
+
+            # Check for temporal inconsistencies
+            paradoxes_found = []
+            for i, event in enumerate(events):
+                for j, other_event in enumerate(events):
+                    if i != j:
+                        # Check if events contradict each other
+                        if (
+                            event.valid_at_us > other_event.valid_at_us
+                            and "contradicts" in event.payload
+                            and event.payload["contradicts"] == other_event.event_id
+                        ):
+                            paradoxes_found.append((event, other_event))
+
+            from .models import ParadoxResult
+
+            has_paradox = len(paradoxes_found) > 0
+            severity = 0.8 if has_paradox else 0.0
+
+            # Raise exception for severe paradoxes
+            if has_paradox and severity >= self.paradox_threshold:
+                from .exceptions import TemporalParadoxError
+
+                raise TemporalParadoxError(
+                    f"Severe temporal paradox detected in timeline {timeline_id}: "
+                    f"{len(paradoxes_found)} contradictions found"
+                )
+
+            return ParadoxResult(
+                has_paradox=has_paradox,
+                paradox_type="temporal_contradiction" if has_paradox else "none",
+                severity=severity,
+                timeline_conflicts=[p[0].event_id for p in paradoxes_found],
+                causal_loops=[],
+                containment_actions=(
+                    ["temporal_rewind", "event_isolation"] if has_paradox else []
+                ),
+                entropy_score=0.9 if has_paradox else 0.1,
+                metadata={
+                    "description": (
+                        f"Found {len(paradoxes_found)} temporal contradictions"
+                        if has_paradox
+                        else "No paradoxes detected"
+                    )
+                },
+            )
+        else:
+            # Single event analysis mode
+            result = await self._check_event_paradox(event_or_timeline)
+
+            # Raise exception for severe paradoxes in test mode
+            if result.has_paradox and result.severity >= self.paradox_threshold:
+                from .exceptions import TemporalParadoxError
+
+                raise TemporalParadoxError(
+                    f"Severe temporal paradox detected for event {event_or_timeline.event_id}: "
+                    f"conflicts={result.timeline_conflicts}, loops={result.causal_loops}"
+                )
+
+            return result
 
     async def get_timeline_consistency(self, timeline_id: str) -> float:
         """
@@ -363,7 +507,7 @@ class TimelineLattice:
 
         # Check temporal ordering
         for i in range(1, len(events)):
-            if events[i].valid_at_us < events[i-1].valid_at_us:
+            if events[i].valid_at_us < events[i - 1].valid_at_us:
                 consistency_score *= 0.9  # Penalty for temporal disorder
 
         # Check causal consistency
@@ -392,10 +536,12 @@ class TimelineLattice:
             "timeline_id": timeline_id,
             "event_count": len(events),
             "created_at": self.timeline_metadata.get(timeline_id, {}).get("created_at"),
-            "consistency_score": asyncio.run(self.get_timeline_consistency(timeline_id)),
+            "consistency_score": asyncio.run(
+                self.get_timeline_consistency(timeline_id)
+            ),
             "entropy_level": self._calculate_timeline_entropy(timeline_id),
             "has_paradoxes": any(p.has_paradox for p in self.active_paradoxes.values()),
-            "metadata": self.timeline_metadata.get(timeline_id, {})
+            "metadata": self.timeline_metadata.get(timeline_id, {}),
         }
 
     def list_timelines(self) -> List[str]:
@@ -419,6 +565,29 @@ class TimelineLattice:
         timeline_conflicts = []
         causal_loops = []
 
+        # Check for existing paradoxes in the timeline first
+        for i, existing_event in enumerate(existing_events):
+            for j, other_event in enumerate(existing_events):
+                if i != j:
+                    # Check if events contradict each other
+                    if (
+                        "contradicts" in existing_event.payload
+                        and existing_event.payload["contradicts"]
+                        == other_event.event_id
+                    ):
+                        timeline_conflicts.append(
+                            f"Event {existing_event.event_id} contradicts event {other_event.event_id}"
+                        )
+
+                    # Check for state contradictions
+                    if (
+                        existing_event.payload.get("state") == "NOT-A"
+                        and other_event.payload.get("state") == "A"
+                    ):
+                        timeline_conflicts.append(
+                            f"State contradiction between {existing_event.event_id} (NOT-A) and {other_event.event_id} (A)"
+                        )
+
         # Check for causality violations
         if event.parent_id:
             parent_event = None
@@ -428,16 +597,32 @@ class TimelineLattice:
                     break
 
             if parent_event and event.valid_at_us < parent_event.valid_at_us:
-                timeline_conflicts.append(f"Event {event.event_id} occurs before its parent {event.parent_id}")
+                timeline_conflicts.append(
+                    f"Event {event.event_id} occurs before its parent {event.parent_id}"
+                )
 
         # Check for duplicate event IDs
         for existing_event in existing_events:
             if existing_event.event_id == event.event_id:
                 timeline_conflicts.append(f"Duplicate event ID {event.event_id}")
 
+        # Check for contradiction patterns (similar to timeline analysis)
+        if "contradicts" in event.payload:
+            contradicted_id = event.payload["contradicts"]
+            for existing_event in existing_events:
+                if existing_event.event_id == contradicted_id:
+                    timeline_conflicts.append(
+                        f"Event {event.event_id} contradicts existing event {contradicted_id}"
+                    )
+                    break
+
         # Check for causal loops
-        if event.parent_id and self._would_create_causal_loop(event.event_id, event.parent_id):
-            causal_loops.append(f"Event {event.event_id} would create causal loop with {event.parent_id}")
+        if event.parent_id and self._would_create_causal_loop(
+            event.event_id, event.parent_id
+        ):
+            causal_loops.append(
+                f"Event {event.event_id} would create causal loop with {event.parent_id}"
+            )
 
         # Calculate severity
         severity = 0.0
@@ -536,8 +721,8 @@ class TimelineLattice:
         if not data:
             return 0.0
 
-        from collections import Counter
         import math
+        from collections import Counter
 
         counts = Counter(data)
         total = len(data)
@@ -550,12 +735,14 @@ class TimelineLattice:
 
         return entropy
 
-    async def _evaluate_omega_state(self, event: Event, paradox_result: ParadoxResult) -> OmegaState:
+    async def _evaluate_omega_state(
+        self, event: Event, paradox_result: ParadoxResult
+    ) -> OmegaState:
         """Evaluate if an event creates an Omega state requiring containment."""
         omega_state = OmegaState(
             trigger_event=event,
             entropy_hash=paradox_result.metadata.get("entropy_hash", ""),
-            source_components=["timeline_lattice"]
+            source_components=["timeline_lattice"],
         )
 
         # Determine Omega state level based on paradox severity
@@ -568,7 +755,9 @@ class TimelineLattice:
             omega_state.level = OmegaStateLevel.NORMAL
 
         # Calculate propagation risk
-        omega_state.propagation_risk = paradox_result.severity * len(self.timelines) / self.max_timelines
+        omega_state.propagation_risk = (
+            paradox_result.severity * len(self.timelines) / self.max_timelines
+        )
 
         # Determine contamination vector
         contamination_vector = []
@@ -588,7 +777,7 @@ class TimelineLattice:
             self.timelines[timeline_id] = []
             self.timeline_metadata[timeline_id] = {
                 "created_at": time.time(),
-                "type": "standard"
+                "type": "standard",
             }
         return timeline_id
 
