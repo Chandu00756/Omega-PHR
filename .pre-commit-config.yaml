@@ -8,9 +8,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        args: ['--unsafe']
+        args: ["--unsafe"]
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ["--maxkb=1000"]
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-toml
@@ -22,14 +22,14 @@ repos:
     hooks:
       - id: black
         language_version: python3
-        args: ['--line-length=88']
+        args: ["--line-length=88"]
 
   # Python import sorting with isort
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
-        args: ['--profile=black', '--line-length=88']
+        args: ["--profile=black", "--line-length=88"]
 
 # Configuration for specific hooks
 default_language_version:
@@ -52,4 +52,4 @@ exclude: |
   )$
 
 # Minimum pre-commit version
-minimum_pre_commit_version: '3.7.0'
+minimum_pre_commit_version: "3.7.0"
