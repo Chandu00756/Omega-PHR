@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from omega_phr.config import FrameworkConfig as OmegaPHRConfig
+from omega_phr.config import FrameworkConfig as OmegaPHRConfig  # noqa: I001
 from omega_phr.hive import HiveOrchestrator as HiveCoordinator
 from omega_phr.hive import InjectionAttacker
 from omega_phr.memory import MemoryInverter as MemoryManager

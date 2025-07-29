@@ -5,7 +5,7 @@ This module implements the gRPC server for the Timeline Lattice service,
 connecting the protobuf interface with the core TimelineLattice engine.
 """
 
-import time
+import time  # noqa: I001
 
 import grpc
 import timeline_pb2_grpc
