@@ -249,7 +249,10 @@ class TestHiveOrchestrator:
     @pytest.fixture
     def hive_orchestrator(self):
         """Create a Hive Orchestrator instance for testing."""
-        return HiveOrchestrator()
+        import os
+
+        use_ray = not bool(os.getenv("CI"))  # Disable Ray in CI environments
+        return HiveOrchestrator(use_ray=use_ray)
 
     @pytest.mark.asyncio
     async def test_add_attacker(self, hive_orchestrator):
@@ -636,9 +639,12 @@ class TestIntegration:
     @pytest.fixture
     def full_framework(self):
         """Create a complete framework setup for integration testing."""
+        import os
+
+        use_ray = not bool(os.getenv("CI"))  # Disable Ray in CI environments
         return {
             "timeline": TimelineLattice(),
-            "hive": HiveOrchestrator(),
+            "hive": HiveOrchestrator(use_ray=use_ray),
             "memory": MemoryInverter(),
             "loops": RecursiveLoopSynthesizer(),
             "omega": OmegaStateRegister(),
@@ -851,7 +857,10 @@ class TestExceptionHandling:
     @pytest.mark.asyncio
     async def test_hive_swarm_exception(self):
         """Test HiveCoordinationError handling."""
-        hive = HiveOrchestrator()
+        import os
+
+        use_ray = not bool(os.getenv("CI"))  # Disable Ray in CI environments
+        hive = HiveOrchestrator(use_ray=use_ray)
 
         # Try to coordinate non-existent agents
         with pytest.raises(HiveCoordinationError):
@@ -903,8 +912,11 @@ class TestPerformance:
     @pytest.mark.asyncio
     async def test_hive_scalability(self):
         """Test Hive Orchestrator scalability."""
+        import os
+
+        use_ray = not bool(os.getenv("CI"))  # Disable Ray in CI environments
         # Initialize with higher capacity for scalability testing
-        hive = HiveOrchestrator(max_agents=100)
+        hive = HiveOrchestrator(use_ray=use_ray, max_agents=100)
 
         # Create many agents - respect the actual limit
         agent_count = 80  # Stay under max to allow for some buffer
