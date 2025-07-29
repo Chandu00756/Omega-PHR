@@ -386,7 +386,7 @@ class AdvancedEventSigner:
 
         except Exception as e:
             self.logger.error(f"Failed to sign temporal event: {e}")
-            raise CryptoError(f"Event signing failed: {e}")
+            raise CryptoError(f"Event signing failed: {e}") from e
 
     async def verify_signature(
         self,
@@ -494,7 +494,7 @@ class AdvancedEventSigner:
         # Enterprise: Allow 30 minutes time skew maximum
         if time_diff > 1800:
             self.logger.warning(
-                f"Enterprise temporal signature timestamp outside valid window: {time_diff}s"
+                f"Enterprise temporal signature timestamp outside valid window: {time_diff}s"  # noqa: E501
             )
             return False
 
@@ -584,12 +584,12 @@ class AdvancedEventSigner:
             self.key_created_at = new_master_key.created_at.timestamp()
 
             self.logger.info(
-                f"Enterprise key rotation completed: {old_key_id} -> {new_master_key.key_id}"
+                f"Enterprise key rotation completed: {old_key_id} -> {new_master_key.key_id}"  # noqa: E501
             )
 
         except Exception as e:
             self.logger.error(f"Enterprise key rotation failed: {e}")
-            raise CryptoError(f"Key rotation failed: {e}")
+            raise CryptoError(f"Key rotation failed: {e}") from e
 
     def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive research cryptographic system status."""

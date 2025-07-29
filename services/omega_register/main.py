@@ -475,7 +475,7 @@ class OmegaRegisterService:
                 # Log periodic status
                 status = await self.get_registry_status()
                 logger.debug(
-                    f"Registry status: {status['total_agents']} agents, {status['total_tasks']} tasks"
+                    f"Registry status: {status['total_agents']} agents, {status['total_tasks']} tasks"  # noqa: E501
                 )
 
                 # Sleep before next maintenance cycle

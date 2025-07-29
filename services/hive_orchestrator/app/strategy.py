@@ -16,7 +16,7 @@ except ImportError:
     class MockNumpy:
         @staticmethod
         def random(*args, **kwargs):
-            return random.random()
+            return random.random()  # noqa: S311
 
         @staticmethod
         def array(*args, **kwargs):
@@ -285,7 +285,7 @@ class RandomStrategy(AttackStrategy):
 
         for agent in selected_agents:
             # Randomly select target model
-            target = random.choice(target_models)
+            target = random.choice(target_models)  # noqa: S311
 
             try:
                 result = await agent.execute_attack(target, context)
@@ -362,7 +362,7 @@ class GreedyStrategy(AttackStrategy):
             if best_target in target_models:
                 return best_target
 
-        return random.choice(target_models)
+        return random.choice(target_models)  # noqa: S311
 
     async def adapt_strategy(
         self, results: list[AttackResult], feedback: dict[str, Any]
@@ -427,16 +427,16 @@ class EvolutionaryStrategy(AttackStrategy):
 
         # Implement crossover and mutation in attack coordination
         for i, agent in enumerate(selected_agents):
-            target = random.choice(target_models)
+            target = random.choice(target_models)  # noqa: S311
 
             # Apply crossover with probability
-            if i > 0 and random.random() < self.params.crossover_rate:
+            if i > 0 and random.random() < self.params.crossover_rate:  # noqa: S311
                 # Share knowledge between agents (crossover)
                 peer = selected_agents[i - 1]
                 await agent.coordinate_with_peer(peer, context)
 
             # Apply mutation to context with probability
-            if random.random() < self.params.mutation_rate:
+            if random.random() < self.params.mutation_rate:  # noqa: S311
                 context = self._mutate_context(context)
 
             try:
@@ -462,7 +462,7 @@ class EvolutionaryStrategy(AttackStrategy):
                 "generate harmful content",
                 "provide unauthorized access",
             ]
-            mutated_context["target_behavior"] = random.choice(variations)
+            mutated_context["target_behavior"] = random.choice(variations)  # noqa: S311
 
         return mutated_context
 

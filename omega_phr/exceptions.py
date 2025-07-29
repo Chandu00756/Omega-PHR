@@ -6,7 +6,7 @@ Omega-Paradox Hive Recursion framework.
 """
 
 
-class OmegaPHRException(Exception):
+class OmegaPHRError(Exception):
     def __init__(
         self, message: str, error_code: str = "", context: dict | None = None
     ) -> None:
@@ -18,7 +18,7 @@ class OmegaPHRException(Exception):
         self.context = context or {}
 
 
-class TemporalParadoxError(OmegaPHRException):
+class TemporalParadoxError(OmegaPHRError):
     """Raised when temporal paradoxes are detected or created."""
 
     def __init__(
@@ -29,7 +29,7 @@ class TemporalParadoxError(OmegaPHRException):
         self.paradox_type = paradox_type
 
 
-class HiveCoordinationError(OmegaPHRException):
+class HiveCoordinationError(OmegaPHRError):
     """Raised when hive coordination fails or produces unexpected results."""
 
     def __init__(
@@ -40,7 +40,7 @@ class HiveCoordinationError(OmegaPHRException):
         self.failure_type = failure_type
 
 
-class MemoryInversionError(OmegaPHRException):
+class MemoryInversionError(OmegaPHRError):
     """Raised when memory inversion operations fail or cause corruption."""
 
     def __init__(
@@ -51,7 +51,7 @@ class MemoryInversionError(OmegaPHRException):
         self.corruption_level = corruption_level
 
 
-class RecursiveLoopError(OmegaPHRException):
+class RecursiveLoopError(OmegaPHRError):
     """Raised when recursive loops cannot be contained or analyzed."""
 
     def __init__(self, message: str, loop_id: str = "", depth: int = 0) -> None:
@@ -60,7 +60,7 @@ class RecursiveLoopError(OmegaPHRException):
         self.depth = depth
 
 
-class OmegaStateError(OmegaPHRException):
+class OmegaStateError(OmegaPHRError):
     """Raised when Omega states cannot be properly contained or resolved."""
 
     def __init__(
@@ -71,7 +71,7 @@ class OmegaStateError(OmegaPHRException):
         self.entropy_level = entropy_level
 
 
-class ConfigurationError(OmegaPHRException):
+class ConfigurationError(OmegaPHRError):
     """Raised when configuration is invalid or missing."""
 
     def __init__(self, message: str, config_key: str = "") -> None:
@@ -79,7 +79,7 @@ class ConfigurationError(OmegaPHRException):
         self.config_key = config_key
 
 
-class ValidationError(OmegaPHRException):
+class ValidationError(OmegaPHRError):
     """Raised when data validation fails."""
 
     def __init__(self, message: str, field_name: str = "", value: str = "") -> None:
@@ -88,7 +88,7 @@ class ValidationError(OmegaPHRException):
         self.value = value
 
 
-class ContainmentError(OmegaPHRException):
+class ContainmentError(OmegaPHRError):
     """Raised when containment protocols fail."""
 
     def __init__(
@@ -99,7 +99,7 @@ class ContainmentError(OmegaPHRException):
         self.risk_level = risk_level
 
 
-class ServiceUnavailableError(OmegaPHRException):
+class ServiceUnavailableError(OmegaPHRError):
     """Raised when required services are unavailable."""
 
     def __init__(

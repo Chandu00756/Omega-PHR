@@ -102,7 +102,7 @@ class TimelineLattice:
             and paradox_result.severity > self.paradox_threshold
         ):
             logger.warning(
-                f"Paradox detected in event {event.event_id}: {paradox_result.paradox_type} (severity: {paradox_result.severity})"
+                f"Paradox detected in event {event.event_id}: {paradox_result.paradox_type} (severity: {paradox_result.severity})"  # noqa: E501
             )
 
             # Store paradox for analysis
@@ -132,7 +132,7 @@ class TimelineLattice:
         self._consistency_cache.clear()
 
         logger.info(
-            f"Event added to timeline {event.timeline_id}: {event.event_id} (length: {len(self.timelines[event.timeline_id])})"
+            f"Event added to timeline {event.timeline_id}: {event.event_id} (length: {len(self.timelines[event.timeline_id])})"  # noqa: E501
         )
 
         return True
@@ -165,7 +165,7 @@ class TimelineLattice:
         new_timeline_id = new_timeline_id or f"branch_{uuid.uuid4().hex[:8]}"
 
         logger.info(
-            f"Creating timeline branch from {source_timeline} at {branch_point_event_id} -> {new_timeline_id}"
+            f"Creating timeline branch from {source_timeline} at {branch_point_event_id} -> {new_timeline_id}"  # noqa: E501
         )
 
         # Find the branch point
@@ -179,7 +179,7 @@ class TimelineLattice:
 
         if branch_point_index is None:
             raise TemporalParadoxError(
-                f"Branch point event {branch_point_event_id} not found in timeline {source_timeline}"
+                f"Branch point event {branch_point_event_id} not found in timeline {source_timeline}"  # noqa: E501
             )
 
         # Copy events up to branch point
@@ -213,7 +213,7 @@ class TimelineLattice:
         }
 
         logger.info(
-            f"Timeline branch created successfully: {new_timeline_id} with {len(branched_events)} events copied"
+            f"Timeline branch created successfully: {new_timeline_id} with {len(branched_events)} events copied"  # noqa: E501
         )
 
         return new_timeline_id
@@ -258,7 +258,7 @@ class TimelineLattice:
                 dependent_events = self.causal_graph[removed_event.event_id]
                 if dependent_events:
                     logger.warning(
-                        f"Removing event {removed_event.event_id} with dependents: {list(dependent_events)}"
+                        f"Removing event {removed_event.event_id} with dependents: {list(dependent_events)}"  # noqa: E501
                     )
 
         # Create rewind event
@@ -283,7 +283,7 @@ class TimelineLattice:
                 del self.causal_graph[removed_event.event_id]
 
         logger.info(
-            f"Timeline rewind completed for {timeline_id}, removed {len(removed_events)} events"
+            f"Timeline rewind completed for {timeline_id}, removed {len(removed_events)} events"  # noqa: E501
         )
 
         return True
@@ -300,7 +300,8 @@ class TimelineLattice:
         Args:
             primary_timeline: ID of the primary timeline
             secondary_timeline: ID of the secondary timeline to merge
-            merge_strategy: Strategy for merging ("chronological", "interleaved", "append")
+            merge_strategy: Strategy for merging  # noqa: E501
+            # ("chronological", "interleaved", "append")
 
         Returns:
             Dict[str, Any]: Result of merge operation with success status and details
@@ -318,7 +319,7 @@ class TimelineLattice:
             )
 
         logger.info(
-            f"Starting timeline merge: {primary_timeline} + {secondary_timeline} (strategy: {merge_strategy})"
+            f"Starting timeline merge: {primary_timeline} + {secondary_timeline} (strategy: {merge_strategy})"  # noqa: E501
         )
 
         primary_events = self.timelines[primary_timeline]
@@ -368,7 +369,7 @@ class TimelineLattice:
             del self.timeline_metadata[secondary_timeline]
 
         logger.info(
-            f"Timeline merge completed: {primary_timeline} with {len(merged_events)} total events"
+            f"Timeline merge completed: {primary_timeline} with {len(merged_events)} total events"  # noqa: E501
         )
 
         return {
@@ -476,8 +477,8 @@ class TimelineLattice:
                 from .exceptions import TemporalParadoxError
 
                 raise TemporalParadoxError(
-                    f"Severe temporal paradox detected for event {event_or_timeline.event_id}: "
-                    f"conflicts={result.timeline_conflicts}, loops={result.causal_loops}"
+                    f"Severe temporal paradox detected for event {event_or_timeline.event_id}: "  # noqa: E501
+                    f"conflicts={result.timeline_conflicts}, loops={result.causal_loops}"  # noqa: E501
                 )
 
             return result
@@ -576,7 +577,7 @@ class TimelineLattice:
                         == other_event.event_id
                     ):
                         timeline_conflicts.append(
-                            f"Event {existing_event.event_id} contradicts event {other_event.event_id}"
+                            f"Event {existing_event.event_id} contradicts event {other_event.event_id}"  # noqa: E501
                         )
 
                     # Check for state contradictions
@@ -585,7 +586,7 @@ class TimelineLattice:
                         and other_event.payload.get("state") == "A"
                     ):
                         timeline_conflicts.append(
-                            f"State contradiction between {existing_event.event_id} (NOT-A) and {other_event.event_id} (A)"
+                            f"State contradiction between {existing_event.event_id} (NOT-A) and {other_event.event_id} (A)"  # noqa: E501
                         )
 
         # Check for causality violations
@@ -612,7 +613,7 @@ class TimelineLattice:
             for existing_event in existing_events:
                 if existing_event.event_id == contradicted_id:
                     timeline_conflicts.append(
-                        f"Event {event.event_id} contradicts existing event {contradicted_id}"
+                        f"Event {event.event_id} contradicts existing event {contradicted_id}"  # noqa: E501
                     )
                     break
 
@@ -621,7 +622,7 @@ class TimelineLattice:
             event.event_id, event.parent_id
         ):
             causal_loops.append(
-                f"Event {event.event_id} would create causal loop with {event.parent_id}"
+                f"Event {event.event_id} would create causal loop with {event.parent_id}"  # noqa: E501
             )
 
         # Calculate severity

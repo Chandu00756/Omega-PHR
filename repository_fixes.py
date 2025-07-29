@@ -16,7 +16,7 @@ def add_connection_checks(file_path):
     # Pattern 1: Add connection check for store_event method (SQLite)
     content = re.sub(
         r'(async def store_event.*?""".*?""")\s*async with self\._lock:',
-        r"\1\n        if not self._ensure_connection():\n            return False\n            \n        async with self._lock:",
+        r"\1\n        if not self._ensure_connection():\n            return False\n            \n        async with self._lock:",  # noqa: E501
         content,
         flags=re.DOTALL,
     )
@@ -24,7 +24,7 @@ def add_connection_checks(file_path):
     # Pattern 2: Add session check for _store_paradox that's still missing the check
     content = re.sub(
         r'(async def _store_paradox.*?""".*?""")\s*self\.session\.execute\(',
-        r"\1\n        if not self._ensure_session():\n            return\n            \n        self.session.execute(",
+        r"\1\n        if not self._ensure_session():\n            return\n            \n        self.session.execute(",  # noqa: E501
         content,
         flags=re.DOTALL,
     )
@@ -33,7 +33,7 @@ def add_connection_checks(file_path):
     cursor_pattern = r"(\s+)(cursor = self\._connection\.cursor\(\))"
     content = re.sub(
         cursor_pattern,
-        r"\1if not self._ensure_connection():\n\1    return False\n\1cursor = self._connection.cursor()",
+        r"\1if not self._ensure_connection():\n\1    return False\n\1cursor = self._connection.cursor()",  # noqa: E501
         content,
     )
 

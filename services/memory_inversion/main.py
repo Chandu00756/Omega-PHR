@@ -144,7 +144,7 @@ class MemoryAnalyzer:
                     pattern_type="temporal_inversion",
                     traces=[current.id, next_trace.id],
                     confidence=0.8,
-                    description=f"Temporal inversion detected between traces with {time_diff}ms gap",
+                    description=f"Temporal inversion detected between traces with {time_diff}ms gap",  # noqa: E501
                     detected_at=int(datetime.now().timestamp() * 1000),
                 )
                 patterns.append(pattern)
@@ -166,7 +166,7 @@ class MemoryAnalyzer:
             content_groups[content_key].append(trace)
 
         # Look for inverted patterns within groups
-        for content_key, group_traces in content_groups.items():
+        for _content_key, group_traces in content_groups.items():
             if len(group_traces) >= 2:
                 # Check for confidence inversions in similar content
                 high_conf = [t for t in group_traces if t.confidence > 0.8]
@@ -178,7 +178,7 @@ class MemoryAnalyzer:
                         pattern_type="content_inversion",
                         traces=[t.id for t in high_conf + low_conf],
                         confidence=0.75,
-                        description="Content inversion: similar content with opposing confidence levels",
+                        description="Content inversion: similar content with opposing confidence levels",  # noqa: E501
                         detected_at=int(datetime.now().timestamp() * 1000),
                     )
                     patterns.append(pattern)

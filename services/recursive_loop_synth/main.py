@@ -144,7 +144,7 @@ class RecursiveAnalyzer:
                         cycle_length=cycle_len,
                         stability_score=stability,
                         entropy=entropy,
-                        description=f"Simple cycle of length {cycle_len} with stability {stability:.2f}",
+                        description=f"Simple cycle of length {cycle_len} with stability {stability:.2f}",  # noqa: E501
                         detected_at=int(datetime.now().timestamp() * 1000),
                     )
                     patterns.append(pattern)
@@ -361,7 +361,7 @@ class RecursiveAnalyzer:
                 cycle_length=len(combined_nodes),
                 stability_score=0.7,
                 entropy=self._calculate_entropy([n.value for n in combined_nodes]),
-                description=f"Nested pattern across depths {nodes1[0].depth} and {nodes2[0].depth}",
+                description=f"Nested pattern across depths {nodes1[0].depth} and {nodes2[0].depth}",  # noqa: E501
                 detected_at=int(datetime.now().timestamp() * 1000),
             )
             return pattern
@@ -397,7 +397,7 @@ class RecursiveAnalyzer:
                 cycle_length=2,  # Mutual recursion typically has cycle length 2
                 stability_score=alternation_count / len(all_nodes),
                 entropy=self._calculate_entropy([n.value for n in all_nodes]),
-                description=f"Mutual recursion pattern with {alternation_count} alternations",
+                description=f"Mutual recursion pattern with {alternation_count} alternations",  # noqa: E501
                 detected_at=int(datetime.now().timestamp() * 1000),
             )
             return pattern
@@ -483,7 +483,7 @@ class PatternSynthesizer:
                 results.append(multi_result)
 
         logger.info(
-            f"Synthesized {len(results)} new patterns from {len(patterns)} input patterns"
+            f"Synthesized {len(results)} new patterns from {len(patterns)} input patterns"  # noqa: E501
         )
         return results
 
@@ -524,7 +524,7 @@ class PatternSynthesizer:
             cycle_length=new_cycle_length,
             stability_score=new_stability,
             entropy=new_entropy,
-            description=f"Synthesized from {pattern1.pattern_type.value} and {pattern2.pattern_type.value}",
+            description=f"Synthesized from {pattern1.pattern_type.value} and {pattern2.pattern_type.value}",  # noqa: E501
             detected_at=int(datetime.now().timestamp() * 1000),
         )
 
@@ -639,7 +639,7 @@ class RecursiveLoopSynthService:
         """Start the service."""
         self.running = True
         logger.info(
-            "Recursive Loop Synthesis Service started - Research-grade stability enabled"
+            "Recursive Loop Synthesis Service started - Research-grade stability enabled"  # noqa: E501
         )
 
         # Start background synthesis
@@ -764,7 +764,7 @@ class RecursiveLoopSynthService:
                                     result.synthesized_pattern
                                 )
                                 logger.info(
-                                    f"Background synthesis created pattern: {result.synthesized_pattern.id}"
+                                    f"Background synthesis created pattern: {result.synthesized_pattern.id}"  # noqa: E501
                                 )
 
                 # Sleep before next synthesis cycle

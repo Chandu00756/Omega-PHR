@@ -226,6 +226,7 @@ ignore = [
 "tests/**/*.py" = ["S101", "S106", "S108"]
 "examples/**/*.py" = ["T201", "S101"]
 "**/main.py" = ["T201"]
+"services/**/server*.py" = ["N802"]  # gRPC server methods use PascalCase
 
 [tool.black]
 line-length = 88

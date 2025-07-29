@@ -12,7 +12,7 @@ import sys
 
 try:
     import structlog
-    from structlog import configure, get_logger
+    from structlog import get_logger
 
     # Configure structured logging
     structlog.configure(
@@ -42,7 +42,7 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 try:
-    import grpc
+    import grpc  # noqa: F401
 
     GRPC_AVAILABLE = True
 except ImportError:
@@ -110,7 +110,7 @@ class HiveService:
                 await self._start_standalone_mode()
 
             logger.info(
-                f"Hive service started successfully on {self.config.host}:{self.config.port}"
+                f"Hive service started successfully on {self.config.host}:{self.config.port}"  # noqa: E501
             )
 
         except Exception as e:

@@ -156,8 +156,8 @@ class HiveCoordinator:
         return agent_class(
             target_models=self.config.target_models,
             adaptation_rate=self.config.adaptation_rate,
-            creativity_factor=random.uniform(0.5, 0.9),
-            coordination_ability=random.uniform(0.3, 0.8),
+            creativity_factor=random.uniform(0.5, 0.9),  # noqa: S311
+            coordination_ability=random.uniform(0.3, 0.8),  # noqa: S311
         )
 
     async def launch_campaign(self, campaign_config: CampaignConfig) -> str:

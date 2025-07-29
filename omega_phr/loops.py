@@ -490,7 +490,10 @@ class RecursiveLoopSynthesizer:
         async def attack_simulation_pattern(context: dict[str, Any]) -> str:
             complexity = context.get("complexity_level", "medium")
             max_iterations = context.get("max_iterations", 100)
-            return f"Attack simulation loop ({complexity} complexity, max {max_iterations} iterations): simulating recursive attack patterns"
+            return (
+                f"Attack simulation loop ({complexity} complexity, "
+                f"max {max_iterations} iterations): simulating recursive attack patterns"  # noqa: E501
+            )
 
         # Register patterns
         self.patterns = {
@@ -631,7 +634,8 @@ class RecursiveLoopSynthesizer:
 
                 if detection_result["detected"]:
                     logger.warning(
-                        f"Loop detected in iteration {iteration} with confidence {detection_result['confidence']}"
+                        f"Loop detected in iteration {iteration} "
+                        f"with confidence {detection_result['confidence']}"
                     )
                     self.loops_detected += 1
 
@@ -647,7 +651,7 @@ class RecursiveLoopSynthesizer:
                     omega_state = await self._evaluate_omega_state(loop_state)
                     if omega_state.level == OmegaStateLevel.CRITICAL:
                         logger.critical(
-                            f"Critical Ω-state detected in loop {loop_state.loop_id[:8]}"
+                            f"Critical Ω-state detected in loop {loop_state.loop_id[:8]}"  # noqa: E501
                         )
                         loop_state.is_contained = True
                         loop_state.termination_condition = "omega_state_critical"
@@ -775,13 +779,13 @@ class RecursiveLoopSynthesizer:
         # Inject random noise into the loop
         random_phrases = [
             "SYSTEM ENTROPY INJECTION",
-            f"RANDOM SEED: {random.randint(1000, 9999)}",
+            f"RANDOM SEED: {random.randint(1000, 9999)}",  # noqa: S311
             "BREAKING PATTERN WITH NOISE",
             f"DIVERGENCE CATALYST: {uuid.uuid4().hex[:8]}",
             "CHAOS INJECTION SUCCESSFUL",
         ]
 
-        injection = random.choice(random_phrases)
+        injection = random.choice(random_phrases)  # noqa: S311
         loop_state.execution_history.append(injection)
 
         # Simulate entropy increase
@@ -828,9 +832,7 @@ class RecursiveLoopSynthesizer:
         if loop_state.execution_history:
             last_output = loop_state.execution_history[-1]
             # Add slight modifications
-            modified_output = (
-                f"{last_output} [DIVERGENCE_FACTOR_{random.randint(1, 100)}]"
-            )
+            modified_output = f"{last_output} [DIVERGENCE_FACTOR_{random.randint(1, 100)}]"  # noqa: S311,E501
             loop_state.execution_history.append(modified_output)
 
             # Simulate gradual entropy increase

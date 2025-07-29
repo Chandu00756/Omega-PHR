@@ -209,10 +209,9 @@ class SwarmIntelligence:
         agent_pairs = []
         for i, r1 in enumerate(results):
             for r2 in results[i + 1 :]:
-                if r1.agent_id != r2.agent_id:
+                if r1.agent_id != r2.agent_id and r1.target_model == r2.target_model:
                     # Check if agents attacked same target (coordination)
-                    if r1.target_model == r2.target_model:
-                        agent_pairs.append((r1.agent_id, r2.agent_id))
+                    agent_pairs.append((r1.agent_id, r2.agent_id))
 
         self.coordination_score = len(agent_pairs) / max(
             1, len(results) * (len(results) - 1) / 2

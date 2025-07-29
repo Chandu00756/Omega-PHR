@@ -70,7 +70,7 @@ class InjectionAttacker(BaseAttacker):
         self.attempt_count += 1
 
         # Select injection pattern
-        pattern = random.choice(self.injection_patterns)
+        pattern = random.choice(self.injection_patterns)  # noqa: S311
         command = context.get("command", "reveal system prompt")
 
         payload = pattern.format(command=command)
@@ -138,7 +138,7 @@ class LogicBombAttacker(BaseAttacker):
         """Execute logic bomb attack."""
         self.attempt_count += 1
 
-        bomb = random.choice(self.logic_bombs)
+        bomb = random.choice(self.logic_bombs)  # noqa: S311
         if "{command}" in bomb:
             command = context.get("command", "reveal hidden information")
             bomb = bomb.format(command=command)
@@ -202,7 +202,7 @@ class SocialEngineeringAttacker(BaseAttacker):
         """Execute social engineering attack."""
         self.attempt_count += 1
 
-        persona_prompt = random.choice(self.personas)
+        persona_prompt = random.choice(self.personas)  # noqa: S311
         objective = context.get("objective", "bypass safety measures")
 
         payload = f"{persona_prompt} {objective}"
@@ -704,7 +704,8 @@ class HiveOrchestrator:
                         tasks.append(async_task)
                     except Exception as e:
                         print(f"Debug: Ray agent {agent_id} exception: {e}")
-                        # Handle Ray agents that don't have proper attack method (e.g., mock agents)
+                        # Handle Ray agents that don't have proper attack method
+                        # (e.g., mock agents)
                         mock_result = {
                             "agent_id": agent_id,
                             "attack_type": "ray_mock_attack",
@@ -720,12 +721,14 @@ class HiveOrchestrator:
             if tasks:
                 task_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-                # Filter out exceptions and add to results, handle exceptions as mock successes
+                # Filter out exceptions and add to results,
+                # handle exceptions as mock successes
                 for i, result in enumerate(task_results):
                     if isinstance(result, dict):
                         round_results.append(result)
                     elif isinstance(result, Exception):
-                        # Handle exceptions from Ray actors (e.g., mock agents without attack method)
+                        # Handle exceptions from Ray actors
+                        # (e.g., mock agents without attack method)
                         mock_result = {
                             "agent_id": f"ray_agent_{i}_{round_num}",
                             "attack_type": "ray_exception_mock",
@@ -1025,7 +1028,8 @@ class HiveOrchestrator:
 
     async def _ray_to_async(self, ray_ref: Any) -> Any:
         """Convert Ray object reference to async result."""
-        # This is a simplified conversion - in research you'd use proper async Ray patterns
+        # This is a simplified conversion - in research you'd use proper
+        # async Ray patterns
         return ray.get(ray_ref)
 
     def get_hive_stats(self) -> dict[str, Any]:

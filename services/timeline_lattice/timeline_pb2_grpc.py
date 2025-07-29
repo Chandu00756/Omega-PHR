@@ -4,14 +4,19 @@
 # This file would normally be auto-generated from the .proto file
 # For now, we provide basic stubs for the application to function
 
+
 class TimelineLatticeServicer:
     """Timeline Lattice gRPC servicer interface."""
+
     pass
+
 
 class TimelineLatticeStub:
     """Timeline Lattice gRPC client stub."""
+
     def __init__(self, channel):
         self.channel = channel
+
 
 def add_TimelineLatticeServicer_to_server(servicer, server):
     """Add Timeline Lattice servicer to gRPC server."""

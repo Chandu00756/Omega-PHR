@@ -6,60 +6,88 @@
 # This file would normally be auto-generated from the .proto file
 # For now, we provide basic message stubs for the application to function
 
+
 class CreateTimelineRequest:
     """Request to create a new timeline."""
+
     def __init__(self, name="", description="", initial_timestamp=""):
         self.name = name
         self.description = description
         self.initial_timestamp = initial_timestamp
 
+
 class CreateTimelineResponse:
     """Response from timeline creation."""
+
     def __init__(self, timeline_id="", success=False, message=""):
         self.timeline_id = timeline_id
         self.success = success
         self.message = message
 
+
 class AddEventRequest:
     """Request to add event to timeline."""
-    def __init__(self, timeline_id="", event_type="", timestamp="", data="", causality_vector=""):
+
+    def __init__(
+        self, timeline_id="", event_type="", timestamp="", data="", causality_vector=""
+    ):
         self.timeline_id = timeline_id
         self.event_type = event_type
         self.timestamp = timestamp
         self.data = data
         self.causality_vector = causality_vector
 
+
 class AddEventResponse:
     """Response from event addition."""
+
     def __init__(self, event_id="", success=False, paradox_risk=0.0, message=""):
         self.event_id = event_id
         self.success = success
         self.paradox_risk = paradox_risk
         self.message = message
 
+
 class AnalyzeParadoxRequest:
     """Request to analyze timeline paradoxes."""
+
     def __init__(self, timeline_id=""):
         self.timeline_id = timeline_id
 
+
 class AnalyzeParadoxResponse:
     """Response from paradox analysis."""
-    def __init__(self, timeline_id="", paradox_count=0, paradoxes=None, success=False, message=""):
+
+    def __init__(
+        self, timeline_id="", paradox_count=0, paradoxes=None, success=False, message=""
+    ):
         self.timeline_id = timeline_id
         self.paradox_count = paradox_count
         self.paradoxes = paradoxes or []
         self.success = success
         self.message = message
 
+
 class GetTimelineStatusRequest:
     """Request to get timeline status."""
+
     def __init__(self, timeline_id=""):
         self.timeline_id = timeline_id
 
+
 class GetTimelineStatusResponse:
     """Response with timeline status."""
-    def __init__(self, timeline_id="", status="", event_count=0, paradox_count=0,
-                 last_event_timestamp="", success=False, message=""):
+
+    def __init__(
+        self,
+        timeline_id="",
+        status="",
+        event_count=0,
+        paradox_count=0,
+        last_event_timestamp="",
+        success=False,
+        message="",
+    ):
         self.timeline_id = timeline_id
         self.status = status
         self.event_count = event_count

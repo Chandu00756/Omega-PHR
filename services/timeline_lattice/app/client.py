@@ -3,16 +3,7 @@ Omega-Paradox Hive Recursion (Ω-PHR) Framework v0.9.3
 Timeline Lattice gRPC Client
 
 This module provides a research gRPC client for connecting to and interacting
-with the Timeline Lattice service, enabling remote temporal oper                    paradox = TemporalParadox(
-                        paradox_id=p.get('paradox_id', ''),
-                        timeline_id=timeline_id,
-                        paradox_type=p.get('paradox_type', ParadoxType.TEMPORAL_INCONSISTENCY),
-                        severity=p.get('severity', 0.0),
-                        description=p.get('description', ''),
-                        affected_events=p.get('affected_events', []),
-                        detected_at=datetime.now(timezone.utc)
-                    )d
-paradox analysis.
+with the Timeline Lattice service, enabling remote temporal operations.
 """
 
 import asyncio
@@ -87,7 +78,7 @@ class TimelineLatticeClient:
             self.logger.info(f"Connected to Timeline Lattice at {self.address}")
         except Exception as e:
             self.logger.error(f"Failed to connect to Timeline Lattice: {e}")
-            raise ConnectionError(f"Timeline Lattice connection failed: {e}")
+            raise ConnectionError(f"Timeline Lattice connection failed: {e}") from e
 
     async def disconnect(self) -> None:
         """Close connection to Timeline Lattice server."""

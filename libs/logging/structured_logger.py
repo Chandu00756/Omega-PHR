@@ -5,6 +5,7 @@ Provides centralized logging configuration with trace correlation,
 performance monitoring, and security audit capabilities.
 """
 
+import asyncio
 import functools
 import logging
 import time

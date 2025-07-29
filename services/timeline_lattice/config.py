@@ -11,7 +11,7 @@ class TimelineConfig:
     """Configuration for Timeline Lattice service."""
 
     # Server configuration
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # noqa: S104
     port: int = 9000
     max_workers: int = 10
 

@@ -187,7 +187,7 @@ class DatabaseConfig:
     # SQLite fallback for development
     sqlite_path: str = field(
         default_factory=lambda: os.getenv(
-            "TIMELINE_SQLITE_PATH", "/tmp/omega_timeline.db"
+            "TIMELINE_SQLITE_PATH", "/tmp/omega_timeline.db"  # noqa: S108
         )
     )
     sqlite_wal_mode: bool = field(
@@ -201,7 +201,9 @@ class ServerConfig:
     """gRPC server configuration with enterprise features."""
 
     # Basic Server Settings
-    host: str = field(default_factory=lambda: os.getenv("TIMELINE_HOST", "0.0.0.0"))
+    host: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_HOST", "0.0.0.0")  # noqa: S104
+    )  # noqa: S104
     port: int = field(default_factory=lambda: int(os.getenv("TIMELINE_PORT", "50051")))
     max_workers: int = field(
         default_factory=lambda: int(os.getenv("TIMELINE_MAX_WORKERS", "10"))
@@ -460,7 +462,7 @@ class TimelineServiceConfig:
         # Validate timeline configuration
         if self.timeline.paradox_threshold < 0 or self.timeline.paradox_threshold > 1:
             errors.append(
-                f"Paradox threshold must be between 0 and 1: {self.timeline.paradox_threshold}"
+                f"Paradox threshold must be between 0 and 1: {self.timeline.paradox_threshold}"  # noqa: E501
             )
 
         # Validate security configuration
@@ -715,11 +717,13 @@ def load_config_from_file(config_path: str) -> TimelineServiceConfig:
         return get_config()
 
     except ImportError:
-        raise ImportError("PyYAML required for YAML configuration files")
+        raise ImportError("PyYAML required for YAML configuration files") from None
     except FileNotFoundError:
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        raise FileNotFoundError(
+            f"Configuration file not found: {config_path}"
+        ) from None
     except Exception as e:
-        raise ValueError(f"Failed to load configuration from {config_path}: {e}")
+        raise ValueError(f"Failed to load configuration from {config_path}: {e}") from e
 
 
 def create_development_config() -> TimelineServiceConfig:
@@ -729,7 +733,7 @@ def create_development_config() -> TimelineServiceConfig:
             "TIMELINE_HOST": "127.0.0.1",
             "TIMELINE_PORT": "50051",
             "SCYLLA_OFFLINE": "true",
-            "SQLITE_PATH": "/tmp/omega_timeline_dev.db",
+            "SQLITE_PATH": "/tmp/omega_timeline_dev.db",  # noqa: S108
             "LOG_LEVEL": "DEBUG",
             "ENABLE_METRICS": "true",
             "PARADOX_DETECTION_ENABLED": "true",

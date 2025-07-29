@@ -33,7 +33,7 @@ class TelemetryExporterConfig:
     enable_percentiles: bool = True
 
     # Storage settings
-    temp_storage_path: str = "/tmp/telemetry"
+    temp_storage_path: str = "/tmp/telemetry"  # noqa: S108
     max_disk_usage_mb: int = 1000
     compression_enabled: bool = True
 
@@ -61,7 +61,9 @@ class TelemetryExporterConfig:
             ),
             enable_percentiles=os.getenv("TELEMETRY_ENABLE_PERCENTILES", "true").lower()
             == "true",
-            temp_storage_path=os.getenv("TELEMETRY_TEMP_PATH", "/tmp/telemetry"),
+            temp_storage_path=os.getenv(
+                "TELEMETRY_TEMP_PATH", "/tmp/telemetry"  # noqa: S108
+            ),  # noqa: S108
             max_disk_usage_mb=int(os.getenv("TELEMETRY_MAX_DISK_MB", "1000")),
             compression_enabled=os.getenv("TELEMETRY_COMPRESSION", "true").lower()
             == "true",

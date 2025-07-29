@@ -17,7 +17,9 @@ class HiveConfig:
     """Advanced configuration for Hive Orchestrator service."""
 
     # Server Configuration
-    host: str = field(default_factory=lambda: os.getenv("HIVE_HOST", "0.0.0.0"))
+    host: str = field(
+        default_factory=lambda: os.getenv("HIVE_HOST", "0.0.0.0")  # noqa: S104
+    )  # noqa: S104
     port: int = field(default_factory=lambda: int(os.getenv("HIVE_PORT", "50052")))
     max_workers: int = field(
         default_factory=lambda: int(os.getenv("HIVE_MAX_WORKERS", "10"))

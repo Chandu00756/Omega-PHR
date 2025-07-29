@@ -98,7 +98,7 @@ class ServiceConfig:
     """Individual service configuration."""
 
     name: str
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # noqa: S104
     port: int = 50051
     max_workers: int = 10
     max_message_size: int = 4 * 1024 * 1024  # 4MB

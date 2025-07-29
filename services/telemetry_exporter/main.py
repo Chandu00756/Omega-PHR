@@ -290,7 +290,7 @@ class ExportFormatter:
             source, name = key.split(":", 1) if ":" in key else ("unknown", key)
             for stat_name, stat_value in stats.items():
                 lines.append(
-                    f"histograms,source={source},metric={name} {stat_name}={stat_value} {timestamp}"
+                    f"histograms,source={source},metric={name} {stat_name}={stat_value} {timestamp}"  # noqa: E501
                 )
 
         return "\n".join(lines)
@@ -431,12 +431,12 @@ class TelemetryExporter:
 
         # For demo purposes, just log the export
         logger.info(
-            f"Exported {len(filtered_metrics)} metrics and {len(filtered_events)} events "
+            f"Exported {len(filtered_metrics)} metrics and {len(filtered_events)} events "  # noqa: E501
             f"to {target.name} in {target.format.value} format"
         )
 
         # In a real implementation, you would send the data to the actual endpoint
-        # await self._send_to_endpoint(target.endpoint, formatted_data, target.credentials)
+        # await self._send_to_endpoint(target.endpoint, formatted_data, target.credentials)  # noqa: E501
 
     async def _apply_filters(self, items: list, filters: dict[str, Any]) -> list:
         """Apply filters to telemetry items."""
@@ -589,7 +589,7 @@ class TelemetryExporterService:
                 export_result = await self.trigger_export()
                 if export_result["success"]:
                     logger.debug(
-                        f"Background export completed: {export_result['exported_metrics']} metrics, "
+                        f"Background export completed: {export_result['exported_metrics']} metrics, "  # noqa: E501
                         f"{export_result['exported_events']} events"
                     )
 
@@ -622,7 +622,7 @@ async def main():
         json_target = {
             "name": "JSON File",
             "format": "json",
-            "endpoint": "/tmp/telemetry_export.json",
+            "endpoint": "/tmp/telemetry_export.json",  # noqa: S108
             "enabled": True,
         }
 

@@ -5,6 +5,7 @@ Provides secure storage and retrieval of secrets using platform-specific
 secure storage (macOS Keychain locally, GCP Secret Manager in research).
 """
 
+import contextlib
 import json
 import logging
 import os
@@ -85,13 +86,15 @@ class SecretsManager:
                 raise SecretsManagerError("GCP project not detected")
         except ImportError:
             logger.warning(
-                "google-cloud-secret-manager not available, falling back to file backend"
+                "google-cloud-secret-manager not available, "
+                "falling back to file backend"
             )
             self.backend = "file"
             self._init_file()
         except Exception as e:
             logger.warning(
-                f"GCP Secret Manager initialization failed: {e}, falling back to file backend"
+                f"GCP Secret Manager initialization failed: {e}, "
+                f"falling back to file backend"
             )
             self.backend = "file"
             self._init_file()
@@ -143,7 +146,7 @@ class SecretsManager:
             else:
                 raise SecretsManagerError(f"Backend not supported: {self.backend}")
         except Exception as e:
-            raise SecretsManagerError(f"Failed to retrieve secret '{name}': {e}")
+            raise SecretsManagerError(f"Failed to retrieve secret '{name}': {e}") from e
 
     def put_secret(self, name: str, value: str) -> None:
         """
@@ -166,7 +169,7 @@ class SecretsManager:
             else:
                 raise SecretsManagerError(f"Backend not supported: {self.backend}")
         except Exception as e:
-            raise SecretsManagerError(f"Failed to store secret '{name}': {e}")
+            raise SecretsManagerError(f"Failed to store secret '{name}': {e}") from e
 
     def delete_secret(self, name: str) -> None:
         """Delete a secret."""
@@ -178,7 +181,7 @@ class SecretsManager:
             elif self.backend == "file":
                 self._delete_file_secret(name)
         except Exception as e:
-            raise SecretsManagerError(f"Failed to delete secret '{name}': {e}")
+            raise SecretsManagerError(f"Failed to delete secret '{name}': {e}") from e
 
     def list_secrets(self) -> list[str]:
         """List available secret names."""
@@ -209,10 +212,8 @@ class SecretsManager:
 
     def _delete_keychain_secret(self, name: str) -> None:
         """Delete secret from macOS Keychain."""
-        try:
+        with contextlib.suppress(Exception):
             self.keyring.delete_password("omega-phr", name)
-        except Exception:
-            pass  # Secret might not exist
 
     def _list_keychain_secrets(self) -> list[str]:
         """List secrets in macOS Keychain."""

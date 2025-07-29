@@ -61,7 +61,7 @@ class EventModel:
 
     def calculate_signature(self) -> bytes:
         """Calculate cryptographic signature for event integrity."""
-        content = f"{self.event_id}{self.actor_id}{self.timeline_id}{self.payload.decode('utf-8', errors='ignore')}{self.valid_at_us}"
+        content = f"{self.event_id}{self.actor_id}{self.timeline_id}{self.payload.decode('utf-8', errors='ignore')}{self.valid_at_us}"  # noqa: E501
         return hashlib.sha256(content.encode()).digest()
 
     def verify_signature(self) -> bool:

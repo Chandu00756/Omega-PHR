@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from omega_phr.config import OmegaPHRConfig
-from omega_phr.exceptions import OmegaPHRException, TemporalParadoxError
+from omega_phr.exceptions import OmegaPHRError, TemporalParadoxError
 
 
 class TestBasicFunctionality(unittest.TestCase):
@@ -29,12 +29,12 @@ class TestBasicFunctionality(unittest.TestCase):
 
     def test_exception_inheritance(self):
         """Test exception hierarchy."""
-        self.assertTrue(issubclass(TemporalParadoxError, OmegaPHRException))
-        self.assertTrue(issubclass(OmegaPHRException, Exception))
+        self.assertTrue(issubclass(TemporalParadoxError, OmegaPHRError))
+        self.assertTrue(issubclass(OmegaPHRError, Exception))
 
     def test_exception_creation(self):
         """Test exception creation."""
-        exc = OmegaPHRException("Test error", "TEST_ERROR", {"context": "test"})
+        exc = OmegaPHRError("Test error", "TEST_ERROR", {"context": "test"})
         self.assertEqual(exc.message, "Test error")
         self.assertEqual(exc.error_code, "TEST_ERROR")
 

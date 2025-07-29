@@ -20,7 +20,7 @@ try:
     from cassandra.auth import PlainTextAuthProvider
     from cassandra.cluster import Cluster
     from cassandra.policies import DCAwareRoundRobinPolicy
-    from cassandra.query import PreparedStatement, SimpleStatement
+    from cassandra.query import PreparedStatement, SimpleStatement  # noqa: F401
 
     CASSANDRA_AVAILABLE = True
 except ImportError:
@@ -131,7 +131,7 @@ class ScyllaRepository(BaseRepository):
         await self._prepare_statements()
 
         logger.info(
-            f"ScyllaDB repository initialized with keyspace: {self.config.database.keyspace}"
+            f"ScyllaDB repository initialized with keyspace: {self.config.database.keyspace}"  # noqa: E501
         )
 
     async def _create_keyspace(self):
@@ -357,6 +357,10 @@ class ScyllaRepository(BaseRepository):
             return False
 
         try:
+            if self.session is None:
+                logger.error("Session not available for timeline creation")
+                return False
+
             self.session.execute(
                 self._prepared_statements["create_timeline"],
                 [
@@ -442,7 +446,7 @@ class ScyllaRepository(BaseRepository):
                             timeline_id=timeline_id,
                             paradox_type=ParadoxType.CAUSALITY_VIOLATION,
                             severity=0.8,
-                            description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
+                            description=f"Causality violation between events {event.event_id} and {other_event.event_id}",  # noqa: E501
                             affected_events=[event.event_id, other_event.event_id],
                             detected_at=datetime.now(UTC),
                         )
@@ -627,13 +631,13 @@ class SQLiteRepository(BaseRepository):
 
         # Create indexes for performance
         cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_events_timeline ON timeline_events(timeline_id)"
+            "CREATE INDEX IF NOT EXISTS idx_events_timeline ON timeline_events(timeline_id)"  # noqa: E501
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_events_time ON timeline_events(valid_at_us)"
         )
         cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_paradoxes_timeline ON temporal_paradoxes(timeline_id)"
+            "CREATE INDEX IF NOT EXISTS idx_paradoxes_timeline ON temporal_paradoxes(timeline_id)"  # noqa: E501
         )
 
         if self._connection is not None:
@@ -661,7 +665,8 @@ class SQLiteRepository(BaseRepository):
                     """
                     INSERT INTO timeline_events (
                         event_id, timeline_id, actor_id, parent_id, event_type,
-                        payload, metadata, valid_at_us, recorded_at_us, signature, checksum
+                        payload, metadata, valid_at_us, recorded_at_us, signature,
+                        checksum  # noqa: E501
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     [
@@ -747,13 +752,17 @@ class SQLiteRepository(BaseRepository):
         async with self._lock:
             try:
                 if not self._ensure_connection():
+                    return False
 
+                if self._connection is None:
+                    logger.error("SQLite connection not available")
                     return False
 
                 cursor = self._connection.cursor()
                 cursor.execute(
                     """
-                    INSERT INTO timelines (timeline_id, name, description, status, metadata)
+                    INSERT INTO timelines (timeline_id, name, description, status,
+                    metadata)  # noqa: E501
                     VALUES (?, ?, ?, ?, ?)
                 """,
                     [
@@ -782,7 +791,10 @@ class SQLiteRepository(BaseRepository):
         async with self._lock:
             try:
                 if not self._ensure_connection():
+                    return False
 
+                if self._connection is None:
+                    logger.error("SQLite connection not available")
                     return False
 
                 cursor = self._connection.cursor()
@@ -831,7 +843,7 @@ class SQLiteRepository(BaseRepository):
                             timeline_id=timeline_id,
                             paradox_type=ParadoxType.CAUSALITY_VIOLATION,
                             severity=0.8,
-                            description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
+                            description=f"Causality violation between events {event.event_id} and {other_event.event_id}",  # noqa: E501
                             affected_events=[event.event_id, other_event.event_id],
                             detected_at=datetime.now(UTC),
                         )
@@ -847,7 +859,10 @@ class SQLiteRepository(BaseRepository):
     async def _store_paradox(self, paradox: TemporalParadox):
         """Store paradox in SQLite."""
         if not self._ensure_connection():
+            return False
 
+        if self._connection is None:
+            logger.error("SQLite connection not available")
             return False
 
         cursor = self._connection.cursor()

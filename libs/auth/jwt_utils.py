@@ -180,7 +180,7 @@ class JWTUtils:
                     signature, signing_input, ec.ECDSA(hashes.SHA256())
                 )
             except InvalidSignature:
-                raise AuthError("Invalid signature")
+                raise AuthError("Invalid signature") from None
 
             # Decode payload
             payload = json.loads(self._base64url_decode(encoded_payload))
@@ -197,7 +197,7 @@ class JWTUtils:
             return payload
 
         except (ValueError, json.JSONDecodeError, KeyError) as e:
-            raise AuthError(f"Token parsing error: {e}")
+            raise AuthError(f"Token parsing error: {e}") from e
 
     def _get_key_id(self) -> str:
         """Get key identifier for this key pair."""

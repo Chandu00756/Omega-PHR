@@ -17,7 +17,7 @@ __email__ = "chandu@portalvii.com"
 from .exceptions import (
     HiveCoordinationError,
     MemoryInversionError,
-    OmegaPHRException,
+    OmegaPHRError,
     OmegaStateError,
     RecursiveLoopError,
     TemporalParadoxError,
@@ -46,7 +46,7 @@ __all__ = [
     "RecursiveLoopSynthesizer",
     "OmegaStateRegister",
     # Exceptions
-    "OmegaPHRException",
+    "OmegaPHRError",
     "TemporalParadoxError",
     "HiveCoordinationError",
     "MemoryInversionError",

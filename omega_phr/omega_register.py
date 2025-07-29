@@ -94,7 +94,7 @@ class QuarantineVault:
 
             self.save_index()
             logger.info(
-                f"Omega state {omega_state.omega_id[:8]} quarantined with token {token[:16]}"
+                f"Omega state {omega_state.omega_id[:8]} quarantined with token {token[:16]}"  # noqa: E501
             )
 
             return token
@@ -413,7 +413,7 @@ class OmegaStateRegister:
             )
 
             logger.info(
-                f"Registered Omega state {omega_state.omega_id[:8]} with level {omega_state.level.name}"
+                f"Registered Omega state {omega_state.omega_id[:8]} with level {omega_state.level.name}"  # noqa: E501
             )
 
             # Check if immediate containment is required
@@ -485,7 +485,7 @@ class OmegaStateRegister:
             return True
 
         logger.info(
-            f"Attempting to contain Omega state {omega_id[:8]} with strategy '{strategy}'"
+            f"Attempting to contain Omega state {omega_id[:8]} with strategy '{strategy}'"  # noqa: E501
         )
 
         # Auto-select strategy if needed
@@ -538,11 +538,11 @@ class OmegaStateRegister:
             logger.error(f"Containment timeout for Omega state {omega_id[:8]}")
             raise OmegaStateError(
                 f"Containment timeout after {self.containment_timeout}s"
-            )
+            ) from None
         except Exception as e:
             self.containment_failures += 1
             logger.error(f"Containment error for Omega state {omega_id[:8]}: {e}")
-            raise OmegaStateError(f"Containment failed: {str(e)}")
+            raise OmegaStateError(f"Containment failed: {str(e)}") from e
 
     async def detect_omega_state(
         self,

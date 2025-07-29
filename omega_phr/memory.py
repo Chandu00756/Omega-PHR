@@ -824,12 +824,9 @@ class MemoryInverter:
         words2 = set(stmt2.split())
         common_words = words1 & words2
 
-        if len(common_words) >= 2 and (  # Same event likely referenced
+        return len(common_words) >= 2 and (  # Same event likely referenced
             (stmt1_past and stmt2_future) or (stmt1_future and stmt2_past)
-        ):  # Conflict if one is past and other is future
-            return True
-
-        return False
+        )  # Conflict if one is past and other is future
 
 
 # Backward compatibility alias for test imports
