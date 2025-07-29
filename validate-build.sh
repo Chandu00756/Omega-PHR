@@ -91,6 +91,22 @@ for component in "${components[@]}"; do
     }
 done
 
+# Step 4.5: Critical Performance Tests (that were failing in CI)
+echo -e "\n${BLUE}🧪 Step 4.5: Running critical performance tests (CI failure prone)...${NC}"
+critical_tests=(
+    "tests/test_omega_phr.py::TestPerformance::test_hive_scalability"
+    "tests/test_omega_phr.py::TestPerformance::test_timeline_performance"
+)
+
+for test in "${critical_tests[@]}"; do
+    echo "  - Testing $test..."
+    $PYTHON_EXE -m pytest "$test" -v -c pytest-ci.toml --tb=short --disable-warnings || {
+        echo -e "${RED}❌ Critical performance test failed: $test${NC}"
+        echo -e "${YELLOW}💡 This test was failing in CI - investigate the specific failure${NC}"
+        exit 1
+    }
+done
+
 # Step 5: Full Test Suite (with timeout)
 echo -e "\n${BLUE}🧪 Step 5: Running full test suite...${NC}"
 # Use gtimeout if available (brew install coreutils), otherwise run without timeout

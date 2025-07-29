@@ -95,9 +95,44 @@ python main.py
 docker-compose up --build
 ```
 
+### Build Validation & Safe Deployment
+
+This project includes a comprehensive build validation system to ensure code quality and prevent CI failures:
+
+#### Quick Deployment (Recommended)
+
+```bash
+# Safely commit and push after comprehensive validation
+./smart-deploy.sh "Your commit message here"
+```
+
+#### Manual Validation Only
+
+```bash
+# Run full validation without committing/pushing
+./validate-build.sh
+```
+
+The validation system runs:
+
+- ✅ Python syntax validation (7 core modules)
+- ✅ Import validation (all components)
+- ✅ Basic functionality tests (5 tests)
+- ✅ Individual component testing (6 components)
+- ✅ Full test suite execution (65 tests)
+- ✅ Static analysis checks
+- ✅ CI configuration validation
+
+**Benefits**: Prevents CI failures, saves time, ensures quality, provides automatic rollback.
+
+📋 See [BUILD_VALIDATION.md](BUILD_VALIDATION.md) for detailed usage guide.
+
 ### Running Tests
 
 ```bash
+# Quick validation (recommended for development)
+./validate-build.sh
+
 # Unit tests
 pytest tests/unit -m unit
 
