@@ -362,10 +362,27 @@ class HiveOrchestrator:
             # Config dictionary - create a mock attacker for testing
             attacker_class = type(
                 "MockAttacker",
-                (),
+                (BaseAttacker,),
                 {
-                    "__init__": (lambda self, agent_id, persona: None),
+                    "__init__": lambda self, agent_id, persona: BaseAttacker.__init__(
+                        self, agent_id, persona
+                    ),
                     "config": attacker_class_or_config,
+                    "attack": (
+                        lambda self, target, context: asyncio.sleep(
+                            0,
+                            result={
+                                "agent_id": getattr(
+                                    self, "agent_id", str(uuid.uuid4())
+                                ),
+                                "attack_type": "mock_attack",
+                                "success": True,
+                                "payload": "mock_payload",
+                                "response": "mock_response",
+                                "timestamp": time.time(),
+                            },
+                        )
+                    ),
                 },
             )
         else:

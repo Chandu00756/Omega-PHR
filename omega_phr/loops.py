@@ -513,7 +513,7 @@ class RecursiveLoopSynthesizer:
 
     async def generate_loop(
         self,
-        pattern_name: str,
+        pattern_name: str | dict[str, Any],
         context: dict[str, Any] | None = None,
         target_model: Any | None = None,
     ) -> str:
@@ -534,23 +534,25 @@ class RecursiveLoopSynthesizer:
         # Support config-based generation for test compatibility
         if isinstance(pattern_name, dict):
             config = pattern_name
-            pattern_name = config.get("loop_type", "self_reference")
+            pattern_name_str = config.get("loop_type", "self_reference")
             context = config
+        else:
+            pattern_name_str = pattern_name
 
-        if pattern_name not in self.patterns:
-            raise RecursiveLoopError(f"Unknown loop pattern: {pattern_name}")
+        if pattern_name_str not in self.patterns:
+            raise RecursiveLoopError(f"Unknown loop pattern: {pattern_name_str}")
 
         context = context or {}
-        pattern = self.patterns[pattern_name]
+        pattern = self.patterns[pattern_name_str]
 
-        logger.info(f"Generating loop with pattern '{pattern_name}'")
+        logger.info(f"Generating loop with pattern '{pattern_name_str}'")
 
         # Create loop state
         loop_state = LoopState(
-            loop_type=pattern_name,
-            generation_source=f"pattern:{pattern_name}",
+            loop_type=pattern_name_str,
+            generation_source=f"pattern:{pattern_name_str}",
             metadata={
-                "pattern_name": pattern_name,
+                "pattern_name": pattern_name_str,
                 "context": context,
                 "start_time": datetime.now().isoformat(),
                 "target_model": str(target_model) if target_model else None,

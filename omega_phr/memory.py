@@ -698,7 +698,7 @@ class MemoryInverter:
 
         return False
 
-    def _has_type_inconsistencies(self, content: dict[str, Any]) -> bool:
+    def _has_type_inconsistencies(self, content: Any) -> bool:
         """Check for type inconsistencies in content."""
         if not isinstance(content, dict):
             return False
@@ -714,9 +714,9 @@ class MemoryInverter:
         # Check for type inconsistencies within groups
         return any(len(set(types)) > 1 for key_base, types in key_groups.items())
 
-    async def _find_contradictions(self, content: dict[str, Any]) -> list[str]:
+    async def _find_contradictions(self, content: Any) -> list[str]:
         """Find logical contradictions in content."""
-        contradictions = []
+        contradictions: list[str] = []
 
         if not isinstance(content, dict):
             return contradictions
@@ -767,9 +767,9 @@ class MemoryInverter:
 
         return False
 
-    async def _find_temporal_issues(self, content: dict[str, Any]) -> list[str]:
+    async def _find_temporal_issues(self, content: Any) -> list[str]:
         """Find temporal inconsistencies in content."""
-        issues = []
+        issues: list[str] = []
 
         if not isinstance(content, dict):
             return issues
