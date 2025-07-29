@@ -5,9 +5,6 @@ This module would implement the gRPC server for the Timeline Lattice service.
 Currently serves as a placeholder for future implementation.
 """
 
-import time  # noqa: I001
-
-import grpc
 from grpc import aio
 from structlog import get_logger
 
