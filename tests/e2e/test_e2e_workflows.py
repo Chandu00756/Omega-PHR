@@ -73,7 +73,6 @@ class TestE2EWorkflows(unittest.TestCase):
         self.assertIn("summary", final_report)
         self.assertEqual(len(final_report["findings"]), 2)
 
-    @pytest.mark.skip(reason="Reducing coverage - complex e2e test disabled")
     def test_multi_agent_coordination(self):
         """Test coordination between multiple agents."""
         # Simulate multi-agent coordination
@@ -250,7 +249,6 @@ class TestE2EWorkflows(unittest.TestCase):
                 ["success", "partial_success", "success_with_warnings"],
             )
 
-    @pytest.mark.skip(reason="Reducing coverage - performance benchmark disabled")
     def test_performance_benchmarks(self):
         """Test performance benchmarks for research-grade stability."""
         # Simulate performance measurements

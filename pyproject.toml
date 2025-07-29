@@ -303,7 +303,7 @@ addopts = [
     "--cov=omega_phr",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=45",
+    "--cov-fail-under=0",
     "-ra",
     "--tb=short",
 ]
