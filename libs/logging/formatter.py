@@ -7,12 +7,12 @@ including trace correlation, performance metrics, and security audit trails.
 
 import json
 import logging
+import threading
 import time
 import traceback
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
-import uuid
-import threading
 
 
 class JSONFormatter(logging.Formatter):
@@ -24,7 +24,7 @@ class JSONFormatter(logging.Formatter):
         version: str = "1.0.0",
         environment: str = "development",
         include_trace: bool = True,
-        sensitive_fields: Optional[set[str]] = None
+        sensitive_fields: Optional[set[str]] = None,
     ):
         """
         Initialize JSON formatter.
@@ -42,8 +42,15 @@ class JSONFormatter(logging.Formatter):
         self.environment = environment
         self.include_trace = include_trace
         self.sensitive_fields = sensitive_fields or {
-            'password', 'token', 'secret', 'key', 'credential',
-            'authorization', 'auth', 'jwt', 'api_key'
+            "password",
+            "token",
+            "secret",
+            "key",
+            "credential",
+            "authorization",
+            "auth",
+            "jwt",
+            "api_key",
         }
 
         # Thread-local storage for request context
@@ -79,21 +86,38 @@ class JSONFormatter(logging.Formatter):
             log_entry["span_id"] = span_id
 
         # Add performance metrics
-        if hasattr(record, 'duration'):
+        if hasattr(record, "duration"):
             log_entry["duration_ms"] = record.duration
 
-        if hasattr(record, 'memory_usage'):
+        if hasattr(record, "memory_usage"):
             log_entry["memory_mb"] = record.memory_usage
 
         # Add extra fields from record
         extra_fields = {}
         for key, value in record.__dict__.items():
             if key not in {
-                'name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
-                'filename', 'module', 'lineno', 'funcName', 'created',
-                'msecs', 'relativeCreated', 'thread', 'threadName',
-                'processName', 'process', 'message', 'exc_info', 'exc_text',
-                'stack_info', 'getMessage'
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "message",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "getMessage",
             }:
                 extra_fields[key] = self._sanitize_value(key, value)
 
@@ -105,7 +129,7 @@ class JSONFormatter(logging.Formatter):
             log_entry["exception"] = {
                 "type": record.exc_info[0].__name__,
                 "message": str(record.exc_info[1]),
-                "traceback": traceback.format_exception(*record.exc_info)
+                "traceback": traceback.format_exception(*record.exc_info),
             }
 
         # Add stack trace for errors
@@ -113,23 +137,23 @@ class JSONFormatter(logging.Formatter):
             log_entry["stack_trace"] = record.stack_info
 
         # Add security context
-        if hasattr(record, 'user_id'):
+        if hasattr(record, "user_id"):
             log_entry["user_id"] = record.user_id
 
-        if hasattr(record, 'session_id'):
+        if hasattr(record, "session_id"):
             log_entry["session_id"] = record.session_id
 
-        if hasattr(record, 'request_id'):
+        if hasattr(record, "request_id"):
             log_entry["request_id"] = record.request_id
 
         # Add operational metadata
-        if hasattr(record, 'component'):
+        if hasattr(record, "component"):
             log_entry["component"] = record.component
 
-        if hasattr(record, 'operation'):
+        if hasattr(record, "operation"):
             log_entry["operation"] = record.operation
 
-        if hasattr(record, 'status'):
+        if hasattr(record, "status"):
             log_entry["status"] = record.status
 
         # Serialize to JSON
@@ -141,11 +165,11 @@ class JSONFormatter(logging.Formatter):
 
     def _get_trace_id(self) -> Optional[str]:
         """Get current trace ID from context."""
-        return getattr(self._local, 'trace_id', None)
+        return getattr(self._local, "trace_id", None)
 
     def _get_span_id(self) -> Optional[str]:
         """Get current span ID from context."""
-        return getattr(self._local, 'span_id', None)
+        return getattr(self._local, "span_id", None)
 
     def set_trace_context(self, trace_id: str, span_id: Optional[str] = None) -> None:
         """Set trace context for current thread."""
@@ -174,7 +198,10 @@ class JSONFormatter(logging.Formatter):
 
         # Recursively sanitize lists
         if isinstance(value, list):
-            return [self._sanitize_value(f"{key}[{i}]", item) for i, item in enumerate(value)]
+            return [
+                self._sanitize_value(f"{key}[{i}]", item)
+                for i, item in enumerate(value)
+            ]
 
         return value
 
@@ -184,7 +211,7 @@ class JSONFormatter(logging.Formatter):
             return obj.isoformat()
         elif isinstance(obj, Exception):
             return str(obj)
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
             return obj.__dict__
         else:
             return str(obj)
@@ -196,19 +223,24 @@ class PerformanceLogFormatter(JSONFormatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format performance log with additional metrics."""
         # Add performance-specific fields
-        if not hasattr(record, 'performance_metrics'):
+        if not hasattr(record, "performance_metrics"):
             record.performance_metrics = {}
 
         # Add system resource usage
         try:
             import psutil
+
             process = psutil.Process()
-            record.performance_metrics.update({
-                'cpu_percent': process.cpu_percent(),
-                'memory_percent': process.memory_percent(),
-                'open_fds': process.num_fds() if hasattr(process, 'num_fds') else None,
-                'threads': process.num_threads()
-            })
+            record.performance_metrics.update(
+                {
+                    "cpu_percent": process.cpu_percent(),
+                    "memory_percent": process.memory_percent(),
+                    "open_fds": (
+                        process.num_fds() if hasattr(process, "num_fds") else None
+                    ),
+                    "threads": process.num_threads(),
+                }
+            )
         except ImportError:
             pass
 
@@ -221,19 +253,19 @@ class AuditLogFormatter(JSONFormatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format audit log with security context."""
         # Add audit-specific fields
-        if not hasattr(record, 'audit'):
+        if not hasattr(record, "audit"):
             record.audit = True
 
-        if not hasattr(record, 'severity'):
+        if not hasattr(record, "severity"):
             if record.levelno >= logging.ERROR:
-                record.severity = 'HIGH'
+                record.severity = "HIGH"
             elif record.levelno >= logging.WARNING:
-                record.severity = 'MEDIUM'
+                record.severity = "MEDIUM"
             else:
-                record.severity = 'LOW'
+                record.severity = "LOW"
 
         # Add compliance tags
-        if hasattr(record, 'compliance_tags'):
+        if hasattr(record, "compliance_tags"):
             record.compliance = record.compliance_tags
 
         return super().format(record)
@@ -248,14 +280,14 @@ class StructuredLogAdapter(logging.LoggerAdapter):
 
     def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
         """Process log message with additional context."""
-        if 'extra' in kwargs:
-            kwargs['extra'].update(self.extra)
+        if "extra" in kwargs:
+            kwargs["extra"].update(self.extra)
         else:
-            kwargs['extra'] = self.extra.copy()
+            kwargs["extra"] = self.extra.copy()
 
         return msg, kwargs
 
-    def with_context(self, **context: Any) -> 'StructuredLogAdapter':
+    def with_context(self, **context: Any) -> "StructuredLogAdapter":
         """Create new adapter with additional context."""
         new_extra = self.extra.copy()
         new_extra.update(context)
@@ -263,34 +295,34 @@ class StructuredLogAdapter(logging.LoggerAdapter):
 
     def performance(self, msg: str, duration: float, **kwargs: Any) -> None:
         """Log performance metric."""
-        kwargs.setdefault('extra', {})
-        kwargs['extra']['duration'] = duration
-        kwargs['extra']['metric_type'] = 'performance'
+        kwargs.setdefault("extra", {})
+        kwargs["extra"]["duration"] = duration
+        kwargs["extra"]["metric_type"] = "performance"
         self.info(msg, **kwargs)
 
     def audit(self, msg: str, action: str, resource: str, **kwargs: Any) -> None:
         """Log security audit event."""
-        kwargs.setdefault('extra', {})
-        kwargs['extra'].update({
-            'audit': True,
-            'action': action,
-            'resource': resource,
-            'metric_type': 'audit'
-        })
+        kwargs.setdefault("extra", {})
+        kwargs["extra"].update(
+            {
+                "audit": True,
+                "action": action,
+                "resource": resource,
+                "metric_type": "audit",
+            }
+        )
         self.info(msg, **kwargs)
 
-    def security(self, msg: str, threat_level: str = 'LOW', **kwargs: Any) -> None:
+    def security(self, msg: str, threat_level: str = "LOW", **kwargs: Any) -> None:
         """Log security event."""
-        kwargs.setdefault('extra', {})
-        kwargs['extra'].update({
-            'security': True,
-            'threat_level': threat_level,
-            'metric_type': 'security'
-        })
+        kwargs.setdefault("extra", {})
+        kwargs["extra"].update(
+            {"security": True, "threat_level": threat_level, "metric_type": "security"}
+        )
 
-        if threat_level in ('HIGH', 'CRITICAL'):
+        if threat_level in ("HIGH", "CRITICAL"):
             self.error(msg, **kwargs)
-        elif threat_level == 'MEDIUM':
+        elif threat_level == "MEDIUM":
             self.warning(msg, **kwargs)
         else:
             self.info(msg, **kwargs)
@@ -304,7 +336,7 @@ def configure_logging(
     enable_file: bool = False,
     log_file: Optional[str] = None,
     enable_audit: bool = True,
-    enable_performance: bool = True
+    enable_performance: bool = True,
 ) -> None:
     """
     Configure application logging with research standards.
@@ -332,8 +364,7 @@ def configure_logging(
     if enable_console:
         console_handler = logging.StreamHandler()
         console_formatter = JSONFormatter(
-            service_name=service_name,
-            environment=environment
+            service_name=service_name, environment=environment
         )
         console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
@@ -342,19 +373,17 @@ def configure_logging(
     if enable_file and log_file:
         file_handler = logging.FileHandler(log_file)
         file_formatter = JSONFormatter(
-            service_name=service_name,
-            environment=environment
+            service_name=service_name, environment=environment
         )
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
 
     # Audit logger
     if enable_audit:
-        audit_logger = logging.getLogger('audit')
+        audit_logger = logging.getLogger("audit")
         audit_handler = logging.StreamHandler()
         audit_formatter = AuditLogFormatter(
-            service_name=service_name,
-            environment=environment
+            service_name=service_name, environment=environment
         )
         audit_handler.setFormatter(audit_formatter)
         audit_logger.addHandler(audit_handler)
@@ -362,11 +391,10 @@ def configure_logging(
 
     # Performance logger
     if enable_performance:
-        perf_logger = logging.getLogger('performance')
+        perf_logger = logging.getLogger("performance")
         perf_handler = logging.StreamHandler()
         perf_formatter = PerformanceLogFormatter(
-            service_name=service_name,
-            environment=environment
+            service_name=service_name, environment=environment
         )
         perf_handler.setFormatter(perf_formatter)
         perf_logger.addHandler(perf_handler)

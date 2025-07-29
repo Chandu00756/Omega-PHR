@@ -12,12 +12,14 @@ import logging
 import signal
 import sys
 from typing import Optional
+
 import grpc
 from grpc import aio
 
-# Import service implementation
-from .models import TimelineEvent, TemporalParadox
 from .config import TimelineServiceConfig
+
+# Import service implementation
+from .models import TemporalParadox, TimelineEvent
 
 
 class SimpleTimelineRepository:
@@ -31,12 +33,13 @@ class SimpleTimelineRepository:
     async def create_timeline(self, name: str, description: str = "") -> str:
         """Create a new timeline."""
         import uuid
+
         timeline_id = str(uuid.uuid4())
         self.timelines[timeline_id] = {
-            'id': timeline_id,
-            'name': name,
-            'description': description,
-            'events': []
+            "id": timeline_id,
+            "name": name,
+            "description": description,
+            "events": [],
         }
         return timeline_id
 
@@ -44,9 +47,10 @@ class SimpleTimelineRepository:
         """Add an event to a timeline."""
         if timeline_id in self.timelines:
             import uuid
+
             event_id = str(uuid.uuid4())
             self.events[event_id] = event_data
-            self.timelines[timeline_id]['events'].append(event_id)
+            self.timelines[timeline_id]["events"].append(event_id)
             return event_id
         return ""
 
@@ -76,76 +80,87 @@ class TimelineLatticeServer:
         """Create a new temporal timeline."""
         try:
             timeline_id = await self.repository.create_timeline(
-                name=request.name,
-                description=request.description
+                name=request.name, description=request.description
             )
 
             # Return mock response
-            return type('CreateTimelineResponse', (), {
-                'timeline_id': timeline_id,
-                'status': 'created'
-            })()
+            return type(
+                "CreateTimelineResponse",
+                (),
+                {"timeline_id": timeline_id, "status": "created"},
+            )()
 
         except Exception as e:
             self.logger.error(f"Error creating timeline: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Failed to create timeline: {str(e)}")
-            return type('CreateTimelineResponse', (), {})()
+            return type("CreateTimelineResponse", (), {})()
 
     async def AddEvent(self, request, context):
         """Add an event to a temporal timeline."""
         try:
             event_data = {
-                'event_type': request.event_type,
-                'timestamp': request.timestamp,
-                'data': request.data
+                "event_type": request.event_type,
+                "timestamp": request.timestamp,
+                "data": request.data,
             }
 
             event_id = await self.repository.add_event(request.timeline_id, event_data)
 
-            return type('AddEventResponse', (), {
-                'event_id': event_id,
-                'status': 'added'
-            })()
+            return type(
+                "AddEventResponse", (), {"event_id": event_id, "status": "added"}
+            )()
 
         except Exception as e:
             self.logger.error(f"Error adding event: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Failed to add event: {str(e)}")
-            return type('AddEventResponse', (), {})()
+            return type("AddEventResponse", (), {})()
 
     async def AnalyzeParadox(self, request, context):
         """Analyze potential temporal paradoxes."""
         try:
             # Mock analysis result
-            return type('AnalyzeParadoxResponse', (), {
-                'paradox_detected': False,
-                'risk_level': 'low',
-                'analysis': 'No paradoxes detected'
-            })()
+            return type(
+                "AnalyzeParadoxResponse",
+                (),
+                {
+                    "paradox_detected": False,
+                    "risk_level": "low",
+                    "analysis": "No paradoxes detected",
+                },
+            )()
 
         except Exception as e:
             self.logger.error(f"Error analyzing paradox: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Failed to analyze paradox: {str(e)}")
-            return type('AnalyzeParadoxResponse', (), {})()
+            return type("AnalyzeParadoxResponse", (), {})()
 
     async def GetTimelineStatus(self, request, context):
         """Get the current status of a timeline."""
         try:
             status = await self.repository.get_timeline_status(request.timeline_id)
 
-            return type('GetTimelineStatusResponse', (), {
-                'timeline_id': request.timeline_id,
-                'status': status,
-                'event_count': len(self.repository.timelines.get(request.timeline_id, {}).get('events', []))
-            })()
+            return type(
+                "GetTimelineStatusResponse",
+                (),
+                {
+                    "timeline_id": request.timeline_id,
+                    "status": status,
+                    "event_count": len(
+                        self.repository.timelines.get(request.timeline_id, {}).get(
+                            "events", []
+                        )
+                    ),
+                },
+            )()
 
         except Exception as e:
             self.logger.error(f"Error getting timeline status: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Failed to get timeline status: {str(e)}")
-            return type('GetTimelineStatusResponse', (), {})()
+            return type("GetTimelineStatusResponse", (), {})()
 
 
 async def serve(config: TimelineServiceConfig):
@@ -174,7 +189,7 @@ def main():
     """Main entry point for Timeline Lattice server."""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     config = TimelineServiceConfig()

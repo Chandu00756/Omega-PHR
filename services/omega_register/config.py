@@ -4,8 +4,8 @@ Research-grade stability settings.
 """
 
 import os
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -47,5 +47,5 @@ class OmegaRegisterConfig:
             scheduler_interval=int(os.getenv("OMEGA_SCHEDULER_INTERVAL", "10")),
             cleanup_interval=int(os.getenv("OMEGA_CLEANUP_INTERVAL", "600")),
             agent_retention_days=int(os.getenv("OMEGA_AGENT_RETENTION_DAYS", "7")),
-            task_retention_days=int(os.getenv("OMEGA_TASK_RETENTION_DAYS", "30"))
+            task_retention_days=int(os.getenv("OMEGA_TASK_RETENTION_DAYS", "30")),
         )

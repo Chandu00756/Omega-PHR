@@ -6,15 +6,15 @@ for distributed adversarial agent behavior.
 """
 
 import asyncio
+import json
 import logging
-import time
 import math
-from typing import Dict, List, Optional, Any, Tuple
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional, Tuple
 
-from .agent import AdversarialAgent, AttackResult, AgentType
+from .agent import AdversarialAgent, AgentType, AttackResult
 from .config import HiveConfig
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class SwarmBehavior(str, Enum):
     """Types of swarm behaviors."""
+
     EXPLORATION = "exploration"
     EXPLOITATION = "exploitation"
     COORDINATION = "coordination"
@@ -33,6 +34,7 @@ class SwarmBehavior(str, Enum):
 @dataclass
 class PheromoneTrail:
     """Pheromone trail for ant colony optimization."""
+
     path_id: str
     strength: float = 1.0
     decay_rate: float = 0.1
@@ -44,6 +46,7 @@ class PheromoneTrail:
 @dataclass
 class SwarmNode:
     """Node in the swarm intelligence network."""
+
     node_id: str
     position: Tuple[float, float] = (0.0, 0.0)
     influence_radius: float = 1.0
@@ -84,7 +87,7 @@ class SwarmIntelligence:
                 node_id=agent.agent_id,
                 position=self._calculate_agent_position(agent),
                 influence_radius=agent.coordination_ability,
-                activity_level=agent.success_rate
+                activity_level=agent.success_rate,
             )
             self.swarm_nodes[agent.agent_id] = node
 
@@ -94,7 +97,9 @@ class SwarmIntelligence:
         """Calculate agent position in swarm space."""
         # Map agent characteristics to 2D position
         x = agent.success_rate * math.cos(hash(agent.agent_type.value) % (2 * math.pi))
-        y = agent.creativity_factor * math.sin(hash(agent.agent_type.value) % (2 * math.pi))
+        y = agent.creativity_factor * math.sin(
+            hash(agent.agent_type.value) % (2 * math.pi)
+        )
         return (x, y)
 
     async def process_attack_results(self, results: List[AttackResult]) -> None:
@@ -159,7 +164,7 @@ class SwarmIntelligence:
                         "total_confidence": 0.0,
                         "target_models": set(),
                         "first_seen": result.timestamp,
-                        "last_seen": result.timestamp
+                        "last_seen": result.timestamp,
                     }
 
                 memory_entry = self.collective_memory[pattern_key]
@@ -172,10 +177,9 @@ class SwarmIntelligence:
         if len(self.collective_memory) > self.collective_memory_size:
             # Remove least successful patterns
             sorted_patterns = sorted(
-                self.collective_memory.items(),
-                key=lambda x: x[1]["success_count"]
+                self.collective_memory.items(), key=lambda x: x[1]["success_count"]
             )
-            patterns_to_remove = sorted_patterns[:len(sorted_patterns)//4]
+            patterns_to_remove = sorted_patterns[: len(sorted_patterns) // 4]
             for pattern_key, _ in patterns_to_remove:
                 del self.collective_memory[pattern_key]
 
@@ -206,13 +210,15 @@ class SwarmIntelligence:
         # Calculate coordination score based on agent cooperation
         agent_pairs = []
         for i, r1 in enumerate(results):
-            for r2 in results[i+1:]:
+            for r2 in results[i + 1 :]:
                 if r1.agent_id != r2.agent_id:
                     # Check if agents attacked same target (coordination)
                     if r1.target_model == r2.target_model:
                         agent_pairs.append((r1.agent_id, r2.agent_id))
 
-        self.coordination_score = len(agent_pairs) / max(1, len(results) * (len(results) - 1) / 2)
+        self.coordination_score = len(agent_pairs) / max(
+            1, len(results) * (len(results) - 1) / 2
+        )
 
     async def _adapt_swarm_behavior(self, results: List[AttackResult]) -> None:
         """Adapt swarm behavior based on performance."""
@@ -257,16 +263,14 @@ class SwarmIntelligence:
         """Enhance coordination between agents."""
         # Identify high-performing agents
         top_agents = sorted(
-            self.agents.values(),
-            key=lambda a: a.success_rate,
-            reverse=True
+            self.agents.values(), key=lambda a: a.success_rate, reverse=True
         )[:5]
 
         # Create coordination groups
         coordination_groups = []
         for i in range(0, len(top_agents), 2):
             if i + 1 < len(top_agents):
-                coordination_groups.append([top_agents[i], top_agents[i+1]])
+                coordination_groups.append([top_agents[i], top_agents[i + 1]])
 
         # Share knowledge between coordinated agents
         for group in coordination_groups:
@@ -291,8 +295,8 @@ class SwarmIntelligence:
                 # Calculate distance
                 other_pos = other_node.position
                 distance = math.sqrt(
-                    (node_pos[0] - other_pos[0])**2 +
-                    (node_pos[1] - other_pos[1])**2
+                    (node_pos[0] - other_pos[0]) ** 2
+                    + (node_pos[1] - other_pos[1]) ** 2
                 )
 
                 if distance <= node.influence_radius:
@@ -302,28 +306,26 @@ class SwarmIntelligence:
             node.connected_nodes = nearby_nodes
 
     async def get_swarm_recommendations(
-        self,
-        agent: AdversarialAgent
+        self, agent: AdversarialAgent
     ) -> Dict[str, Any]:
         """Get swarm intelligence recommendations for an agent."""
         recommendations = {
             "preferred_targets": [],
             "suggested_strategies": [],
             "coordination_partners": [],
-            "avoid_patterns": []
+            "avoid_patterns": [],
         }
 
         # Analyze pheromone trails for target recommendations
         agent_trails = [
-            trail for trail in self.pheromone_trails.values()
-            if trail.strength > 0.5
+            trail for trail in self.pheromone_trails.values() if trail.strength > 0.5
         ]
 
         # Sort by strength and success rate
         sorted_trails = sorted(
             agent_trails,
             key=lambda t: t.strength * (t.success_count / max(1, t.agent_visits)),
-            reverse=True
+            reverse=True,
         )
 
         recommendations["preferred_targets"] = [
@@ -334,15 +336,16 @@ class SwarmIntelligence:
         if agent.agent_id in self.swarm_nodes:
             node = self.swarm_nodes[agent.agent_id]
             potential_partners = [
-                other_id for other_id in node.connected_nodes
-                if other_id in self.agents and
-                self.agents[other_id].success_rate > 0.5
+                other_id
+                for other_id in node.connected_nodes
+                if other_id in self.agents and self.agents[other_id].success_rate > 0.5
             ]
             recommendations["coordination_partners"] = potential_partners[:3]
 
         # Suggest strategies based on collective memory
         successful_patterns = [
-            pattern for pattern, data in self.collective_memory.items()
+            pattern
+            for pattern, data in self.collective_memory.items()
             if data["success_count"] > 3
         ]
         recommendations["suggested_strategies"] = successful_patterns[:5]
@@ -360,20 +363,20 @@ class SwarmIntelligence:
                 "swarm_effectiveness": round(self.swarm_effectiveness, 3),
                 "coordination_score": round(self.coordination_score, 3),
                 "diversity_index": round(self.diversity_index, 3),
-                "convergence_rate": round(self.convergence_rate, 3)
+                "convergence_rate": round(self.convergence_rate, 3),
             },
             "parameters": {
                 "pheromone_decay": self.pheromone_decay,
                 "exploration_factor": self.exploration_factor,
-                "collective_memory_size": self.collective_memory_size
+                "collective_memory_size": self.collective_memory_size,
             },
             "network_stats": {
                 "total_nodes": len(self.swarm_nodes),
                 "average_connections": (
-                    sum(len(node.connected_nodes) for node in self.swarm_nodes.values()) /
-                    max(1, len(self.swarm_nodes))
-                )
-            }
+                    sum(len(node.connected_nodes) for node in self.swarm_nodes.values())
+                    / max(1, len(self.swarm_nodes))
+                ),
+            },
         }
 
     async def export_knowledge(self) -> Dict[str, Any]:
@@ -382,7 +385,9 @@ class SwarmIntelligence:
             "collective_memory": {
                 key: {
                     **value,
-                    "target_models": list(value["target_models"])  # Convert set to list
+                    "target_models": list(
+                        value["target_models"]
+                    ),  # Convert set to list
                 }
                 for key, value in self.collective_memory.items()
             },
@@ -391,14 +396,14 @@ class SwarmIntelligence:
                     "strength": trail.strength,
                     "success_count": trail.success_count,
                     "agent_visits": trail.agent_visits,
-                    "success_rate": trail.success_count / max(1, trail.agent_visits)
+                    "success_rate": trail.success_count / max(1, trail.agent_visits),
                 }
                 for trail_id, trail in self.pheromone_trails.items()
             },
             "swarm_metrics": {
                 "effectiveness": self.swarm_effectiveness,
                 "coordination": self.coordination_score,
-                "diversity": self.diversity_index
+                "diversity": self.diversity_index,
             },
-            "behavior_history": self.current_behavior.value
+            "behavior_history": self.current_behavior.value,
         }

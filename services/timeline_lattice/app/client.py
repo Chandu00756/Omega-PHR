@@ -18,20 +18,21 @@ paradox analysis.
 import asyncio
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 try:
     import grpc
     from grpc import aio
+
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
     grpc = None
     aio = None
 
-from .models import TimelineEvent, TemporalParadox, EventType
 from .config import TimelineConfig
+from .models import EventType, TemporalParadox, TimelineEvent
 
 
 class TimelineLatticeClient:
@@ -42,7 +43,9 @@ class TimelineLatticeClient:
     timeline management, event creation, and paradox analysis.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 50051, timeout: float = 30.0):
+    def __init__(
+        self, host: str = "localhost", port: int = 50051, timeout: float = 30.0
+    ):
         """
         Initialize Timeline Lattice client.
 
@@ -77,6 +80,7 @@ class TimelineLatticeClient:
 
             # Import here to avoid circular imports
             from ..timeline_pb2_grpc import TimelineLatticeStub
+
             self.stub = TimelineLatticeStub(self.channel)
 
             # Test connection
@@ -104,10 +108,12 @@ class TimelineLatticeClient:
             self.logger.error(f"Health check failed: {e}")
             return False
 
-    async def create_timeline(self,
-                            name: str,
-                            description: str = "",
-                            initial_timestamp: Optional[datetime] = None) -> str:
+    async def create_timeline(
+        self,
+        name: str,
+        description: str = "",
+        initial_timestamp: Optional[datetime] = None,
+    ) -> str:
         """
         Create a new temporal timeline.
 
@@ -136,7 +142,7 @@ class TimelineLatticeClient:
             request = CreateTimelineRequest(
                 name=name,
                 description=description,
-                initial_timestamp=initial_timestamp.isoformat()
+                initial_timestamp=initial_timestamp.isoformat(),
             )
 
             if self.stub is not None:
@@ -144,10 +150,12 @@ class TimelineLatticeClient:
             else:
                 # Mock response when gRPC is not available
                 mock_timeline_id = timeline_id  # Capture the timeline_id in local scope
+
                 class MockResponse:
                     success = True
                     timeline_id = mock_timeline_id
                     message = "Mock timeline created"
+
                 response = MockResponse()
 
             if response.success:
@@ -160,12 +168,14 @@ class TimelineLatticeClient:
             self.logger.error(f"Failed to create timeline: {e}")
             raise
 
-    async def add_event(self,
-                       timeline_id: str,
-                       event_type: EventType,
-                       timestamp: datetime,
-                       data: Dict[str, Any],
-                       causality_vector: Optional[Dict[str, Any]] = None) -> str:
+    async def add_event(
+        self,
+        timeline_id: str,
+        event_type: EventType,
+        timestamp: datetime,
+        data: Dict[str, Any],
+        causality_vector: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """
         Add a temporal event to a timeline.
 
@@ -182,6 +192,7 @@ class TimelineLatticeClient:
         if not GRPC_AVAILABLE:
             # Mock implementation
             import uuid
+
             event_id = str(uuid.uuid4())
             self.logger.info(f"Mock: Added event {event_id} to timeline {timeline_id}")
             return event_id
@@ -194,7 +205,7 @@ class TimelineLatticeClient:
                 event_type=event_type.value,
                 timestamp=timestamp.isoformat(),
                 data=str(data),  # Convert to string for protobuf
-                causality_vector=str(causality_vector) if causality_vector else ""
+                causality_vector=str(causality_vector) if causality_vector else "",
             )
 
             if self.stub is not None:
@@ -202,17 +213,21 @@ class TimelineLatticeClient:
             else:
                 # Mock response when gRPC is not available
                 import uuid
+
                 class MockResponse:
                     success = True
                     event_id = f"event_{uuid.uuid4().hex[:8]}"
                     message = "Mock event added"
                     paradox_risk = 0.0
+
                 response = MockResponse()
 
             if response.success:
                 self.logger.info(f"Added event: {response.event_id}")
                 if response.paradox_risk > 0.1:
-                    self.logger.warning(f"High paradox risk detected: {response.paradox_risk}")
+                    self.logger.warning(
+                        f"High paradox risk detected: {response.paradox_risk}"
+                    )
                 return response.event_id
             else:
                 raise RuntimeError(f"Event addition failed: {response.message}")
@@ -234,6 +249,7 @@ class TimelineLatticeClient:
         if not GRPC_AVAILABLE:
             # Mock implementation
             from .models import ParadoxType
+
             mock_paradox = TemporalParadox(
                 paradox_id="mock_paradox_001",
                 timeline_id=timeline_id,
@@ -241,7 +257,7 @@ class TimelineLatticeClient:
                 severity=0.5,
                 description="Mock paradox for testing",
                 affected_events=["event_001", "event_002"],
-                detected_at=datetime.now(timezone.utc)
+                detected_at=datetime.now(timezone.utc),
             )
             self.logger.info(f"Mock: Analyzed paradoxes in timeline {timeline_id}")
             return [mock_paradox]
@@ -259,6 +275,7 @@ class TimelineLatticeClient:
                     success = True
                     paradoxes = []
                     message = "Mock paradox analysis"
+
                 response = MockResponse()
 
             if response.success:
@@ -267,17 +284,19 @@ class TimelineLatticeClient:
                 for p in response.paradoxes:
                     # This would properly deserialize protobuf in real implementation
                     paradox = TemporalParadox(
-                        paradox_id=p.get('paradox_id', ''),
+                        paradox_id=p.get("paradox_id", ""),
                         timeline_id=timeline_id,
-                        paradox_type=p.get('paradox_type', 'unknown'),
-                        severity=p.get('severity', 0.0),
-                        description=p.get('description', ''),
-                        affected_events=p.get('affected_events', []),
-                        detected_at=datetime.now(timezone.utc)
+                        paradox_type=p.get("paradox_type", "unknown"),
+                        severity=p.get("severity", 0.0),
+                        description=p.get("description", ""),
+                        affected_events=p.get("affected_events", []),
+                        detected_at=datetime.now(timezone.utc),
                     )
                     paradoxes.append(paradox)
 
-                self.logger.info(f"Analyzed {len(paradoxes)} paradoxes in timeline {timeline_id}")
+                self.logger.info(
+                    f"Analyzed {len(paradoxes)} paradoxes in timeline {timeline_id}"
+                )
                 return paradoxes
             else:
                 raise RuntimeError(f"Paradox analysis failed: {response.message}")
@@ -299,13 +318,13 @@ class TimelineLatticeClient:
         if not GRPC_AVAILABLE:
             # Mock implementation
             status = {
-                'timeline_id': timeline_id,
-                'status': 'stable',
-                'event_count': 42,
-                'paradox_count': 3,
-                'last_event_timestamp': datetime.now(timezone.utc).isoformat(),
-                'entropy_level': 0.25,
-                'stability_index': 0.87
+                "timeline_id": timeline_id,
+                "status": "stable",
+                "event_count": 42,
+                "paradox_count": 3,
+                "last_event_timestamp": datetime.now(timezone.utc).isoformat(),
+                "entropy_level": 0.25,
+                "stability_index": 0.87,
             }
             self.logger.info(f"Mock: Retrieved status for timeline {timeline_id}")
             return status
@@ -316,7 +335,9 @@ class TimelineLatticeClient:
             request = GetTimelineStatusRequest(timeline_id=timeline_id)
 
             if self.stub is not None:
-                response = await self.stub.GetTimelineStatus(request, timeout=self.timeout)
+                response = await self.stub.GetTimelineStatus(
+                    request, timeout=self.timeout
+                )
             else:
                 # Mock response when gRPC is not available
                 class MockResponse:
@@ -328,15 +349,16 @@ class TimelineLatticeClient:
                         self.paradox_count = 0
                         self.last_event_timestamp = ""
                         self.message = "Mock timeline status"
+
                 response = MockResponse(timeline_id)
 
             if response.success:
                 status = {
-                    'timeline_id': response.timeline_id,
-                    'status': response.status,
-                    'event_count': response.event_count,
-                    'paradox_count': response.paradox_count,
-                    'last_event_timestamp': response.last_event_timestamp
+                    "timeline_id": response.timeline_id,
+                    "status": response.status,
+                    "event_count": response.event_count,
+                    "paradox_count": response.paradox_count,
+                    "last_event_timestamp": response.last_event_timestamp,
                 }
                 self.logger.info(f"Retrieved status for timeline {timeline_id}")
                 return status
@@ -360,11 +382,13 @@ class TimelineLatticeClient:
 class TimelineClientPool:
     """Pool of Timeline Lattice clients for high-throughput operations."""
 
-    def __init__(self,
-                 host: str = "localhost",
-                 port: int = 50051,
-                 pool_size: int = 10,
-                 timeout: float = 30.0):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 50051,
+        pool_size: int = 10,
+        timeout: float = 30.0,
+    ):
         """Initialize client pool."""
         self.host = host
         self.port = port
@@ -382,7 +406,9 @@ class TimelineClientPool:
             self.clients.append(client)
             await self.available_clients.put(client)
 
-        self.logger.info(f"Initialized Timeline client pool with {self.pool_size} clients")
+        self.logger.info(
+            f"Initialized Timeline client pool with {self.pool_size} clients"
+        )
 
     async def get_client(self) -> TimelineLatticeClient:
         """Get an available client from the pool."""
@@ -409,7 +435,9 @@ class TimelineClientPool:
 
 
 # Convenience function for single operations
-async def create_timeline_client(host: str = "localhost", port: int = 50051) -> TimelineLatticeClient:
+async def create_timeline_client(
+    host: str = "localhost", port: int = 50051
+) -> TimelineLatticeClient:
     """Create and connect a Timeline Lattice client."""
     client = TimelineLatticeClient(host, port)
     await client.connect()
@@ -425,8 +453,7 @@ if __name__ == "__main__":
         async with TimelineLatticeClient() as client:
             # Create timeline
             timeline_id = await client.create_timeline(
-                name="test_timeline",
-                description="Enterprise test timeline"
+                name="test_timeline", description="Enterprise test timeline"
             )
 
             # Add events
@@ -434,7 +461,7 @@ if __name__ == "__main__":
                 timeline_id=timeline_id,
                 event_type=EventType.TEMPORAL_SHIFT,
                 timestamp=datetime.now(timezone.utc),
-                data={"test": "research_event"}
+                data={"test": "research_event"},
             )
 
             # Analyze paradoxes

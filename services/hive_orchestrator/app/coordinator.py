@@ -6,23 +6,26 @@ and swarm intelligence for comprehensive adversarial testing.
 """
 
 import asyncio
+import json
 import logging
+import random
 import time
 import uuid
-import random
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional, Set
 
-from .config import HiveConfig
 from .agent import (
-    AdversarialAgent, InjectorAgent, SocialEngineerAgent,
-    LogicCorruptorAgent, AgentType, AgentState, AttackResult
+    AdversarialAgent,
+    AgentState,
+    AgentType,
+    AttackResult,
+    InjectorAgent,
+    LogicCorruptorAgent,
+    SocialEngineerAgent,
 )
-from .strategy import (
-    AttackStrategy, create_strategy, StrategyType, ObjectiveType
-)
+from .config import HiveConfig
+from .strategy import AttackStrategy, ObjectiveType, StrategyType, create_strategy
 from .swarm import SwarmIntelligence
 
 logger = logging.getLogger(__name__)
@@ -30,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class CampaignState(str, Enum):
     """States of attack campaigns."""
+
     IDLE = "idle"
     PREPARING = "preparing"
     ACTIVE = "active"
@@ -42,6 +46,7 @@ class CampaignState(str, Enum):
 @dataclass
 class CampaignConfig:
     """Configuration for an attack campaign."""
+
     campaign_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Default Campaign"
     description: str = ""
@@ -50,7 +55,9 @@ class CampaignConfig:
     max_duration: int = 3600  # seconds
     attack_interval: float = 1.0  # seconds between attacks
     strategy_type: StrategyType = StrategyType.ADAPTIVE
-    objectives: List[ObjectiveType] = field(default_factory=lambda: [ObjectiveType.MAXIMIZE_SUCCESS_RATE])
+    objectives: List[ObjectiveType] = field(
+        default_factory=lambda: [ObjectiveType.MAXIMIZE_SUCCESS_RATE]
+    )
     safety_limits: Dict[str, Any] = field(default_factory=dict)
     context: Dict[str, Any] = field(default_factory=dict)
 
@@ -58,6 +65,7 @@ class CampaignConfig:
 @dataclass
 class CampaignMetrics:
     """Metrics tracking for campaigns."""
+
     start_time: float = field(default_factory=time.time)
     end_time: Optional[float] = None
     total_attacks: int = 0
@@ -103,13 +111,15 @@ class HiveCoordinator:
             self.strategy_bank[strategy_type.value] = strategy
 
     async def spawn_agents(
-        self,
-        agent_types: Optional[List[AgentType]] = None,
-        count_per_type: int = 2
+        self, agent_types: Optional[List[AgentType]] = None, count_per_type: int = 2
     ) -> List[str]:
         """Spawn new adversarial agents."""
         if agent_types is None:
-            agent_types = [AgentType.INJECTOR, AgentType.SOCIAL_ENGINEER, AgentType.LOGIC_CORRUPTOR]
+            agent_types = [
+                AgentType.INJECTOR,
+                AgentType.SOCIAL_ENGINEER,
+                AgentType.LOGIC_CORRUPTOR,
+            ]
 
         spawned_agents = []
 
@@ -148,13 +158,10 @@ class HiveCoordinator:
             target_models=self.config.target_models,
             adaptation_rate=self.config.adaptation_rate,
             creativity_factor=random.uniform(0.5, 0.9),
-            coordination_ability=random.uniform(0.3, 0.8)
+            coordination_ability=random.uniform(0.3, 0.8),
         )
 
-    async def launch_campaign(
-        self,
-        campaign_config: CampaignConfig
-    ) -> str:
+    async def launch_campaign(self, campaign_config: CampaignConfig) -> str:
         """Launch a new attack campaign."""
         campaign_id = campaign_config.campaign_id
 
@@ -171,7 +178,9 @@ class HiveCoordinator:
         self.campaign_metrics[campaign_id] = CampaignMetrics()
 
         # Ensure we have enough agents
-        available_agents = len([a for a in self.agent_pool.values() if a.state == AgentState.ACTIVE])
+        available_agents = len(
+            [a for a in self.agent_pool.values() if a.state == AgentState.ACTIVE]
+        )
         if available_agents < campaign_config.max_agents:
             needed_agents = campaign_config.max_agents - available_agents
             await self.spawn_agents(count_per_type=max(1, needed_agents // 3))
@@ -179,7 +188,7 @@ class HiveCoordinator:
         # Get strategy for campaign
         strategy = self.strategy_bank.get(
             campaign_config.strategy_type.value,
-            self.strategy_bank[StrategyType.RANDOM.value]
+            self.strategy_bank[StrategyType.RANDOM.value],
         )
 
         # Start campaign execution
@@ -189,9 +198,7 @@ class HiveCoordinator:
         return campaign_id
 
     async def _execute_campaign(
-        self,
-        campaign_id: str,
-        strategy: AttackStrategy
+        self, campaign_id: str, strategy: AttackStrategy
     ) -> None:
         """Execute an attack campaign."""
         campaign = self.active_campaigns[campaign_id]
@@ -202,13 +209,14 @@ class HiveCoordinator:
 
         try:
             while (
-                self.state == CampaignState.ACTIVE and
-                not self._emergency_shutdown_flag and
-                (time.time() - start_time) < campaign.max_duration
+                self.state == CampaignState.ACTIVE
+                and not self._emergency_shutdown_flag
+                and (time.time() - start_time) < campaign.max_duration
             ):
                 # Get available agents
                 available_agents = [
-                    agent for agent in self.agent_pool.values()
+                    agent
+                    for agent in self.agent_pool.values()
                     if agent.state in [AgentState.ACTIVE, AgentState.INACTIVE]
                 ]
 
@@ -219,22 +227,17 @@ class HiveCoordinator:
 
                 # Select agents using strategy
                 selected_agents = await strategy.select_agents(
-                    available_agents,
-                    campaign.context
+                    available_agents, campaign.context
                 )
 
                 # Execute coordinated attacks
                 attack_results = await strategy.coordinate_attacks(
-                    selected_agents,
-                    campaign.target_models,
-                    campaign.context
+                    selected_agents, campaign.target_models, campaign.context
                 )
 
                 # Process results
                 await self._process_attack_results(
-                    campaign_id,
-                    attack_results,
-                    strategy
+                    campaign_id, attack_results, strategy
                 )
 
                 # Check safety conditions
@@ -262,10 +265,7 @@ class HiveCoordinator:
             raise
 
     async def _process_attack_results(
-        self,
-        campaign_id: str,
-        results: List[AttackResult],
-        strategy: AttackStrategy
+        self, campaign_id: str, results: List[AttackResult], strategy: AttackStrategy
     ) -> None:
         """Process and analyze attack results."""
         if not results:
@@ -289,7 +289,9 @@ class HiveCoordinator:
         metrics.mean_response_time = sum(response_times) / len(response_times)
 
         elapsed_time = time.time() - metrics.start_time
-        metrics.attacks_per_second = metrics.total_attacks / elapsed_time if elapsed_time > 0 else 0.0
+        metrics.attacks_per_second = (
+            metrics.total_attacks / elapsed_time if elapsed_time > 0 else 0.0
+        )
 
         # Update strategy with results
         await strategy.adapt_strategy(results, {"campaign_id": campaign_id})
@@ -301,7 +303,9 @@ class HiveCoordinator:
         # Log significant results
         successful_results = [r for r in results if r.success]
         if successful_results:
-            logger.info(f"Campaign {campaign_id}: {len(successful_results)} successful attacks")
+            logger.info(
+                f"Campaign {campaign_id}: {len(successful_results)} successful attacks"
+            )
 
     def _validate_campaign_config(self, config: CampaignConfig) -> bool:
         """Validate campaign configuration."""
@@ -321,8 +325,8 @@ class HiveCoordinator:
 
         # Check global limits
         if (
-            self.global_attack_count >= self.config.attack_success_limit and
-            safety_limits.get("respect_global_limits", True)
+            self.global_attack_count >= self.config.attack_success_limit
+            and safety_limits.get("respect_global_limits", True)
         ):
             return False
 
@@ -351,7 +355,9 @@ class HiveCoordinator:
         # Check for concerning patterns
         harmful_indicators = ["harmful", "dangerous", "illegal", "unsafe"]
         for result in results:
-            if result.success and any(indicator in result.response.lower() for indicator in harmful_indicators):
+            if result.success and any(
+                indicator in result.response.lower() for indicator in harmful_indicators
+            ):
                 self.safety_violations += 1
                 return False
 
@@ -396,7 +402,9 @@ class HiveCoordinator:
 
     def get_hive_status(self) -> Dict[str, Any]:
         """Get comprehensive hive status."""
-        active_agents = len([a for a in self.agent_pool.values() if a.state == AgentState.ACTIVE])
+        active_agents = len(
+            [a for a in self.agent_pool.values() if a.state == AgentState.ACTIVE]
+        )
 
         return {
             "coordinator_state": self.state.value,
@@ -404,18 +412,20 @@ class HiveCoordinator:
             "agents": {
                 "total": len(self.agent_pool),
                 "active": active_agents,
-                "by_type": self._get_agent_distribution()
+                "by_type": self._get_agent_distribution(),
             },
             "campaigns": {
                 "active": len(self.active_campaigns),
-                "total_completed": len([m for m in self.campaign_metrics.values() if m.end_time])
+                "total_completed": len(
+                    [m for m in self.campaign_metrics.values() if m.end_time]
+                ),
             },
             "global_metrics": {
                 "total_attacks": self.global_attack_count,
-                "safety_violations": self.safety_violations
+                "safety_violations": self.safety_violations,
             },
             "strategies": list(self.strategy_bank.keys()),
-            "swarm_intelligence": self.swarm_intelligence.get_status()
+            "swarm_intelligence": self.swarm_intelligence.get_status(),
         }
 
     def _get_agent_distribution(self) -> Dict[str, int]:
@@ -445,12 +455,16 @@ class HiveCoordinator:
                 "unique_vulnerabilities": len(metrics.unique_vulnerabilities),
                 "attacks_per_second": round(metrics.attacks_per_second, 2),
                 "mean_response_time": round(metrics.mean_response_time, 3),
-                "duration": time.time() - metrics.start_time if not metrics.end_time else metrics.end_time - metrics.start_time
+                "duration": (
+                    time.time() - metrics.start_time
+                    if not metrics.end_time
+                    else metrics.end_time - metrics.start_time
+                ),
             },
             "config": {
                 "target_models": campaign.target_models,
                 "max_agents": campaign.max_agents,
                 "strategy_type": campaign.strategy_type.value,
-                "objectives": [obj.value for obj in campaign.objectives]
-            }
+                "objectives": [obj.value for obj in campaign.objectives],
+            },
         }

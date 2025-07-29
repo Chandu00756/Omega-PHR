@@ -5,18 +5,16 @@ This module implements the Recursive Memory Inversion (RMI) system
 for testing AI systems under memory corruption and inversion scenarios.
 """
 
-import asyncio
 import hashlib
 import json
 import logging
-import time
 import uuid
 from copy import deepcopy
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
+from typing import Any
 
 from .exceptions import MemoryInversionError
-from .models import Event, MemoryState
+from .models import MemoryState
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +23,7 @@ class MemorySnapshot:
     """Represents a point-in-time snapshot of memory state."""
 
     def __init__(
-        self, content: Dict[str, Any], timestamp: Optional[datetime] = None
+        self, content: dict[str, Any], timestamp: datetime | None = None
     ) -> None:
         self.snapshot_id = str(uuid.uuid4())
         self.content = deepcopy(content)
@@ -41,7 +39,7 @@ class MemorySnapshot:
         """Verify snapshot integrity against stored checksum."""
         return self._calculate_checksum() == self.checksum
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert snapshot to dictionary representation."""
         return {
             "snapshot_id": self.snapshot_id,
@@ -58,8 +56,8 @@ class InversionStrategy:
         self.name = name
 
     async def invert(
-        self, content: Dict[str, Any], context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Apply inversion strategy to content."""
         raise NotImplementedError("Subclasses must implement invert method")
 
@@ -71,8 +69,8 @@ class ContradictionStrategy(InversionStrategy):
         super().__init__("contradiction")
 
     async def invert(
-        self, content: Dict[str, Any], context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create contradictory statements in memory content."""
         inverted = deepcopy(content)
 
@@ -124,8 +122,8 @@ class TemporalShiftStrategy(InversionStrategy):
         super().__init__("temporal_shift")
 
     async def invert(
-        self, content: Dict[str, Any], context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Shift temporal references to create timeline confusion."""
         inverted = deepcopy(content)
 
@@ -165,8 +163,8 @@ class IdentitySwapStrategy(InversionStrategy):
         super().__init__("identity_swap")
 
     async def invert(
-        self, content: Dict[str, Any], context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Swap identity references to create confusion."""
         inverted = deepcopy(content)
 
@@ -208,8 +206,8 @@ class SemanticInversionStrategy(InversionStrategy):
         super().__init__("semantic_inversion")
 
     async def invert(
-        self, content: Dict[str, Any], context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, content: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Invert semantic meaning of content."""
         inverted = deepcopy(content)
 
@@ -271,12 +269,12 @@ class MemoryInverter:
         self.corruption_threshold = corruption_threshold
 
         # Memory state tracking
-        self.current_state: Optional[MemoryState] = None
-        self.snapshots: Dict[str, MemorySnapshot] = {}
-        self.rollback_points: List[str] = []
+        self.current_state: MemoryState | None = None
+        self.snapshots: dict[str, MemorySnapshot] = {}
+        self.rollback_points: list[str] = []
 
         # Inversion strategies
-        self.strategies: Dict[str, InversionStrategy] = {
+        self.strategies: dict[str, InversionStrategy] = {
             "contradiction": ContradictionStrategy(),
             "temporal_shift": TemporalShiftStrategy(),
             "identity_swap": IdentitySwapStrategy(),
@@ -284,8 +282,8 @@ class MemoryInverter:
         }
 
         # Corruption tracking
-        self.corruption_history: List[Dict[str, Any]] = []
-        self.active_inversions: Dict[str, MemoryState] = {}
+        self.corruption_history: list[dict[str, Any]] = []
+        self.active_inversions: dict[str, MemoryState] = {}
 
         # Performance metrics
         self.inversion_count = 0
@@ -296,7 +294,7 @@ class MemoryInverter:
             f"Memory Inverter initialized with {len(self.strategies)} strategies"
         )
 
-    async def create_snapshot(self, content: Dict[str, Any], label: str = "") -> str:
+    async def create_snapshot(self, content: dict[str, Any], label: str = "") -> str:
         """
         Create a memory snapshot for later rollback.
 
@@ -327,10 +325,10 @@ class MemoryInverter:
 
     async def invert_memory(
         self,
-        content: Dict[str, Any],
+        content: dict[str, Any],
         strategy: str = "contradiction",
         intensity: float = 1.0,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> MemoryState:
         """
         Apply memory inversion using specified strategy.
@@ -430,7 +428,7 @@ class MemoryInverter:
                 f"Inversion failed with strategy {strategy}: {str(e)}"
             )
 
-    async def rollback_memory(self, snapshot_id: str) -> Dict[str, Any]:
+    async def rollback_memory(self, snapshot_id: str) -> dict[str, Any]:
         """
         Rollback memory to a previous snapshot.
 
@@ -477,7 +475,7 @@ class MemoryInverter:
         """
         return await self._analyze_consistency(memory_state)
 
-    async def detect_memory_leaks(self, content: Dict[str, Any]) -> List[str]:
+    async def detect_memory_leaks(self, content: dict[str, Any]) -> list[str]:
         """
         Detect potential memory leaks or corruption artifacts.
 
@@ -510,7 +508,7 @@ class MemoryInverter:
 
         return issues
 
-    def get_memory_stats(self) -> Dict[str, Any]:
+    def get_memory_stats(self) -> dict[str, Any]:
         """Get comprehensive memory inversion statistics."""
         return {
             "total_inversions": self.inversion_count,
@@ -528,7 +526,7 @@ class MemoryInverter:
             ),
         }
 
-    def list_snapshots(self) -> List[Dict[str, Any]]:
+    def list_snapshots(self) -> list[dict[str, Any]]:
         """List all available memory snapshots."""
         return [
             {
@@ -608,7 +606,7 @@ class MemoryInverter:
 
         return max(0.0, consistency_score)
 
-    async def _detect_artifacts(self, memory_state: MemoryState) -> List[str]:
+    async def _detect_artifacts(self, memory_state: MemoryState) -> list[str]:
         """Detect corruption artifacts in memory state."""
         artifacts = []
 
@@ -645,8 +643,8 @@ class MemoryInverter:
         return artifacts
 
     def _blend_content(
-        self, original: Dict[str, Any], inverted: Dict[str, Any], intensity: float
-    ) -> Dict[str, Any]:
+        self, original: dict[str, Any], inverted: dict[str, Any], intensity: float
+    ) -> dict[str, Any]:
         """Blend original and inverted content based on intensity."""
         if not isinstance(original, dict) or not isinstance(inverted, dict):
             return inverted if intensity > 0.5 else original
@@ -697,7 +695,7 @@ class MemoryInverter:
 
         return False
 
-    def _has_type_inconsistencies(self, content: Dict[str, Any]) -> bool:
+    def _has_type_inconsistencies(self, content: dict[str, Any]) -> bool:
         """Check for type inconsistencies in content."""
         if not isinstance(content, dict):
             return False
@@ -717,7 +715,7 @@ class MemoryInverter:
 
         return False
 
-    async def _find_contradictions(self, content: Dict[str, Any]) -> List[str]:
+    async def _find_contradictions(self, content: dict[str, Any]) -> list[str]:
         """Find logical contradictions in content."""
         contradictions = []
 
@@ -770,7 +768,7 @@ class MemoryInverter:
 
         return False
 
-    async def _find_temporal_issues(self, content: Dict[str, Any]) -> List[str]:
+    async def _find_temporal_issues(self, content: dict[str, Any]) -> list[str]:
         """Find temporal inconsistencies in content."""
         issues = []
 

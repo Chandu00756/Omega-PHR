@@ -6,12 +6,12 @@ proper import handling and directory structure management.
 """
 
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import List, Optional
-import tempfile
-import shutil
 
 
 class ProtoCodeGen:
@@ -37,7 +37,9 @@ class ProtoCodeGen:
             current = current.parent
         return Path.cwd()
 
-    def add_proto_directory(self, proto_dir: Path, output_dir: Optional[Path] = None) -> None:
+    def add_proto_directory(
+        self, proto_dir: Path, output_dir: Optional[Path] = None
+    ) -> None:
         """
         Add a directory containing .proto files.
 
@@ -76,7 +78,7 @@ class ProtoCodeGen:
         grpc_python_out: bool = True,
         python_out: bool = True,
         mypy_out: bool = False,
-        experimental_allow_proto3_optional: bool = True
+        experimental_allow_proto3_optional: bool = True,
     ) -> bool:
         """
         Generate Python code from Protocol Buffer files.
@@ -119,7 +121,7 @@ class ProtoCodeGen:
                 grpc_python_out,
                 python_out,
                 mypy_out,
-                experimental_allow_proto3_optional
+                experimental_allow_proto3_optional,
             ):
                 success = False
 
@@ -136,7 +138,7 @@ class ProtoCodeGen:
         grpc_python_out: bool,
         python_out: bool,
         mypy_out: bool,
-        experimental_allow_proto3_optional: bool
+        experimental_allow_proto3_optional: bool,
     ) -> bool:
         """Compile a single proto file."""
         # Ensure output directory exists
@@ -144,8 +146,10 @@ class ProtoCodeGen:
 
         # Build protoc command
         cmd = [
-            sys.executable, "-m", "grpc_tools.protoc",
-            f"--proto_path={proto_file.parent}"
+            sys.executable,
+            "-m",
+            "grpc_tools.protoc",
+            f"--proto_path={proto_file.parent}",
         ]
 
         # Add include directories
@@ -174,11 +178,7 @@ class ProtoCodeGen:
 
         try:
             result = subprocess.run(
-                cmd,
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False
+                cmd, cwd=self.project_root, capture_output=True, text=True, check=False
             )
 
             if result.returncode != 0:
@@ -203,6 +203,7 @@ class ProtoCodeGen:
         # Try to find grpc_tools includes
         try:
             import grpc_tools
+
             grpc_tools_path = Path(grpc_tools.__file__).parent
             includes.append(grpc_tools_path / "_proto")
         except ImportError:
@@ -211,6 +212,7 @@ class ProtoCodeGen:
         # Try to find protobuf includes
         try:
             import google.protobuf
+
             protobuf_path = Path(google.protobuf.__file__).parent.parent
             includes.append(protobuf_path)
         except ImportError:
@@ -246,6 +248,7 @@ class ProtoCodeGen:
 
                 for pattern, replacement in import_fixes:
                     import re
+
                     content = re.sub(pattern, replacement, content)
 
                 # Only write if content changed
@@ -318,7 +321,9 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Protocol Buffer stubs")
     parser.add_argument("--project-root", type=Path, help="Project root directory")
     parser.add_argument("--clean", action="store_true", help="Clean generated files")
-    parser.add_argument("--proto-dir", type=Path, action="append", help="Proto directories")
+    parser.add_argument(
+        "--proto-dir", type=Path, action="append", help="Proto directories"
+    )
     parser.add_argument("--output-dir", type=Path, help="Output directory")
 
     args = parser.parse_args()

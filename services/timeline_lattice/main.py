@@ -16,17 +16,16 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from services.timeline_lattice.server import TimelineLatticeServer  # Ensure TimelineLatticeServer is defined in server.py
 from services.timeline_lattice.config import get_config
+from services.timeline_lattice.server import (  # Ensure TimelineLatticeServer is defined in server.py
+    TimelineLatticeServer,
+)
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('timeline_lattice.log')
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(), logging.FileHandler("timeline_lattice.log")],
 )
 
 logger = logging.getLogger(__name__)

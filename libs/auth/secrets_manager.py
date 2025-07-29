@@ -5,19 +5,19 @@ Provides secure storage and retrieval of secrets using platform-specific
 secure storage (macOS Keychain locally, GCP Secret Manager in research).
 """
 
-import os
 import json
-import time
 import logging
-from typing import Optional, Dict, Any
+import os
+import time
 from pathlib import Path
-
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class SecretsManagerError(Exception):
     """Secrets management errors."""
+
     pass
 
 
@@ -62,6 +62,7 @@ class SecretsManager:
         """Initialize macOS Keychain backend."""
         try:
             import keyring
+
             self.keyring = keyring
             # Test keychain access
             self.keyring.get_password("omega-phr-test", "test")
@@ -78,16 +79,21 @@ class SecretsManager:
         """Initialize GCP Secret Manager backend."""
         try:
             from google.cloud import secretmanager
+
             self.client = secretmanager.SecretManagerServiceClient()
             self.project_id = os.getenv("GCP_PROJECT") or self._detect_gcp_project()
             if not self.project_id:
                 raise SecretsManagerError("GCP project not detected")
         except ImportError:
-            logger.warning("google-cloud-secret-manager not available, falling back to file backend")
+            logger.warning(
+                "google-cloud-secret-manager not available, falling back to file backend"
+            )
             self.backend = "file"
             self._init_file()
         except Exception as e:
-            logger.warning(f"GCP Secret Manager initialization failed: {e}, falling back to file backend")
+            logger.warning(
+                f"GCP Secret Manager initialization failed: {e}, falling back to file backend"
+            )
             self.backend = "file"
             self._init_file()
 
@@ -105,10 +111,11 @@ class SecretsManager:
         """Detect GCP project from metadata service."""
         try:
             import requests
+
             response = requests.get(
                 "http://metadata.google.internal/computeMetadata/v1/project/project-id",
                 headers={"Metadata-Flavor": "Google"},
-                timeout=2
+                timeout=2,
             )
             return response.text if response.status_code == 200 else None
         except Exception:
@@ -265,7 +272,7 @@ class SecretsManager:
         if not secret_file.exists():
             raise SecretsManagerError(f"Secret '{name}' not found")
 
-        with open(secret_file, 'r') as f:
+        with open(secret_file, "r") as f:
             data = json.load(f)
 
         return data["value"]
@@ -278,10 +285,10 @@ class SecretsManager:
             "name": name,
             "value": value,
             "created_at": time.time(),
-            "backend": "file"
+            "backend": "file",
         }
 
-        with open(secret_file, 'w') as f:
+        with open(secret_file, "w") as f:
             json.dump(data, f, indent=2)
 
         # Secure file permissions
@@ -301,6 +308,7 @@ class SecretsManager:
 # Global instance
 _secrets_manager = None
 
+
 def get_secrets_manager() -> SecretsManager:
     """Get global secrets manager instance."""
     global _secrets_manager
@@ -308,9 +316,11 @@ def get_secrets_manager() -> SecretsManager:
         _secrets_manager = SecretsManager()
     return _secrets_manager
 
+
 def get_secret(name: str) -> str:
     """Convenience function to get secret."""
     return get_secrets_manager().get_secret(name)
+
 
 def put_secret(name: str, value: str) -> None:
     """Convenience function to store secret."""

@@ -4,8 +4,8 @@ Research-grade stability settings.
 """
 
 import os
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -57,11 +57,15 @@ class TelemetryExporterConfig:
             max_export_retries=int(os.getenv("TELEMETRY_MAX_RETRIES", "3")),
             export_batch_size=int(os.getenv("TELEMETRY_BATCH_SIZE", "1000")),
             aggregation_window=int(os.getenv("TELEMETRY_AGGREGATION_WINDOW", "60")),
-            histogram_buckets=os.getenv("TELEMETRY_HISTOGRAM_BUCKETS", "0.1,0.5,1,2.5,5,10"),
-            enable_percentiles=os.getenv("TELEMETRY_ENABLE_PERCENTILES", "true").lower() == "true",
+            histogram_buckets=os.getenv(
+                "TELEMETRY_HISTOGRAM_BUCKETS", "0.1,0.5,1,2.5,5,10"
+            ),
+            enable_percentiles=os.getenv("TELEMETRY_ENABLE_PERCENTILES", "true").lower()
+            == "true",
             temp_storage_path=os.getenv("TELEMETRY_TEMP_PATH", "/tmp/telemetry"),
             max_disk_usage_mb=int(os.getenv("TELEMETRY_MAX_DISK_MB", "1000")),
-            compression_enabled=os.getenv("TELEMETRY_COMPRESSION", "true").lower() == "true",
+            compression_enabled=os.getenv("TELEMETRY_COMPRESSION", "true").lower()
+            == "true",
             cleanup_interval=int(os.getenv("TELEMETRY_CLEANUP_INTERVAL", "3600")),
-            data_retention_hours=int(os.getenv("TELEMETRY_RETENTION_HOURS", "24"))
+            data_retention_hours=int(os.getenv("TELEMETRY_RETENTION_HOURS", "24")),
         )

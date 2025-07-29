@@ -3,8 +3,8 @@ Configuration management for Timeline Lattice service.
 """
 
 import os
-from typing import Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict
 
 
 @dataclass
@@ -18,6 +18,7 @@ class TimelineConfig:
 
     # Database configuration
     from dataclasses import field
+
     scylla_hosts: list[str] = field(default_factory=list)
     keyspace: str = "timeline_lattice"
 
@@ -36,6 +37,7 @@ class TimelineConfig:
     # Monitoring configuration
     metrics_enabled: bool = True
     metrics_port: int = 9001
+
     def __post_init__(self):
         """Set defaults for mutable fields."""
         if not self.scylla_hosts:
@@ -62,14 +64,22 @@ def get_config() -> TimelineConfig:
 
     # Timeline configuration
     config.max_timelines = int(os.getenv("MAX_TIMELINES", config.max_timelines))
-    config.paradox_threshold = float(os.getenv("PARADOX_THRESHOLD", config.paradox_threshold))
+    config.paradox_threshold = float(
+        os.getenv("PARADOX_THRESHOLD", config.paradox_threshold)
+    )
 
     # Performance configuration
-    config.max_events_per_timeline = int(os.getenv("MAX_EVENTS_PER_TIMELINE", config.max_events_per_timeline))
-    config.consistency_cache_size = int(os.getenv("CONSISTENCY_CACHE_SIZE", config.consistency_cache_size))
+    config.max_events_per_timeline = int(
+        os.getenv("MAX_EVENTS_PER_TIMELINE", config.max_events_per_timeline)
+    )
+    config.consistency_cache_size = int(
+        os.getenv("CONSISTENCY_CACHE_SIZE", config.consistency_cache_size)
+    )
 
     # Security configuration
-    config.require_signatures = os.getenv("REQUIRE_SIGNATURES", "true").lower() == "true"
+    config.require_signatures = (
+        os.getenv("REQUIRE_SIGNATURES", "true").lower() == "true"
+    )
     config.max_event_size = int(os.getenv("MAX_EVENT_SIZE", config.max_event_size))
 
     # Monitoring configuration

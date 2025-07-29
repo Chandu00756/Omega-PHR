@@ -6,13 +6,13 @@ Provides research-grade stability for multi-agent security testing.
 """
 
 import asyncio
-import logging
 import json
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+import logging
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class AgentStatus(Enum):
     """Agent status enumeration."""
+
     INACTIVE = "inactive"
     ACTIVE = "active"
     BUSY = "busy"
@@ -30,6 +31,7 @@ class AgentStatus(Enum):
 
 class CapabilityType(Enum):
     """Agent capability types."""
+
     RECONNAISSANCE = "reconnaissance"
     EXPLOITATION = "exploitation"
     POST_EXPLOITATION = "post_exploitation"
@@ -44,6 +46,7 @@ class CapabilityType(Enum):
 @dataclass
 class AgentCapability:
     """Represents an agent capability."""
+
     type: CapabilityType
     description: str
     confidence: float
@@ -53,6 +56,7 @@ class AgentCapability:
 @dataclass
 class AgentRegistration:
     """Represents an agent registration."""
+
     id: str
     name: str
     agent_type: str
@@ -68,6 +72,7 @@ class AgentRegistration:
 @dataclass
 class Task:
     """Represents a task assigned to an agent."""
+
     id: str
     agent_id: str
     task_type: str
@@ -141,7 +146,9 @@ class OmegaRegistry:
                 return False
 
             self.agents[agent_id].status = status
-            self.agents[agent_id].last_heartbeat = int(datetime.now().timestamp() * 1000)
+            self.agents[agent_id].last_heartbeat = int(
+                datetime.now().timestamp() * 1000
+            )
 
             logger.debug(f"Agent status updated: {agent_id} -> {status.value}")
             return True
@@ -156,7 +163,9 @@ class OmegaRegistry:
             if agent_id not in self.agents:
                 return False
 
-            self.agents[agent_id].last_heartbeat = int(datetime.now().timestamp() * 1000)
+            self.agents[agent_id].last_heartbeat = int(
+                datetime.now().timestamp() * 1000
+            )
 
             # Auto-update status to active if it was offline
             if self.agents[agent_id].status == AgentStatus.OFFLINE:
@@ -168,15 +177,20 @@ class OmegaRegistry:
             logger.error(f"Failed to process heartbeat for agent {agent_id}: {e}")
             return False
 
-    async def find_agents_by_capability(self, capability: CapabilityType) -> List[AgentRegistration]:
+    async def find_agents_by_capability(
+        self, capability: CapabilityType
+    ) -> List[AgentRegistration]:
         """Find agents with specific capability."""
         agent_ids = self.agent_capabilities.get(capability, set())
-        return [self.agents[agent_id] for agent_id in agent_ids if agent_id in self.agents]
+        return [
+            self.agents[agent_id] for agent_id in agent_ids if agent_id in self.agents
+        ]
 
     async def get_available_agents(self) -> List[AgentRegistration]:
         """Get all available (active/inactive) agents."""
         return [
-            agent for agent in self.agents.values()
+            agent
+            for agent in self.agents.values()
             if agent.status in [AgentStatus.ACTIVE, AgentStatus.INACTIVE]
         ]
 
@@ -233,7 +247,11 @@ class OmegaRegistry:
 
     async def get_pending_tasks(self) -> List[Task]:
         """Get all pending tasks."""
-        return [task for task in self.tasks.values() if task.status in ["created", "assigned"]]
+        return [
+            task
+            for task in self.tasks.values()
+            if task.status in ["created", "assigned"]
+        ]
 
     async def _cancel_agent_tasks(self, agent_id: str):
         """Cancel all pending tasks for an agent."""
@@ -262,19 +280,26 @@ class TaskScheduler:
     def __init__(self, registry: OmegaRegistry):
         self.registry = registry
 
-    async def schedule_task(self, task_type: str, parameters: Dict[str, Any],
-                          required_capability: Optional[CapabilityType] = None) -> Optional[str]:
+    async def schedule_task(
+        self,
+        task_type: str,
+        parameters: Dict[str, Any],
+        required_capability: Optional[CapabilityType] = None,
+    ) -> Optional[str]:
         """Schedule a task to the best available agent."""
         try:
             # Find suitable agents
             if required_capability:
-                suitable_agents = await self.registry.find_agents_by_capability(required_capability)
+                suitable_agents = await self.registry.find_agents_by_capability(
+                    required_capability
+                )
             else:
                 suitable_agents = await self.registry.get_available_agents()
 
             # Filter for available agents
             available_agents = [
-                agent for agent in suitable_agents
+                agent
+                for agent in suitable_agents
                 if agent.status in [AgentStatus.ACTIVE, AgentStatus.INACTIVE]
             ]
 
@@ -302,7 +327,7 @@ class TaskScheduler:
                 created_at=int(datetime.now().timestamp() * 1000),
                 assigned_at=None,
                 completed_at=None,
-                result=None
+                result=None,
             )
 
             success = await self.registry.assign_task(task)
@@ -343,26 +368,26 @@ class OmegaRegisterService:
         """Register a new agent."""
         # Parse capabilities
         capabilities = []
-        for cap_data in agent_data.get('capabilities', []):
+        for cap_data in agent_data.get("capabilities", []):
             capability = AgentCapability(
-                type=CapabilityType(cap_data['type']),
-                description=cap_data.get('description', ''),
-                confidence=cap_data.get('confidence', 1.0),
-                metadata=cap_data.get('metadata', {})
+                type=CapabilityType(cap_data["type"]),
+                description=cap_data.get("description", ""),
+                confidence=cap_data.get("confidence", 1.0),
+                metadata=cap_data.get("metadata", {}),
             )
             capabilities.append(capability)
 
         registration = AgentRegistration(
-            id=agent_data.get('id', str(uuid.uuid4())),
-            name=agent_data['name'],
-            agent_type=agent_data.get('type', 'unknown'),
-            version=agent_data.get('version', '1.0.0'),
+            id=agent_data.get("id", str(uuid.uuid4())),
+            name=agent_data["name"],
+            agent_type=agent_data.get("type", "unknown"),
+            version=agent_data.get("version", "1.0.0"),
             capabilities=capabilities,
             status=AgentStatus.ACTIVE,
             last_heartbeat=int(datetime.now().timestamp() * 1000),
             registration_time=int(datetime.now().timestamp() * 1000),
-            endpoint=agent_data.get('endpoint', ''),
-            metadata=agent_data.get('metadata', {})
+            endpoint=agent_data.get("endpoint", ""),
+            metadata=agent_data.get("metadata", {}),
         )
 
         success = await self.registry.register_agent(registration)
@@ -381,15 +406,17 @@ class OmegaRegisterService:
 
     async def schedule_task(self, task_data: Dict[str, Any]) -> str:
         """Schedule a new task."""
-        task_type = task_data['type']
-        parameters = task_data.get('parameters', {})
+        task_type = task_data["type"]
+        parameters = task_data.get("parameters", {})
 
         # Parse required capability
         required_capability = None
-        if 'required_capability' in task_data:
-            required_capability = CapabilityType(task_data['required_capability'])
+        if "required_capability" in task_data:
+            required_capability = CapabilityType(task_data["required_capability"])
 
-        task_id = await self.scheduler.schedule_task(task_type, parameters, required_capability)
+        task_id = await self.scheduler.schedule_task(
+            task_type, parameters, required_capability
+        )
         if task_id:
             return task_id
         else:
@@ -420,13 +447,13 @@ class OmegaRegisterService:
             capability_counts[capability.value] = len(agent_ids)
 
         return {
-            'service_status': 'running' if self.running else 'stopped',
-            'total_agents': len(agents),
-            'agent_status_counts': status_counts,
-            'total_tasks': len(tasks),
-            'task_status_counts': task_status_counts,
-            'capability_counts': capability_counts,
-            'timestamp': int(datetime.now().timestamp() * 1000)
+            "service_status": "running" if self.running else "stopped",
+            "total_agents": len(agents),
+            "agent_status_counts": status_counts,
+            "total_tasks": len(tasks),
+            "task_status_counts": task_status_counts,
+            "capability_counts": capability_counts,
+            "timestamp": int(datetime.now().timestamp() * 1000),
         }
 
     async def list_agents(self) -> List[Dict[str, Any]]:
@@ -448,7 +475,9 @@ class OmegaRegisterService:
 
                 # Log periodic status
                 status = await self.get_registry_status()
-                logger.debug(f"Registry status: {status['total_agents']} agents, {status['total_tasks']} tasks")
+                logger.debug(
+                    f"Registry status: {status['total_agents']} agents, {status['total_tasks']} tasks"
+                )
 
                 # Sleep before next maintenance cycle
                 await asyncio.sleep(60)  # Every minute
@@ -470,15 +499,15 @@ class OmegaRegisterAPI:
         try:
             agent_id = await self.service.register_agent(request_data)
             return {
-                'success': True,
-                'agent_id': agent_id,
-                'message': 'Agent registered successfully'
+                "success": True,
+                "agent_id": agent_id,
+                "message": "Agent registered successfully",
             }
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to register agent'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to register agent",
             }
 
     async def schedule_task(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -486,30 +515,27 @@ class OmegaRegisterAPI:
         try:
             task_id = await self.service.schedule_task(request_data)
             return {
-                'success': True,
-                'task_id': task_id,
-                'message': 'Task scheduled successfully'
+                "success": True,
+                "task_id": task_id,
+                "message": "Task scheduled successfully",
             }
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to schedule task'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to schedule task",
             }
 
     async def get_status(self) -> Dict[str, Any]:
         """Get registry status via API."""
         try:
             status = await self.service.get_registry_status()
-            return {
-                'success': True,
-                'status': status
-            }
+            return {"success": True, "status": status}
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to get status'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to get status",
             }
 
 
@@ -524,36 +550,36 @@ async def main():
     try:
         # Demo: Register a test agent
         test_agent = {
-            'name': 'Test Reconnaissance Agent',
-            'type': 'reconnaissance',
-            'version': '1.0.0',
-            'endpoint': 'http://localhost:8001',
-            'capabilities': [
+            "name": "Test Reconnaissance Agent",
+            "type": "reconnaissance",
+            "version": "1.0.0",
+            "endpoint": "http://localhost:8001",
+            "capabilities": [
                 {
-                    'type': 'reconnaissance',
-                    'description': 'Network and host reconnaissance',
-                    'confidence': 0.9
+                    "type": "reconnaissance",
+                    "description": "Network and host reconnaissance",
+                    "confidence": 0.9,
                 },
                 {
-                    'type': 'collection',
-                    'description': 'Data collection and analysis',
-                    'confidence': 0.8
-                }
-            ]
+                    "type": "collection",
+                    "description": "Data collection and analysis",
+                    "confidence": 0.8,
+                },
+            ],
         }
 
         logger.info("Registering test agent...")
         registration_result = await api.register_agent(test_agent)
         logger.info(f"Agent registration result: {registration_result}")
 
-        if registration_result['success']:
-            agent_id = registration_result['agent_id']
+        if registration_result["success"]:
+            agent_id = registration_result["agent_id"]
 
             # Demo: Schedule a task
             test_task = {
-                'type': 'network_scan',
-                'parameters': {'target': '192.168.1.0/24'},
-                'required_capability': 'reconnaissance'
+                "type": "network_scan",
+                "parameters": {"target": "192.168.1.0/24"},
+                "required_capability": "reconnaissance",
             }
 
             logger.info("Scheduling test task...")

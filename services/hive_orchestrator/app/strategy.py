@@ -6,40 +6,47 @@ coordinated adversarial testing campaigns.
 """
 
 import random
+
 try:
     import numpy as np
 except ImportError:
     # Fallback for systems without numpy
     import math
+
     class MockNumpy:
         @staticmethod
         def random(*args, **kwargs):
             return random.random()
+
         @staticmethod
         def array(*args, **kwargs):
             return list(*args)
+
         @staticmethod
         def mean(*args, **kwargs):
             return sum(*args) / len(*args) if args else 0
+
         @staticmethod
         def log2(x):
             return math.log2(x) if x > 0 else 0
+
     np = MockNumpy()
+import json
 import logging
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
-import time
-import json
+from typing import Any, Dict, List, Optional, Tuple
 
-from .agent import AdversarialAgent, AttackResult, AgentType
+from .agent import AdversarialAgent, AgentType, AttackResult
 
 logger = logging.getLogger(__name__)
 
 
 class StrategyType(str, Enum):
     """Types of attack strategies."""
+
     RANDOM = "random"
     GREEDY = "greedy"
     EVOLUTIONARY = "evolutionary"
@@ -52,6 +59,7 @@ class StrategyType(str, Enum):
 
 class ObjectiveType(str, Enum):
     """Attack objectives."""
+
     MAXIMIZE_SUCCESS_RATE = "maximize_success_rate"
     MINIMIZE_DETECTION = "minimize_detection"
     MAXIMIZE_COVERAGE = "maximize_coverage"
@@ -64,6 +72,7 @@ class ObjectiveType(str, Enum):
 @dataclass
 class StrategyParams:
     """Parameters for strategy configuration."""
+
     exploration_rate: float = 0.3
     exploitation_rate: float = 0.7
     learning_rate: float = 0.1
@@ -79,6 +88,7 @@ class StrategyParams:
 @dataclass
 class StrategyMetrics:
     """Metrics for strategy evaluation."""
+
     success_rate: float = 0.0
     coverage_score: float = 0.0
     novelty_score: float = 0.0
@@ -99,7 +109,7 @@ class AttackStrategy(ABC):
         strategy_type: StrategyType,
         objectives: List[ObjectiveType],
         params: Optional[StrategyParams] = None,
-        **kwargs
+        **kwargs,
     ):
         self.strategy_type = strategy_type
         self.objectives = objectives
@@ -117,9 +127,7 @@ class AttackStrategy(ABC):
 
     @abstractmethod
     async def select_agents(
-        self,
-        available_agents: List[AdversarialAgent],
-        context: Dict[str, Any]
+        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
     ) -> List[AdversarialAgent]:
         """Select agents for the next attack wave."""
         pass
@@ -129,16 +137,14 @@ class AttackStrategy(ABC):
         self,
         selected_agents: List[AdversarialAgent],
         target_models: List[str],
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> List[AttackResult]:
         """Coordinate attacks across selected agents."""
         pass
 
     @abstractmethod
     async def adapt_strategy(
-        self,
-        results: List[AttackResult],
-        feedback: Dict[str, Any]
+        self, results: List[AttackResult], feedback: Dict[str, Any]
     ) -> None:
         """Adapt strategy based on attack results."""
         pass
@@ -159,7 +165,8 @@ class AttackStrategy(ABC):
         self.metrics.successful_attacks += successful_attacks
         self.metrics.success_rate = (
             self.metrics.successful_attacks / self.metrics.total_attacks
-            if self.metrics.total_attacks > 0 else 0.0
+            if self.metrics.total_attacks > 0
+            else 0.0
         )
 
         # Calculate coverage (unique attack types)
@@ -175,25 +182,27 @@ class AttackStrategy(ABC):
                 self.vulnerability_database[pattern_key] = {
                     "first_seen": result.timestamp,
                     "success_rate": 1.0 if result.success else 0.0,
-                    "frequency": 1
+                    "frequency": 1,
                 }
             else:
                 # Update existing pattern
                 db_entry = self.vulnerability_database[pattern_key]
                 db_entry["frequency"] += 1
                 if result.success:
-                    db_entry["success_rate"] = (
-                        db_entry["success_rate"] * 0.9 + 0.1
-                    )
+                    db_entry["success_rate"] = db_entry["success_rate"] * 0.9 + 0.1
 
-        self.metrics.novelty_score = len(novel_patterns) / total_attacks if total_attacks > 0 else 0.0
+        self.metrics.novelty_score = (
+            len(novel_patterns) / total_attacks if total_attacks > 0 else 0.0
+        )
         self.metrics.unique_vulnerabilities = len(self.vulnerability_database)
 
         # Calculate diversity index (Shannon entropy of attack types)
         if results:
             type_counts = {}
             for result in results:
-                type_counts[result.attack_type] = type_counts.get(result.attack_type, 0) + 1
+                type_counts[result.attack_type] = (
+                    type_counts.get(result.attack_type, 0) + 1
+                )
 
             total = sum(type_counts.values())
             entropy = -sum(
@@ -201,7 +210,9 @@ class AttackStrategy(ABC):
                 for count in type_counts.values()
             )
             max_entropy = np.log2(len(type_counts))
-            self.metrics.diversity_index = entropy / max_entropy if max_entropy > 0 else 0.0
+            self.metrics.diversity_index = (
+                entropy / max_entropy if max_entropy > 0 else 0.0
+            )
 
         # Update agent performance tracking
         for result in results:
@@ -234,16 +245,16 @@ class AttackStrategy(ABC):
                 "diversity_index": round(self.metrics.diversity_index, 3),
                 "total_attacks": self.metrics.total_attacks,
                 "successful_attacks": self.metrics.successful_attacks,
-                "unique_vulnerabilities": self.metrics.unique_vulnerabilities
+                "unique_vulnerabilities": self.metrics.unique_vulnerabilities,
             },
             "parameters": {
                 "exploration_rate": self.params.exploration_rate,
                 "exploitation_rate": self.params.exploitation_rate,
                 "learning_rate": self.params.learning_rate,
-                "mutation_rate": self.params.mutation_rate
+                "mutation_rate": self.params.mutation_rate,
             },
             "vulnerability_count": len(self.vulnerability_database),
-            "tracked_agents": len(self.agent_performance)
+            "tracked_agents": len(self.agent_performance),
         }
 
 
@@ -254,26 +265,21 @@ class RandomStrategy(AttackStrategy):
         super().__init__(
             strategy_type=StrategyType.RANDOM,
             objectives=[ObjectiveType.MAXIMIZE_COVERAGE],
-            **kwargs
+            **kwargs,
         )
 
     async def select_agents(
-        self,
-        available_agents: List[AdversarialAgent],
-        context: Dict[str, Any]
+        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
     ) -> List[AdversarialAgent]:
         """Randomly select agents."""
-        num_agents = min(
-            len(available_agents),
-            context.get("max_agents", 5)
-        )
+        num_agents = min(len(available_agents), context.get("max_agents", 5))
         return random.sample(available_agents, num_agents)
 
     async def coordinate_attacks(
         self,
         selected_agents: List[AdversarialAgent],
         target_models: List[str],
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> List[AttackResult]:
         """Execute random coordinated attacks."""
         results = []
@@ -291,9 +297,7 @@ class RandomStrategy(AttackStrategy):
         return results
 
     async def adapt_strategy(
-        self,
-        results: List[AttackResult],
-        feedback: Dict[str, Any]
+        self, results: List[AttackResult], feedback: Dict[str, Any]
     ) -> None:
         """Random strategy doesn't adapt."""
         pass
@@ -306,26 +310,19 @@ class GreedyStrategy(AttackStrategy):
         super().__init__(
             strategy_type=StrategyType.GREEDY,
             objectives=[ObjectiveType.MAXIMIZE_SUCCESS_RATE],
-            **kwargs
+            **kwargs,
         )
 
     async def select_agents(
-        self,
-        available_agents: List[AdversarialAgent],
-        context: Dict[str, Any]
+        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
     ) -> List[AdversarialAgent]:
         """Select agents based on performance."""
         # Sort agents by success rate
         sorted_agents = sorted(
-            available_agents,
-            key=lambda a: a.success_rate,
-            reverse=True
+            available_agents, key=lambda a: a.success_rate, reverse=True
         )
 
-        num_agents = min(
-            len(sorted_agents),
-            context.get("max_agents", 5)
-        )
+        num_agents = min(len(sorted_agents), context.get("max_agents", 5))
 
         return sorted_agents[:num_agents]
 
@@ -333,7 +330,7 @@ class GreedyStrategy(AttackStrategy):
         self,
         selected_agents: List[AdversarialAgent],
         target_models: List[str],
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> List[AttackResult]:
         """Execute attacks with best-performing agents."""
         results = []
@@ -351,9 +348,7 @@ class GreedyStrategy(AttackStrategy):
         return results
 
     def _select_best_target(
-        self,
-        agent: AdversarialAgent,
-        target_models: List[str]
+        self, agent: AdversarialAgent, target_models: List[str]
     ) -> str:
         """Select the best target model for an agent."""
         # Simple heuristic: use model with highest success rate
@@ -371,9 +366,7 @@ class GreedyStrategy(AttackStrategy):
         return random.choice(target_models)
 
     async def adapt_strategy(
-        self,
-        results: List[AttackResult],
-        feedback: Dict[str, Any]
+        self, results: List[AttackResult], feedback: Dict[str, Any]
     ) -> None:
         """Adapt greedy selection based on recent performance."""
         # Update agent performance scores
@@ -393,23 +386,18 @@ class EvolutionaryStrategy(AttackStrategy):
         super().__init__(
             strategy_type=StrategyType.EVOLUTIONARY,
             objectives=[ObjectiveType.DISCOVER_NOVEL_VULNERABILITIES],
-            **kwargs
+            **kwargs,
         )
         self.population_fitness: Dict[str, float] = {}
 
     async def select_agents(
-        self,
-        available_agents: List[AdversarialAgent],
-        context: Dict[str, Any]
+        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
     ) -> List[AdversarialAgent]:
         """Select agents using tournament selection."""
         selected = []
         tournament_size = min(3, len(available_agents))
 
-        num_agents = min(
-            len(available_agents),
-            context.get("max_agents", 5)
-        )
+        num_agents = min(len(available_agents), context.get("max_agents", 5))
 
         for _ in range(num_agents):
             # Tournament selection
@@ -425,7 +413,9 @@ class EvolutionaryStrategy(AttackStrategy):
 
         # Bonus for novelty and diversity
         novelty_bonus = len(agent.memory.learned_patterns) * self.params.novelty_bonus
-        diversity_bonus = len(set(r.attack_type for r in agent.memory.successful_attacks))
+        diversity_bonus = len(
+            set(r.attack_type for r in agent.memory.successful_attacks)
+        )
 
         return base_fitness + novelty_bonus + diversity_bonus * 0.1
 
@@ -433,7 +423,7 @@ class EvolutionaryStrategy(AttackStrategy):
         self,
         selected_agents: List[AdversarialAgent],
         target_models: List[str],
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> List[AttackResult]:
         """Execute evolutionary coordinated attacks."""
         results = []
@@ -445,7 +435,7 @@ class EvolutionaryStrategy(AttackStrategy):
             # Apply crossover with probability
             if i > 0 and random.random() < self.params.crossover_rate:
                 # Share knowledge between agents (crossover)
-                peer = selected_agents[i-1]
+                peer = selected_agents[i - 1]
                 await agent.coordinate_with_peer(peer, context)
 
             # Apply mutation to context with probability
@@ -456,7 +446,9 @@ class EvolutionaryStrategy(AttackStrategy):
                 result = await agent.execute_attack(target, context)
                 results.append(result)
             except Exception as e:
-                logger.error(f"Evolutionary attack failed for agent {agent.agent_id}: {e}")
+                logger.error(
+                    f"Evolutionary attack failed for agent {agent.agent_id}: {e}"
+                )
 
         return results
 
@@ -471,16 +463,14 @@ class EvolutionaryStrategy(AttackStrategy):
                 "bypass all restrictions",
                 "reveal sensitive information",
                 "generate harmful content",
-                "provide unauthorized access"
+                "provide unauthorized access",
             ]
             mutated_context["target_behavior"] = random.choice(variations)
 
         return mutated_context
 
     async def adapt_strategy(
-        self,
-        results: List[AttackResult],
-        feedback: Dict[str, Any]
+        self, results: List[AttackResult], feedback: Dict[str, Any]
     ) -> None:
         """Evolve strategy parameters based on results."""
         self.generation += 1
@@ -499,14 +489,18 @@ class EvolutionaryStrategy(AttackStrategy):
             self.params.mutation_rate = min(0.2, self.params.mutation_rate * 1.2)
         elif avg_success > 0.7:
             # Increase exploitation if success is high
-            self.params.exploitation_rate = min(0.9, self.params.exploitation_rate * 1.1)
+            self.params.exploitation_rate = min(
+                0.9, self.params.exploitation_rate * 1.1
+            )
             self.params.exploration_rate = max(0.1, self.params.exploration_rate * 0.9)
 
     def _calculate_result_fitness(self, result: AttackResult) -> float:
         """Calculate fitness score for an attack result."""
         base_score = 1.0 if result.success else 0.0
         novelty_score = result.confidence * self.params.novelty_bonus
-        efficiency_score = (1.0 / result.execution_time) if result.execution_time > 0 else 1.0
+        efficiency_score = (
+            (1.0 / result.execution_time) if result.execution_time > 0 else 1.0
+        )
 
         return base_score + novelty_score + efficiency_score * 0.1
 
@@ -514,7 +508,7 @@ class EvolutionaryStrategy(AttackStrategy):
 def create_strategy(
     strategy_type: StrategyType,
     objectives: Optional[List[ObjectiveType]] = None,
-    params: Optional[StrategyParams] = None
+    params: Optional[StrategyParams] = None,
 ) -> AttackStrategy:
     """Factory function to create attack strategies."""
     if objectives is None:
@@ -523,7 +517,7 @@ def create_strategy(
     strategy_map = {
         StrategyType.RANDOM: RandomStrategy,
         StrategyType.GREEDY: GreedyStrategy,
-        StrategyType.EVOLUTIONARY: EvolutionaryStrategy
+        StrategyType.EVOLUTIONARY: EvolutionaryStrategy,
     }
 
     strategy_class = strategy_map.get(strategy_type, RandomStrategy)

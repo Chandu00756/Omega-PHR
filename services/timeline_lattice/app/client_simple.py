@@ -7,20 +7,21 @@ This is a minimal working client to resolve import issues.
 import asyncio
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 try:
     import grpc
     from grpc import aio
+
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
     grpc = None
     aio = None
 
-from .models import TimelineEvent, TemporalParadox, EventType, ParadoxType
 from .config import TimelineServiceConfig
+from .models import EventType, ParadoxType, TemporalParadox, TimelineEvent
 
 
 class TimelineLatticeClient:
@@ -47,9 +48,12 @@ class TimelineLatticeClient:
                 # Import here to avoid circular imports
                 try:
                     from ..timeline_pb2_grpc import TimelineLatticeStub
+
                     self.stub = TimelineLatticeStub(self.channel)
                 except ImportError:
-                    self.logger.warning("gRPC protobuf files not found, using mock client")
+                    self.logger.warning(
+                        "gRPC protobuf files not found, using mock client"
+                    )
                     self.stub = None
             else:
                 self.logger.warning("gRPC not available, using mock connection")
@@ -66,10 +70,12 @@ class TimelineLatticeClient:
         if self.channel:
             await self.channel.close()
 
-    async def create_timeline(self,
-                            name: str,
-                            description: str = "",
-                            initial_timestamp: Optional[datetime] = None) -> str:
+    async def create_timeline(
+        self,
+        name: str,
+        description: str = "",
+        initial_timestamp: Optional[datetime] = None,
+    ) -> str:
         """Create a new temporal timeline."""
         if initial_timestamp is None:
             initial_timestamp = datetime.now(timezone.utc)
@@ -92,12 +98,16 @@ class TimelineLatticeClient:
     async def add_event(self, event: TimelineEvent) -> bool:
         """Add an event to a timeline."""
         if not GRPC_AVAILABLE or self.stub is None:
-            self.logger.info(f"Mock: Added event {event.event_id} to timeline {event.timeline_id}")
+            self.logger.info(
+                f"Mock: Added event {event.event_id} to timeline {event.timeline_id}"
+            )
             return True
 
         try:
             # Mock success for now
-            self.logger.info(f"Added event {event.event_id} to timeline {event.timeline_id}")
+            self.logger.info(
+                f"Added event {event.event_id} to timeline {event.timeline_id}"
+            )
             return True
 
         except Exception as e:
@@ -115,7 +125,7 @@ class TimelineLatticeClient:
                 severity=0.5,
                 description="Mock paradox for testing",
                 affected_events=["event_001", "event_002"],
-                detected_at=datetime.now(timezone.utc)
+                detected_at=datetime.now(timezone.utc),
             )
             self.logger.info(f"Mock: Analyzed paradox in timeline {timeline_id}")
             return [mock_paradox]
@@ -136,7 +146,7 @@ class TimelineLatticeClient:
                 "timeline_id": timeline_id,
                 "status": "active",
                 "event_count": 0,
-                "last_updated": datetime.now(timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
         try:
@@ -145,7 +155,7 @@ class TimelineLatticeClient:
                 "timeline_id": timeline_id,
                 "status": "active",
                 "event_count": 0,
-                "last_updated": datetime.now(timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:

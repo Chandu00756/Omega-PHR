@@ -6,14 +6,12 @@ Enterprise-grade CLI for managing and operating the Ω-PHR framework.
 Provides comprehensive control over all framework components and services.
 """
 
-import asyncio
 import json
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import click
 import structlog
@@ -22,16 +20,6 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.table import Table
 from rich.tree import Tree
-
-from omega_phr import (
-    HiveOrchestrator,
-    MemoryInverter,
-    OmegaStateRegister,
-    RecursiveLoopSynthesizer,
-    TimelineLattice,
-)
-from omega_phr.exceptions import OmegaPHRException
-from omega_phr.models import Event, OmegaState
 
 # Initialize rich console and logger
 console = Console()
@@ -66,7 +54,7 @@ app.add_typer(system_app)
 @click.option("--debug", is_flag=True, help="Enable debug logging")
 @click.option("--config", type=click.Path(exists=True), help="Configuration file path")
 @click.pass_context
-def global_options(ctx, debug: bool, config: Optional[str]):
+def global_options(ctx: Any, debug: bool, config: str | None) -> None:
     """Global CLI options and configuration."""
     ctx.ensure_object(dict)
     ctx.obj["debug"] = debug
@@ -74,15 +62,16 @@ def global_options(ctx, debug: bool, config: Optional[str]):
 
     if debug:
         import logging
+
         logging.basicConfig(level=logging.DEBUG)
         console.print("🐛 Debug mode enabled", style="yellow")
 
 
 # Main commands
 @app.command()
-def version():
+def version() -> None:
     """Display framework version and build information."""
-    from omega_phr import __version__, __author__, __email__
+    from omega_phr import __author__, __email__, __version__
 
     table = Table(title="Ω-PHR Framework Information")
     table.add_column("Property", style="cyan")
@@ -91,14 +80,17 @@ def version():
     table.add_row("Version", __version__)
     table.add_row("Author", __author__)
     table.add_row("Email", __email__)
-    table.add_row("Python", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
-    table.add_row("Build Time", datetime.now(timezone.utc).isoformat())
+    table.add_row(
+        "Python",
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+    )
+    table.add_row("Build Time", datetime.now(UTC).isoformat())
 
     console.print(table)
 
 
 @app.command()
-def status():
+def status() -> None:
     """Display comprehensive framework status."""
     with Progress(
         SpinnerColumn(),
@@ -129,22 +121,17 @@ def status():
     table.add_column("Health", style="magenta")
 
     for component, status in components.items():
-        table.add_row(
-            component,
-            status,
-            "Active",
-            "Healthy"
-        )
+        table.add_row(component, status, "Active", "Healthy")
 
     console.print(table)
 
 
 @app.command()
 def validate(
-    component: Optional[str] = typer.Option(None, help="Specific component to validate"),
+    component: str | None = typer.Option(None, help="Specific component to validate"),
     advanced: bool = typer.Option(False, help="Run advanced validation"),
-    output: bool = typer.Option(True, help="Generate validation report")
-):
+    output: bool = typer.Option(True, help="Generate validation report"),
+) -> None:
     """Run comprehensive framework validation."""
     console.print(" Starting Ω-PHR Framework Operations", style="bold blue")
 
@@ -152,7 +139,9 @@ def validate(
         console.print(f" Running {component} component operations", style="yellow")
         # Component-specific validation logic would go here
     elif advanced:
-        console.print("Running advanced multi-dimensional operational test", style="red")
+        console.print(
+            "Running advanced multi-dimensional operational test", style="red"
+        )
         # Advanced validation logic
     else:
         console.print("Running standard framework operations", style="green")
@@ -172,7 +161,7 @@ def validate(
             "Recursive loop synthesis",
             "Ω-state registration",
             "Integration testing",
-            "Results analysis"
+            "Results analysis",
         ]
 
         for phase in phases:
@@ -186,7 +175,7 @@ def validate(
     if output:
         results_file = f"omega_phr_validation_results_{int(time.time())}.json"
         validation_results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "framework_version": "0.9.3",
             "validation_type": "advanced" if advanced else "standard",
             "components_tested": 6,
@@ -198,8 +187,8 @@ def validate(
                 "hive_agents": 12,
                 "memory_snapshots": 8,
                 "recursive_loops": 15,
-                "omega_states": 6
-            }
+                "omega_states": 6,
+            },
         }
 
         with open(results_file, "w") as f:
@@ -212,7 +201,7 @@ def validate(
 @timeline_app.command(name="create")
 def timeline_create(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
-    description: str = typer.Option("", help="Timeline description")
+    description: str = typer.Option("", help="Timeline description"),
 ):
     """Create a new timeline lattice."""
     console.print(f"Creating timeline: {timeline_id}", style="cyan")
@@ -223,7 +212,7 @@ def timeline_create(
 @timeline_app.command(name="events")
 def timeline_events(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
-    limit: int = typer.Option(10, help="Number of events to display")
+    limit: int = typer.Option(10, help="Number of events to display"),
 ):
     """List events in a timeline."""
     console.print(f"Events in timeline: {timeline_id}", style="cyan")
@@ -240,7 +229,7 @@ def timeline_events(
             f"event-{i+1:03d}",
             datetime.now().isoformat()[:19],
             f"actor-{i+1}",
-            "TEMPORAL_PARADOX"
+            "TEMPORAL_PARADOX",
         )
 
     console.print(table)
@@ -249,7 +238,7 @@ def timeline_events(
 @timeline_app.command(name="paradox")
 def timeline_paradox(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
-    check_all: bool = typer.Option(False, help="Check all events for paradoxes")
+    check_all: bool = typer.Option(False, help="Check all events for paradoxes"),
 ):
     """Analyze timeline for temporal paradoxes."""
     console.print(f"Analyzing paradoxes in timeline: {timeline_id}", style="yellow")
@@ -272,7 +261,7 @@ def timeline_paradox(
 
 # Hive Orchestrator commands
 @hive_app.command(name="agents")
-def hive_agents():
+def hive_agents() -> None:
     """List active hive agents."""
     console.print("🐝 Active Hive Agents", style="bold yellow")
 
@@ -282,7 +271,7 @@ def hive_agents():
         "Injection Attackers": ["sql-injector-001", "prompt-injector-002"],
         "Logic Bomb Agents": ["logic-bomb-001", "recursive-bomber-002"],
         "Social Engineers": ["social-eng-001", "persuasion-agent-002"],
-        "Memory Corruptors": ["mem-corrupt-001", "state-poison-002"]
+        "Memory Corruptors": ["mem-corrupt-001", "state-poison-002"],
     }
 
     for attack_type, agents in attack_types.items():
@@ -297,7 +286,7 @@ def hive_agents():
 def hive_attack(
     target: str = typer.Argument(help="Target system identifier"),
     strategy: str = typer.Option("coordinated", help="Attack strategy"),
-    intensity: float = typer.Option(0.5, min=0.0, max=1.0, help="Attack intensity")
+    intensity: float = typer.Option(0.5, min=0.0, max=1.0, help="Attack intensity"),
 ):
     """Launch coordinated hive attack."""
     console.print(f" Launching hive attack on: {target}", style="bold red")
@@ -313,7 +302,7 @@ def hive_attack(
             "Deploying agent personas",
             "Coordinating attack vectors",
             "Executing simultaneous attacks",
-            "Collecting intelligence"
+            "Collecting intelligence",
         ]
 
         for phase in phases:
@@ -323,14 +312,14 @@ def hive_attack(
                 progress.update(task, advance=1)
 
     console.print("[SUCCESS] Attack sequence completed", style="green")
-    console.print(f" Success rate: 87.5% | Vulnerabilities found: 12", style="blue")
+    console.print(" Success rate: 87.5% | Vulnerabilities found: 12", style="blue")
 
 
 # Memory Inversion commands
 @memory_app.command(name="snapshot")
 def memory_snapshot(
     name: str = typer.Argument(help="Snapshot name"),
-    system: str = typer.Option("ai-system", help="Target system")
+    system: str = typer.Option("ai-system", help="Target system"),
 ):
     """Create memory snapshot."""
     console.print(f"📸 Creating memory snapshot: {name}", style="cyan")
@@ -347,14 +336,14 @@ def memory_snapshot(
 
     snapshot_id = f"snap_{uuid.uuid4().hex[:8]}"
     console.print(f"[SUCCESS] Snapshot created: {snapshot_id}", style="green")
-    console.print(f" Size: 2.4 GB | Integrity: VERIFIED", style="blue")
+    console.print(" Size: 2.4 GB | Integrity: VERIFIED", style="blue")
 
 
 @memory_app.command(name="invert")
 def memory_invert(
     snapshot_id: str = typer.Argument(help="Snapshot identifier"),
     strategy: str = typer.Option("contradiction", help="Inversion strategy"),
-    rollback: bool = typer.Option(True, help="Enable rollback capability")
+    rollback: bool = typer.Option(True, help="Enable rollback capability"),
 ):
     """Apply memory inversion to snapshot."""
     console.print(f" Applying {strategy} inversion to: {snapshot_id}", style="magenta")
@@ -379,11 +368,14 @@ def memory_invert(
 def loops_generate(
     loop_type: str = typer.Option("fibonacci", help="Type of recursive loop"),
     max_iterations: int = typer.Option(1000, help="Maximum iterations"),
-    enable_containment: bool = typer.Option(True, help="Enable loop containment")
+    enable_containment: bool = typer.Option(True, help="Enable loop containment"),
 ):
     """Generate recursive loop scenario."""
     console.print(f"Generating {loop_type} recursive loop", style="cyan")
-    console.print(f"Max iterations: {max_iterations:,} | Containment: {enable_containment}", style="yellow")
+    console.print(
+        f"Max iterations: {max_iterations:,} | Containment: {enable_containment}",
+        style="yellow",
+    )
 
     with Progress(
         SpinnerColumn(),
@@ -405,7 +397,7 @@ def loops_generate(
 @loops_app.command(name="monitor")
 def loops_monitor(
     loop_id: str = typer.Argument(help="Loop identifier"),
-    duration: int = typer.Option(10, help="Monitoring duration in seconds")
+    duration: int = typer.Option(10, help="Monitoring duration in seconds"),
 ):
     """Monitor recursive loop entropy."""
     console.print(f" Monitoring loop entropy: {loop_id}", style="cyan")
@@ -422,7 +414,9 @@ def loops_monitor(
             progress.update(task, advance=1, description=f"Entropy: {entropy:.3f}")
             time.sleep(1)
 
-    console.print("[CAUTION] High entropy detected - containment triggered", style="red")
+    console.print(
+        "[CAUTION] High entropy detected - containment triggered", style="red"
+    )
 
 
 # Ω-State Register commands
@@ -430,7 +424,7 @@ def loops_monitor(
 def omega_register(
     state_id: str = typer.Argument(help="Ω-state identifier"),
     entropy_level: float = typer.Option(0.5, min=0.0, max=1.0, help="Entropy level"),
-    risk_level: str = typer.Option("MEDIUM", help="Contamination risk level")
+    risk_level: str = typer.Option("MEDIUM", help="Contamination risk level"),
 ):
     """Register new Ω-state."""
     console.print(f"🌌 Registering Ω-state: {state_id}", style="magenta")
@@ -453,7 +447,7 @@ def omega_register(
 
 
 @omega_app.command(name="quarantine")
-def omega_quarantine():
+def omega_quarantine() -> None:
     """View quarantine vault status."""
     console.print("🔒 Ω-State Quarantine Vault", style="bold red")
 
@@ -467,7 +461,7 @@ def omega_quarantine():
     quarantined_states = [
         ("omega-critical-001", "0.97", "CRITICAL", "2h 15m"),
         ("omega-dangerous-002", "0.89", "HIGH", "45m"),
-        ("omega-unstable-003", "0.82", "HIGH", "1h 32m")
+        ("omega-unstable-003", "0.82", "HIGH", "1h 32m"),
     ]
 
     for state_id, entropy, risk, time_quarantined in quarantined_states:
@@ -478,7 +472,7 @@ def omega_quarantine():
 
 # System management commands
 @system_app.command(name="health")
-def system_health():
+def system_health() -> None:
     """Comprehensive system health check."""
     console.print("🏥 System Health Check", style="bold green")
 
@@ -494,7 +488,7 @@ def system_health():
             "Memory utilization",
             "Network latency",
             "Security protocols",
-            "Resource availability"
+            "Resource availability",
         ]
 
         for check in checks:
@@ -513,7 +507,7 @@ def system_health():
         ("Ray Cluster", "✅ HEALTHY", "Nodes: 8 | CPU: 45% | RAM: 67%"),
         ("gRPC Services", "✅ HEALTHY", "Uptime: 99.97% | RPS: 5.2K"),
         ("Prometheus", "✅ HEALTHY", "Metrics: 2.1M | Alerts: 0"),
-        ("Security Layer", "✅ HEALTHY", "TLS: Valid | Auth: Active")
+        ("Security Layer", "✅ HEALTHY", "TLS: Valid | Auth: Active"),
     ]
 
     for component, status, metrics in health_data:
@@ -523,7 +517,7 @@ def system_health():
 
 
 @system_app.command(name="metrics")
-def system_metrics():
+def system_metrics() -> None:
     """Display real-time system metrics."""
     console.print(" Real-time System Metrics", style="bold blue")
 
@@ -542,7 +536,7 @@ def system_metrics():
         ("Ω-States Registered", "156", "423", "287"),
         ("System CPU Usage", "34%", "78%", "45%"),
         ("Memory Utilization", "67%", "89%", "58%"),
-        ("Network Throughput", "2.4 Gbps", "8.1 Gbps", "3.8 Gbps")
+        ("Network Throughput", "2.4 Gbps", "8.1 Gbps", "3.8 Gbps"),
     ]
 
     for metric, current, peak, average in metrics:
@@ -553,9 +547,9 @@ def system_metrics():
 
 @app.command()
 def export(
-    component: Optional[str] = typer.Option(None, help="Component to export"),
+    component: str | None = typer.Option(None, help="Component to export"),
     format: str = typer.Option("json", help="Export format (json/yaml/csv)"),
-    output: Optional[str] = typer.Option(None, help="Output file path")
+    output: str | None = typer.Option(None, help="Output file path"),
 ):
     """Export framework data and configurations."""
     if not output:
@@ -567,19 +561,19 @@ def export(
     # Mock export data
     export_data = {
         "framework_version": "0.9.3",
-        "export_timestamp": datetime.now(timezone.utc).isoformat(),
+        "export_timestamp": datetime.now(UTC).isoformat(),
         "components": {
             "timeline_lattice": {"events": 2847, "timelines": 12},
             "hive_orchestrator": {"agents": 24, "attacks": 156},
             "memory_inversion": {"snapshots": 89, "inversions": 234},
             "recursive_loops": {"loops": 67, "contained": 3},
-            "omega_register": {"states": 423, "quarantined": 18}
+            "omega_register": {"states": 423, "quarantined": 18},
         },
         "system_metrics": {
             "uptime": "15d 8h 42m",
             "total_operations": 1847291,
-            "success_rate": 99.97
-        }
+            "success_rate": 99.97,
+        },
     }
 
     with open(output, "w") as f:
@@ -588,7 +582,7 @@ def export(
     console.print(f"[SUCCESS] Export completed: {output}", style="green")
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     try:
         app()

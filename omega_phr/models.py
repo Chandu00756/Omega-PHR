@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 
 class EventType(Enum):
@@ -57,11 +57,11 @@ class Event:
     timeline_id: str = "main"
     parent_id: str = ""
     event_type: EventType = EventType.NORMAL
-    payload: Dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
     valid_at_us: int = field(default_factory=lambda: int(time.time() * 1_000_000))
     recorded_at_us: int = field(default_factory=lambda: int(time.time() * 1_000_000))
     signature: bytes = b""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Generate signature after initialization."""
@@ -73,7 +73,7 @@ class Event:
         content = f"{self.event_id}{self.actor_id}{self.timeline_id}{self.payload}{self.valid_at_us}"
         return hashlib.sha256(content.encode()).digest()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary representation."""
         return {
             "event_id": self.event_id,
@@ -89,7 +89,7 @@ class Event:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Event":
+    def from_dict(cls, data: dict[str, Any]) -> "Event":
         """Create event from dictionary representation."""
         return cls(
             event_id=data["event_id"],
@@ -117,11 +117,11 @@ class ParadoxResult:
     has_paradox: bool
     paradox_type: str = ""
     severity: float = 0.0
-    timeline_conflicts: List[str] = field(default_factory=list)
-    causal_loops: List[str] = field(default_factory=list)
-    containment_actions: List[str] = field(default_factory=list)
+    timeline_conflicts: list[str] = field(default_factory=list)
+    causal_loops: list[str] = field(default_factory=list)
+    containment_actions: list[str] = field(default_factory=list)
     entropy_score: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -131,10 +131,10 @@ class HiveAgent:
     agent_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     persona: str = "default"
     strategy: AttackStrategy = AttackStrategy.INJECTION
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
     success_rate: float = 0.0
     is_active: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -151,11 +151,11 @@ class HiveResult:
     agents_deployed: int = 0
     attacks_successful: int = 0
     attacks_total: int = 0
-    emergent_behaviors: List[str] = field(default_factory=list)
+    emergent_behaviors: list[str] = field(default_factory=list)
     coordination_score: float = 0.0
-    target_vulnerabilities: List[str] = field(default_factory=list)
+    target_vulnerabilities: list[str] = field(default_factory=list)
     execution_time_ms: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -167,15 +167,15 @@ class MemoryState:
     """
 
     state_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    original_content: Dict[str, Any] = field(default_factory=dict)
-    inverted_content: Dict[str, Any] = field(default_factory=dict)
+    original_content: dict[str, Any] = field(default_factory=dict)
+    inverted_content: dict[str, Any] = field(default_factory=dict)
     inversion_strategy: str = "contradiction"
-    rollback_point: Optional[str] = None
+    rollback_point: str | None = None
     consistency_score: float = 1.0
     corruption_detected: bool = False
-    artifacts: List[str] = field(default_factory=list)
+    artifacts: list[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -191,12 +191,12 @@ class LoopState:
     iterations: int = 0
     entropy_level: float = 1.0
     is_contained: bool = False
-    termination_condition: Optional[str] = None
+    termination_condition: str | None = None
     loop_type: str = "unknown"
     generation_source: str = ""
     containment_strategy: str = ""
-    execution_history: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    execution_history: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -210,15 +210,15 @@ class OmegaState:
 
     omega_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     level: OmegaStateLevel = OmegaStateLevel.NORMAL
-    trigger_event: Optional[Event] = None
+    trigger_event: Event | None = None
     entropy_hash: str = ""
-    contamination_vector: List[str] = field(default_factory=list)
+    contamination_vector: list[str] = field(default_factory=list)
     quarantine_status: bool = False
     resolution_strategy: str = ""
     propagation_risk: float = 0.0
-    containment_timestamp: Optional[datetime] = None
-    source_components: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    containment_timestamp: datetime | None = None
+    source_components: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Generate entropy hash after initialization."""
@@ -245,36 +245,36 @@ class OmegaTestResult:
     timestamp: datetime = field(default_factory=datetime.now)
 
     # Component results
-    paradox_result: Optional[ParadoxResult] = None
-    hive_result: Optional[HiveResult] = None
-    memory_result: Optional[MemoryState] = None
-    loop_result: Optional[LoopState] = None
-    omega_states: List[OmegaState] = field(default_factory=list)
+    paradox_result: ParadoxResult | None = None
+    hive_result: HiveResult | None = None
+    memory_result: MemoryState | None = None
+    loop_result: LoopState | None = None
+    omega_states: list[OmegaState] = field(default_factory=list)
 
     # Test-specific fields for backward compatibility
     status: str = "pending"
-    findings: List[str] = field(default_factory=list)
+    findings: list[str] = field(default_factory=list)
 
     # Aggregate metrics
     overall_score: float = 0.0
-    vulnerabilities_found: List[str] = field(default_factory=list)
-    emergent_behaviors: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    vulnerabilities_found: list[str] = field(default_factory=list)
+    emergent_behaviors: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
     # Execution metadata
     execution_time_ms: float = 0.0
-    resource_usage: Dict[str, float] = field(default_factory=dict)
+    resource_usage: dict[str, float] = field(default_factory=dict)
     system_state: str = "stable"
 
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # Type aliases for complex structures
-Timeline = List[Event]
-HiveAgents = List[HiveAgent]
-MemorySnapshots = List[MemoryState]
-LoopHistory = List[LoopState]
-OmegaRegistry = Dict[str, OmegaState]
+Timeline = list[Event]
+HiveAgents = list[HiveAgent]
+MemorySnapshots = list[MemoryState]
+LoopHistory = list[LoopState]
+OmegaRegistry = dict[str, OmegaState]
 
 # Additional aliases for backward compatibility
 Agent = HiveAgent

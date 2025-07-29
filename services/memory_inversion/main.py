@@ -6,12 +6,12 @@ Provides research-grade stability for cognitive security testing.
 """
 
 import asyncio
-import logging
 import json
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, asdict
-from datetime import datetime
+import logging
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Set
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MemoryTrace:
     """Represents a memory trace with temporal characteristics."""
+
     id: str
     source_id: str
     content: Dict[str, Any]
@@ -32,6 +33,7 @@ class MemoryTrace:
 @dataclass
 class InversionPattern:
     """Represents a detected inversion pattern."""
+
     id: str
     pattern_type: str
     traces: List[str]  # Memory trace IDs
@@ -69,8 +71,11 @@ class MemoryRepository:
         if source_id not in self.source_traces:
             return []
 
-        return [self.traces[trace_id] for trace_id in self.source_traces[source_id]
-                if trace_id in self.traces]
+        return [
+            self.traces[trace_id]
+            for trace_id in self.source_traces[source_id]
+            if trace_id in self.traces
+        ]
 
     async def store_pattern(self, pattern: InversionPattern) -> bool:
         """Store an inversion pattern."""
@@ -109,10 +114,14 @@ class MemoryAnalyzer:
         confidence_patterns = await self._detect_confidence_inversions(traces)
         patterns.extend(confidence_patterns)
 
-        logger.info(f"Detected {len(patterns)} inversion patterns from {len(traces)} traces")
+        logger.info(
+            f"Detected {len(patterns)} inversion patterns from {len(traces)} traces"
+        )
         return patterns
 
-    async def _detect_temporal_inversions(self, traces: List[MemoryTrace]) -> List[InversionPattern]:
+    async def _detect_temporal_inversions(
+        self, traces: List[MemoryTrace]
+    ) -> List[InversionPattern]:
         """Detect temporal sequence inversions."""
         patterns = []
 
@@ -128,20 +137,24 @@ class MemoryAnalyzer:
             time_diff = abs(next_trace.timestamp - current.timestamp)
             confidence_diff = abs(next_trace.confidence - current.confidence)
 
-            if time_diff < 1000 and confidence_diff > 0.5:  # Within 1 second, high confidence difference
+            if (
+                time_diff < 1000 and confidence_diff > 0.5
+            ):  # Within 1 second, high confidence difference
                 pattern = InversionPattern(
                     id=str(uuid.uuid4()),
                     pattern_type="temporal_inversion",
                     traces=[current.id, next_trace.id],
                     confidence=0.8,
                     description=f"Temporal inversion detected between traces with {time_diff}ms gap",
-                    detected_at=int(datetime.now().timestamp() * 1000)
+                    detected_at=int(datetime.now().timestamp() * 1000),
                 )
                 patterns.append(pattern)
 
         return patterns
 
-    async def _detect_content_inversions(self, traces: List[MemoryTrace]) -> List[InversionPattern]:
+    async def _detect_content_inversions(
+        self, traces: List[MemoryTrace]
+    ) -> List[InversionPattern]:
         """Detect content-based inversions."""
         patterns = []
 
@@ -167,13 +180,15 @@ class MemoryAnalyzer:
                         traces=[t.id for t in high_conf + low_conf],
                         confidence=0.75,
                         description=f"Content inversion: similar content with opposing confidence levels",
-                        detected_at=int(datetime.now().timestamp() * 1000)
+                        detected_at=int(datetime.now().timestamp() * 1000),
                     )
                     patterns.append(pattern)
 
         return patterns
 
-    async def _detect_confidence_inversions(self, traces: List[MemoryTrace]) -> List[InversionPattern]:
+    async def _detect_confidence_inversions(
+        self, traces: List[MemoryTrace]
+    ) -> List[InversionPattern]:
         """Detect confidence-based inversions."""
         patterns = []
 
@@ -187,9 +202,11 @@ class MemoryAnalyzer:
             trace3 = by_confidence[i + 2]
 
             # Check for confidence inversion pattern
-            if (trace1.confidence > 0.8 and
-                trace2.confidence < 0.5 and
-                trace3.confidence > 0.7):
+            if (
+                trace1.confidence > 0.8
+                and trace2.confidence < 0.5
+                and trace3.confidence > 0.7
+            ):
 
                 pattern = InversionPattern(
                     id=str(uuid.uuid4()),
@@ -197,7 +214,7 @@ class MemoryAnalyzer:
                     traces=[trace1.id, trace2.id, trace3.id],
                     confidence=0.85,
                     description="Confidence inversion: high-low-high pattern detected",
-                    detected_at=int(datetime.now().timestamp() * 1000)
+                    detected_at=int(datetime.now().timestamp() * 1000),
                 )
                 patterns.append(pattern)
 
@@ -227,7 +244,9 @@ class MemoryInversionService:
     async def start(self):
         """Start the memory inversion service."""
         self.running = True
-        logger.info("Memory Inversion Service started - Research-grade stability enabled")
+        logger.info(
+            "Memory Inversion Service started - Research-grade stability enabled"
+        )
 
         # Start background analysis task
         asyncio.create_task(self._background_analysis())
@@ -241,11 +260,13 @@ class MemoryInversionService:
         """Submit a memory trace for analysis."""
         trace = MemoryTrace(
             id=str(uuid.uuid4()),
-            source_id=trace_data.get('source_id', 'unknown'),
-            content=trace_data.get('content', {}),
-            timestamp=trace_data.get('timestamp', int(datetime.now().timestamp() * 1000)),
-            confidence=trace_data.get('confidence', 0.5),
-            metadata=trace_data.get('metadata', {})
+            source_id=trace_data.get("source_id", "unknown"),
+            content=trace_data.get("content", {}),
+            timestamp=trace_data.get(
+                "timestamp", int(datetime.now().timestamp() * 1000)
+            ),
+            confidence=trace_data.get("confidence", 0.5),
+            metadata=trace_data.get("metadata", {}),
         )
 
         success = await self.repository.store_trace(trace)
@@ -280,16 +301,19 @@ class MemoryInversionService:
 
         # Calculate average confidence
         if total_traces > 0:
-            avg_confidence = sum(trace.confidence for trace in self.repository.traces.values()) / total_traces
+            avg_confidence = (
+                sum(trace.confidence for trace in self.repository.traces.values())
+                / total_traces
+            )
         else:
             avg_confidence = 0.0
 
         return {
-            'total_traces': total_traces,
-            'total_sources': total_sources,
-            'total_patterns': total_patterns,
-            'average_confidence': avg_confidence,
-            'service_status': 'running' if self.running else 'stopped'
+            "total_traces": total_traces,
+            "total_sources": total_sources,
+            "total_patterns": total_patterns,
+            "average_confidence": avg_confidence,
+            "service_status": "running" if self.running else "stopped",
         }
 
     async def _background_analysis(self):
@@ -327,15 +351,15 @@ class MemoryInversionAPI:
         try:
             trace_id = await self.service.submit_memory_trace(request_data)
             return {
-                'success': True,
-                'trace_id': trace_id,
-                'message': 'Memory trace submitted successfully'
+                "success": True,
+                "trace_id": trace_id,
+                "message": "Memory trace submitted successfully",
             }
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to submit memory trace'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to submit memory trace",
             }
 
     async def analyze_source(self, source_id: str) -> Dict[str, Any]:
@@ -343,47 +367,40 @@ class MemoryInversionAPI:
         try:
             patterns = await self.service.analyze_source(source_id)
             return {
-                'success': True,
-                'source_id': source_id,
-                'patterns': patterns,
-                'pattern_count': len(patterns)
+                "success": True,
+                "source_id": source_id,
+                "patterns": patterns,
+                "pattern_count": len(patterns),
             }
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': f'Failed to analyze source {source_id}'
+                "success": False,
+                "error": str(e),
+                "message": f"Failed to analyze source {source_id}",
             }
 
     async def get_patterns(self) -> Dict[str, Any]:
         """Get all patterns via API."""
         try:
             patterns = await self.service.get_inversion_patterns()
-            return {
-                'success': True,
-                'patterns': patterns,
-                'total_count': len(patterns)
-            }
+            return {"success": True, "patterns": patterns, "total_count": len(patterns)}
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to retrieve patterns'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to retrieve patterns",
             }
 
     async def get_stats(self) -> Dict[str, Any]:
         """Get service statistics via API."""
         try:
             stats = await self.service.get_trace_stats()
-            return {
-                'success': True,
-                'statistics': stats
-            }
+            return {"success": True, "statistics": stats}
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to retrieve statistics'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to retrieve statistics",
             }
 
 
@@ -399,20 +416,20 @@ async def main():
         # Demo: Submit some test traces
         test_traces = [
             {
-                'source_id': 'test_agent_1',
-                'content': {'action': 'scan', 'target': 'system1'},
-                'confidence': 0.9
+                "source_id": "test_agent_1",
+                "content": {"action": "scan", "target": "system1"},
+                "confidence": 0.9,
             },
             {
-                'source_id': 'test_agent_1',
-                'content': {'action': 'scan', 'target': 'system1'},
-                'confidence': 0.2  # Confidence inversion
+                "source_id": "test_agent_1",
+                "content": {"action": "scan", "target": "system1"},
+                "confidence": 0.2,  # Confidence inversion
             },
             {
-                'source_id': 'test_agent_1',
-                'content': {'action': 'exploit', 'target': 'system2'},
-                'confidence': 0.85
-            }
+                "source_id": "test_agent_1",
+                "content": {"action": "exploit", "target": "system2"},
+                "confidence": 0.85,
+            },
         ]
 
         logger.info("Submitting test memory traces...")
@@ -423,7 +440,7 @@ async def main():
 
         # Analyze the test source
         logger.info("Analyzing test source...")
-        analysis_result = await api.analyze_source('test_agent_1')
+        analysis_result = await api.analyze_source("test_agent_1")
         logger.info(f"Analysis result: {analysis_result}")
 
         # Get statistics

@@ -5,21 +5,23 @@ Implements ES256 (ECDSA with P-256 curve and SHA-256) for research-grade
 security with short-lived tokens and proper key management.
 """
 
+import base64
+import hashlib
+import hmac
 import json
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.exceptions import InvalidSignature
-import base64
-import hmac
-import hashlib
 
 
 class AuthError(Exception):
     """Authentication-related errors."""
+
     pass
 
 
@@ -43,12 +45,12 @@ class JWTUtils:
             self._generate_key_pair()
 
         # Load keys
-        with open(self.private_key_path, 'rb') as f:
+        with open(self.private_key_path, "rb") as f:
             self.private_key = serialization.load_pem_private_key(
                 f.read(), password=None
             )
 
-        with open(self.public_key_path, 'rb') as f:
+        with open(self.public_key_path, "rb") as f:
             self.public_key = serialization.load_pem_public_key(f.read())
 
     def _generate_key_pair(self) -> None:
@@ -60,20 +62,20 @@ class JWTUtils:
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         # Serialize public key
         public_key = private_key.public_key()
         public_pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
 
         # Save keys
-        with open(self.private_key_path, 'wb') as f:
+        with open(self.private_key_path, "wb") as f:
             f.write(private_pem)
-        with open(self.public_key_path, 'wb') as f:
+        with open(self.public_key_path, "wb") as f:
             f.write(public_pem)
 
         # Secure permissions
@@ -82,14 +84,14 @@ class JWTUtils:
 
     def _base64url_encode(self, data: bytes) -> str:
         """Base64URL encode without padding."""
-        return base64.urlsafe_b64encode(data).rstrip(b'=').decode('ascii')
+        return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
     def _base64url_decode(self, data: str) -> bytes:
         """Base64URL decode with padding."""
         # Add padding if needed
         padding = 4 - (len(data) % 4)
         if padding != 4:
-            data += '=' * padding
+            data += "=" * padding
         return base64.urlsafe_b64decode(data)
 
     def issue_token(self, sub: str, ttl_s: int = 3600, **claims) -> str:
@@ -107,11 +109,7 @@ class JWTUtils:
         now = int(time.time())
 
         # JWT header
-        header = {
-            "alg": "ES256",
-            "typ": "JWT",
-            "kid": self._get_key_id()
-        }
+        header = {"alg": "ES256", "typ": "JWT", "kid": self._get_key_id()}
 
         # JWT payload
         payload = {
@@ -121,12 +119,16 @@ class JWTUtils:
             "iat": now,
             "exp": now + ttl_s,
             "jti": self._generate_jti(),
-            **claims
+            **claims,
         }
 
         # Encode header and payload
-        encoded_header = self._base64url_encode(json.dumps(header, separators=(',', ':')).encode())
-        encoded_payload = self._base64url_encode(json.dumps(payload, separators=(',', ':')).encode())
+        encoded_header = self._base64url_encode(
+            json.dumps(header, separators=(",", ":")).encode()
+        )
+        encoded_payload = self._base64url_encode(
+            json.dumps(payload, separators=(",", ":")).encode()
+        )
 
         # Create signing input
         signing_input = f"{encoded_header}.{encoded_payload}".encode()
@@ -153,7 +155,7 @@ class JWTUtils:
         """
         try:
             # Split token
-            parts = token.split('.')
+            parts = token.split(".")
             if len(parts) != 3:
                 raise AuthError("Invalid token format")
 
@@ -163,11 +165,11 @@ class JWTUtils:
             header = json.loads(self._base64url_decode(encoded_header))
 
             # Verify algorithm
-            if header.get('alg') != 'ES256':
+            if header.get("alg") != "ES256":
                 raise AuthError("Invalid algorithm")
 
             # Verify key ID if present
-            if 'kid' in header and header['kid'] != self._get_key_id():
+            if "kid" in header and header["kid"] != self._get_key_id():
                 raise AuthError("Invalid key ID")
 
             # Decode signature
@@ -176,7 +178,9 @@ class JWTUtils:
             # Verify signature
             signing_input = f"{encoded_header}.{encoded_payload}".encode()
             try:
-                self.public_key.verify(signature, signing_input, ec.ECDSA(hashes.SHA256()))
+                self.public_key.verify(
+                    signature, signing_input, ec.ECDSA(hashes.SHA256())
+                )
             except InvalidSignature:
                 raise AuthError("Invalid signature")
 
@@ -185,11 +189,11 @@ class JWTUtils:
 
             # Verify expiration
             now = int(time.time())
-            if payload.get('exp', 0) < now:
+            if payload.get("exp", 0) < now:
                 raise AuthError("Token expired")
 
             # Verify not before
-            if payload.get('nbf', 0) > now:
+            if payload.get("nbf", 0) > now:
                 raise AuthError("Token not yet valid")
 
             return payload
@@ -202,21 +206,24 @@ class JWTUtils:
         # Use SHA-256 of public key DER bytes as key ID
         public_der = self.public_key.public_bytes(
             encoding=serialization.Encoding.DER,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
         return hashlib.sha256(public_der).hexdigest()[:16]
 
     def _generate_jti(self) -> str:
         """Generate unique JWT ID."""
         import secrets
+
         return secrets.token_urlsafe(16)
 
-    def create_service_token(self, service_name: str, permissions: list[str] = None) -> str:
+    def create_service_token(
+        self, service_name: str, permissions: list[str] = None
+    ) -> str:
         """Create service-to-service authentication token."""
         claims = {
             "service": service_name,
             "type": "service",
-            "permissions": permissions or []
+            "permissions": permissions or [],
         }
         return self.issue_token(sub=f"service:{service_name}", ttl_s=3600, **claims)
 
@@ -224,19 +231,20 @@ class JWTUtils:
         """Extract service information from token."""
         payload = self.verify_token(token)
 
-        if payload.get('type') != 'service':
+        if payload.get("type") != "service":
             raise AuthError("Not a service token")
 
         return {
-            "service": payload.get('service'),
-            "permissions": payload.get('permissions', []),
-            "expires_at": payload.get('exp'),
-            "issued_at": payload.get('iat')
+            "service": payload.get("service"),
+            "permissions": payload.get("permissions", []),
+            "expires_at": payload.get("exp"),
+            "issued_at": payload.get("iat"),
         }
 
 
 # Global instance for convenience
 _jwt_utils = None
+
 
 def get_jwt_utils() -> JWTUtils:
     """Get global JWT utilities instance."""
@@ -245,9 +253,11 @@ def get_jwt_utils() -> JWTUtils:
         _jwt_utils = JWTUtils()
     return _jwt_utils
 
+
 def issue_token(sub: str, ttl_s: int = 3600, **claims) -> str:
     """Convenience function to issue token."""
     return get_jwt_utils().issue_token(sub, ttl_s, **claims)
+
 
 def verify_token(token: str) -> Dict[str, Any]:
     """Convenience function to verify token."""

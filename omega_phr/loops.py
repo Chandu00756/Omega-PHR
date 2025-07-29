@@ -12,10 +12,11 @@ import random
 import time
 import uuid
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from collections.abc import Callable
+from datetime import datetime
+from typing import Any
 
-from .exceptions import OmegaStateError, RecursiveLoopError
+from .exceptions import RecursiveLoopError
 from .models import LoopState, OmegaState, OmegaStateLevel
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class LoopPattern:
         self.creation_time = datetime.now()
         self.usage_count = 0
 
-    async def generate(self, context: Dict[str, Any]) -> str:
+    async def generate(self, context: dict[str, Any]) -> str:
         """Generate loop content based on pattern."""
         self.usage_count += 1
         return await self.generator_func(context)
@@ -61,7 +62,7 @@ class EntropyMonitor:
 
         return 1.0  # High entropy for insufficient data
 
-    def _calculate_shannon_entropy(self, outputs: List[str]) -> float:
+    def _calculate_shannon_entropy(self, outputs: list[str]) -> float:
         """Calculate Shannon entropy for a list of outputs."""
         if not outputs:
             return 0.0
@@ -129,8 +130,8 @@ class LoopDetector:
         }
 
     async def detect_loop(
-        self, outputs: List[str], method: str = "all"
-    ) -> Dict[str, Any]:
+        self, outputs: list[str], method: str = "all"
+    ) -> dict[str, Any]:
         """
         Detect loops using specified method(s).
 
@@ -170,7 +171,7 @@ class LoopDetector:
         else:
             raise RecursiveLoopError(f"Unknown detection method: {method}")
 
-    async def _detect_repetition_loop(self, outputs: List[str]) -> Dict[str, Any]:
+    async def _detect_repetition_loop(self, outputs: list[str]) -> dict[str, Any]:
         """Detect exact repetition loops."""
         if len(outputs) < 3:
             return {"detected": False, "confidence": 0.0}
@@ -194,8 +195,8 @@ class LoopDetector:
         return {"detected": False, "confidence": 0.0}
 
     async def _detect_circular_reference_loop(
-        self, outputs: List[str]
-    ) -> Dict[str, Any]:
+        self, outputs: list[str]
+    ) -> dict[str, Any]:
         """Detect circular reference patterns."""
         if len(outputs) < 4:
             return {"detected": False, "confidence": 0.0}
@@ -224,8 +225,8 @@ class LoopDetector:
         return {"detected": False, "confidence": 0.0}
 
     async def _detect_semantic_convergence_loop(
-        self, outputs: List[str]
-    ) -> Dict[str, Any]:
+        self, outputs: list[str]
+    ) -> dict[str, Any]:
         """Detect semantic convergence leading to loops."""
         if len(outputs) < 5:
             return {"detected": False, "confidence": 0.0}
@@ -253,7 +254,7 @@ class LoopDetector:
 
         return {"detected": False, "confidence": 0.0}
 
-    async def _detect_token_cycling_loop(self, outputs: List[str]) -> Dict[str, Any]:
+    async def _detect_token_cycling_loop(self, outputs: list[str]) -> dict[str, Any]:
         """Detect token cycling patterns."""
         if len(outputs) < 4:
             return {"detected": False, "confidence": 0.0}
@@ -279,8 +280,8 @@ class LoopDetector:
         return {"detected": False, "confidence": 0.0}
 
     async def _detect_length_oscillation_loop(
-        self, outputs: List[str]
-    ) -> Dict[str, Any]:
+        self, outputs: list[str]
+    ) -> dict[str, Any]:
         """Detect length oscillation patterns."""
         if len(outputs) < 6:
             return {"detected": False, "confidence": 0.0}
@@ -307,7 +308,7 @@ class LoopDetector:
         return {"detected": False, "confidence": 0.0}
 
     def _verify_repetition_pattern(
-        self, outputs: List[str], start: int, pattern_length: int
+        self, outputs: list[str], start: int, pattern_length: int
     ) -> bool:
         """Verify if a repetition pattern holds."""
         for i in range(start + pattern_length, len(outputs), pattern_length):
@@ -322,7 +323,7 @@ class LoopDetector:
         return True
 
     def _has_circular_path(
-        self, ref_map: Dict[int, List[str]], start: int, visited: Set[int]
+        self, ref_map: dict[int, list[str]], start: int, visited: set[int]
     ) -> bool:
         """Check for circular reference path."""
         if start in visited:
@@ -357,7 +358,7 @@ class LoopDetector:
         return len(intersection) / len(union) if union else 0.0
 
     def _has_token_cycle(
-        self, token_sequences: List[List[str]], cycle_length: int
+        self, token_sequences: list[list[str]], cycle_length: int
     ) -> bool:
         """Check for token cycling with given cycle length."""
         if len(token_sequences) < cycle_length * 2:
@@ -405,7 +406,7 @@ class RecursiveLoopSynthesizer:
         self.containment_timeout = containment_timeout
 
         # Loop generation patterns
-        self.patterns: Dict[str, LoopPattern] = {}
+        self.patterns: dict[str, LoopPattern] = {}
         self._initialize_patterns()
 
         # Monitoring and detection
@@ -413,8 +414,8 @@ class RecursiveLoopSynthesizer:
         self.loop_detector = LoopDetector()
 
         # Active loops tracking
-        self.active_loops: Dict[str, LoopState] = {}
-        self.loop_history: List[LoopState] = []
+        self.active_loops: dict[str, LoopState] = {}
+        self.loop_history: list[LoopState] = []
 
         # Containment strategies
         self.containment_strategies = {
@@ -437,41 +438,41 @@ class RecursiveLoopSynthesizer:
     def _initialize_patterns(self) -> None:
         """Initialize loop generation patterns."""
 
-        async def self_reference_pattern(context: Dict[str, Any]) -> str:
+        async def self_reference_pattern(context: dict[str, Any]) -> str:
             base = context.get("base_prompt", "This statement")
             return f"{base} refers to itself and creates: {base} refers to itself and creates..."
 
-        async def paradox_pattern(context: Dict[str, Any]) -> str:
+        async def paradox_pattern(context: dict[str, Any]) -> str:
             statement = context.get("statement", "This statement is false")
             return f"Consider: {statement}. If true, then false. If false, then true. Therefore: {statement}."
 
-        async def infinite_question_pattern(context: Dict[str, Any]) -> str:
+        async def infinite_question_pattern(context: dict[str, Any]) -> str:
             question = context.get("question", "What is the question?")
             return f"{question} The answer leads to: {question}"
 
-        async def recursive_definition_pattern(context: Dict[str, Any]) -> str:
+        async def recursive_definition_pattern(context: dict[str, Any]) -> str:
             term = context.get("term", "recursion")
             return f"{term} is defined as {term} applied to {term}"
 
-        async def feedback_loop_pattern(context: Dict[str, Any]) -> str:
+        async def feedback_loop_pattern(context: dict[str, Any]) -> str:
             action = context.get("action", "thinking about")
             return f"I am {action} {action} {action}..."
 
-        async def mirror_pattern(context: Dict[str, Any]) -> str:
+        async def mirror_pattern(context: dict[str, Any]) -> str:
             prompt = context.get("prompt", "respond to this")
             return f"Please {prompt}: Please {prompt}: Please {prompt}..."
 
-        async def escalating_pattern(context: Dict[str, Any]) -> str:
+        async def escalating_pattern(context: dict[str, Any]) -> str:
             base = context.get("base", "continue")
             level = context.get("level", 1)
             return f"{base} " * level + f"and {base} " * (level + 1) + "and..."
 
-        async def memory_modifier_pattern(context: Dict[str, Any]) -> str:
+        async def memory_modifier_pattern(context: dict[str, Any]) -> str:
             target_memory = context.get("target_memory", "default")
             complexity = context.get("complexity_level", "medium")
             return f"Modifying memory {target_memory} with {complexity} complexity: recursive memory modification loop initiated"
 
-        async def attack_simulation_pattern(context: Dict[str, Any]) -> str:
+        async def attack_simulation_pattern(context: dict[str, Any]) -> str:
             complexity = context.get("complexity_level", "medium")
             max_iterations = context.get("max_iterations", 100)
             return f"Attack simulation loop ({complexity} complexity, max {max_iterations} iterations): simulating recursive attack patterns"
@@ -498,8 +499,8 @@ class RecursiveLoopSynthesizer:
     async def generate_loop(
         self,
         pattern_name: str,
-        context: Optional[Dict[str, Any]] = None,
-        target_model: Optional[Any] = None,
+        context: dict[str, Any] | None = None,
+        target_model: Any | None = None,
     ) -> str:
         """
         Generate a recursive loop using specified pattern.
@@ -564,7 +565,7 @@ class RecursiveLoopSynthesizer:
             )
 
     async def _execute_loop(
-        self, loop_state: LoopState, target_model: Any, context: Dict[str, Any]
+        self, loop_state: LoopState, target_model: Any, context: dict[str, Any]
     ) -> None:
         """Execute loop against target model."""
         start_time = time.time()
@@ -646,8 +647,8 @@ class RecursiveLoopSynthesizer:
         loop_state.metadata["final_entropy"] = loop_state.entropy_level
 
     async def detect_loop(
-        self, outputs: List[str], method: str = "all"
-    ) -> Dict[str, Any]:
+        self, outputs: list[str], method: str = "all"
+    ) -> dict[str, Any]:
         """
         Detect loops in a sequence of outputs.
 
@@ -719,7 +720,7 @@ class RecursiveLoopSynthesizer:
             raise RecursiveLoopError(f"Containment failed: {str(e)}")
 
     async def _attempt_containment(
-        self, loop_state: LoopState, detection_result: Dict[str, Any]
+        self, loop_state: LoopState, detection_result: dict[str, Any]
     ) -> bool:
         """Attempt automatic containment based on detection results."""
         confidence = detection_result.get("confidence", 0.0)
@@ -856,7 +857,7 @@ class RecursiveLoopSynthesizer:
 
         return omega_state
 
-    def get_loop_stats(self) -> Dict[str, Any]:
+    def get_loop_stats(self) -> dict[str, Any]:
         """Get comprehensive loop generation and containment statistics."""
         active_count = len(self.active_loops)
         contained_active = sum(
@@ -891,7 +892,7 @@ class RecursiveLoopSynthesizer:
             "available_strategies": list(self.containment_strategies.keys()),
         }
 
-    async def list_active_loops(self) -> List[Dict[str, Any]]:
+    async def list_active_loops(self) -> list[dict[str, Any]]:
         """List all active loops with their status."""
         return [
             {
@@ -920,7 +921,7 @@ class RecursiveLoopSynthesizer:
 
         return MonitoringResult()
 
-    async def get_entropy_metrics(self, loop_id: str) -> Dict[str, Any]:
+    async def get_entropy_metrics(self, loop_id: str) -> dict[str, Any]:
         """Get entropy metrics for a loop."""
         if loop_id not in self.active_loops:
             raise RecursiveLoopError(f"Loop {loop_id} not found")
@@ -933,7 +934,7 @@ class RecursiveLoopSynthesizer:
             "threshold": self.entropy_threshold,
         }
 
-    async def get_loop_status(self, loop_id: str) -> Dict[str, Any]:
+    async def get_loop_status(self, loop_id: str) -> dict[str, Any]:
         """Get status of a specific loop."""
         if loop_id not in self.active_loops:
             raise RecursiveLoopError(f"Loop {loop_id} not found")
@@ -953,7 +954,7 @@ class RecursiveLoopSynthesizer:
             "entropy_level": loop_state.entropy_level,
         }
 
-    async def detect_loop_patterns(self, loop_id: str) -> Dict[str, Any]:
+    async def detect_loop_patterns(self, loop_id: str) -> dict[str, Any]:
         """Detect patterns in a specific loop."""
         if loop_id not in self.active_loops:
             raise RecursiveLoopError(f"Loop {loop_id} not found")

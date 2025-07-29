@@ -6,7 +6,7 @@ including models, repositories, configuration, and gRPC server implementation.
 """
 
 from .config import TimelineServiceConfig, get_config
-from .models import TimelineEvent, Timeline
+from .models import Timeline, TimelineEvent
 from .server import TimelineLatticeServer
 
 __all__ = [
@@ -14,5 +14,5 @@ __all__ = [
     "get_config",
     "TimelineEvent",
     "Timeline",
-    "TimelineLatticeServer"
+    "TimelineLatticeServer",
 ]

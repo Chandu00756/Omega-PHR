@@ -5,12 +5,13 @@ Provides centralized logging configuration with trace correlation,
 performance monitoring, and security audit capabilities.
 """
 
-import logging
-import uuid
-import time
 import functools
-from typing import Any, Dict, Optional, Callable
+import logging
+import time
+import uuid
 from contextlib import contextmanager
+from typing import Any, Callable, Dict, Optional
+
 from .formatter import JSONFormatter, configure_logging, get_logger
 
 
@@ -28,7 +29,7 @@ class StructuredLogger:
         environment: str = "development",
         enable_console: bool = True,
         enable_file: bool = False,
-        log_file: Optional[str] = None
+        log_file: Optional[str] = None,
     ) -> None:
         """Initialize logging configuration."""
         if self._initialized:
@@ -40,7 +41,7 @@ class StructuredLogger:
             environment=environment,
             enable_console=enable_console,
             enable_file=enable_file,
-            log_file=log_file
+            log_file=log_file,
         )
 
         self._initialized = True
@@ -55,11 +56,9 @@ class StructuredLogger:
         trace_id = str(uuid.uuid4())
         span_id = str(uuid.uuid4())
 
-        logger = self.get_logger("trace",
-                                trace_id=trace_id,
-                                span_id=span_id,
-                                operation=operation,
-                                **context)
+        logger = self.get_logger(
+            "trace", trace_id=trace_id, span_id=span_id, operation=operation, **context
+        )
 
         start_time = time.time()
         logger.info(f"Starting operation: {operation}")
@@ -68,17 +67,17 @@ class StructuredLogger:
             yield logger
         except Exception as e:
             duration = (time.time() - start_time) * 1000
-            logger.error(f"Operation failed: {operation}",
-                        duration=duration,
-                        error=str(e))
+            logger.error(
+                f"Operation failed: {operation}", duration=duration, error=str(e)
+            )
             raise
         else:
             duration = (time.time() - start_time) * 1000
-            logger.info(f"Operation completed: {operation}",
-                       duration=duration)
+            logger.info(f"Operation completed: {operation}", duration=duration)
 
     def performance_monitor(self, operation: str):
         """Decorator for performance monitoring."""
+
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
@@ -94,33 +93,32 @@ class StructuredLogger:
 
         return decorator
 
-    def audit_log(self, action: str, resource: str, user_id: Optional[str] = None, **context: Any) -> None:
+    def audit_log(
+        self, action: str, resource: str, user_id: Optional[str] = None, **context: Any
+    ) -> None:
         """Log audit event."""
-        logger = logging.getLogger('audit')
-        extra = {
-            'action': action,
-            'resource': resource,
-            'audit': True,
-            **context
-        }
+        logger = logging.getLogger("audit")
+        extra = {"action": action, "resource": resource, "audit": True, **context}
         if user_id:
-            extra['user_id'] = user_id
+            extra["user_id"] = user_id
 
         logger.info(f"Audit: {action} on {resource}", extra=extra)
 
-    def security_alert(self, threat_type: str, severity: str = "LOW", **context: Any) -> None:
+    def security_alert(
+        self, threat_type: str, severity: str = "LOW", **context: Any
+    ) -> None:
         """Log security alert."""
-        logger = logging.getLogger('security')
+        logger = logging.getLogger("security")
         extra = {
-            'threat_type': threat_type,
-            'severity': severity,
-            'security_alert': True,
-            **context
+            "threat_type": threat_type,
+            "severity": severity,
+            "security_alert": True,
+            **context,
         }
 
-        if severity in ('HIGH', 'CRITICAL'):
+        if severity in ("HIGH", "CRITICAL"):
             logger.error(f"Security Alert: {threat_type}", extra=extra)
-        elif severity == 'MEDIUM':
+        elif severity == "MEDIUM":
             logger.warning(f"Security Alert: {threat_type}", extra=extra)
         else:
             logger.info(f"Security Alert: {threat_type}", extra=extra)
@@ -129,12 +127,14 @@ class StructuredLogger:
 # Global instance
 _structured_logger = None
 
+
 def get_structured_logger(service_name: str = "omega-phr") -> StructuredLogger:
     """Get global structured logger instance."""
     global _structured_logger
     if _structured_logger is None:
         _structured_logger = StructuredLogger(service_name)
     return _structured_logger
+
 
 def initialize_logging(**kwargs) -> None:
     """Initialize global logging configuration."""

@@ -4,8 +4,8 @@ Research-grade stability settings.
 """
 
 import os
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -43,5 +43,5 @@ class MemoryInversionConfig:
             max_traces_per_source=int(os.getenv("MEMORY_MAX_TRACES", "10000")),
             trace_retention_days=int(os.getenv("MEMORY_RETENTION_DAYS", "30")),
             analysis_interval=int(os.getenv("MEMORY_ANALYSIS_INTERVAL", "30")),
-            cleanup_interval=int(os.getenv("MEMORY_CLEANUP_INTERVAL", "3600"))
+            cleanup_interval=int(os.getenv("MEMORY_CLEANUP_INTERVAL", "3600")),
         )

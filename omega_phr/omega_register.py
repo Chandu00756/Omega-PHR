@@ -11,22 +11,13 @@ import hashlib
 import json
 import logging
 import time
-import uuid
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from .exceptions import ContainmentError, OmegaStateError
-from .models import (
-    Event,
-    HiveResult,
-    LoopState,
-    MemoryState,
-    OmegaState,
-    OmegaStateLevel,
-    ParadoxResult,
-)
+from .models import Event, OmegaState, OmegaStateLevel
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +35,7 @@ class QuarantineVault:
         """Load quarantine index from disk."""
         if self.index_file.exists():
             try:
-                with open(self.index_file, "r") as f:
+                with open(self.index_file) as f:
                     self.index = json.load(f)
             except Exception as e:
                 logger.warning(f"Failed to load quarantine index: {e}")
@@ -112,7 +103,7 @@ class QuarantineVault:
             logger.error(f"Failed to store Omega state in quarantine: {e}")
             raise ContainmentError(f"Quarantine storage failed: {str(e)}")
 
-    def retrieve_omega_state(self, token: str) -> Optional[Dict[str, Any]]:
+    def retrieve_omega_state(self, token: str) -> dict[str, Any] | None:
         """Retrieve an Omega state from quarantine vault."""
         if token not in self.index:
             return None
@@ -120,7 +111,7 @@ class QuarantineVault:
         storage_file = Path(self.index[token]["storage_file"])
 
         try:
-            with open(storage_file, "r") as f:
+            with open(storage_file) as f:
                 obfuscated_data = json.load(f)
 
             # Deobfuscate data
@@ -142,7 +133,7 @@ class QuarantineVault:
         """Check if a token is quarantined."""
         return token in self.index
 
-    def list_quarantined(self) -> List[Dict[str, Any]]:
+    def list_quarantined(self) -> list[dict[str, Any]]:
         """List all quarantined Omega states."""
         return [
             {
@@ -182,7 +173,7 @@ class QuarantineVault:
 
         return removed_count
 
-    def _obfuscate_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _obfuscate_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Simple obfuscation for stored data."""
         # This is a simple XOR-based obfuscation, not real encryption
         key = "omega_phr_quarantine_key"
@@ -200,7 +191,7 @@ class QuarantineVault:
             "checksum": hashlib.sha256(json_str.encode()).hexdigest(),
         }
 
-    def _deobfuscate_data(self, obfuscated: Dict[str, Any]) -> Dict[str, Any]:
+    def _deobfuscate_data(self, obfuscated: dict[str, Any]) -> dict[str, Any]:
         """Deobfuscate stored data."""
         key = "omega_phr_quarantine_key"
 
@@ -231,8 +222,8 @@ class ContaminationTracker:
     """Tracks contamination spread across system components."""
 
     def __init__(self) -> None:
-        self.contamination_graph: Dict[str, Set[str]] = defaultdict(set)
-        self.component_states: Dict[str, str] = {}
+        self.contamination_graph: dict[str, set[str]] = defaultdict(set)
+        self.component_states: dict[str, str] = {}
         self.contamination_history: deque = deque(maxlen=1000)
 
     def add_contamination(self, source: str, target: str, vector: str) -> None:
@@ -254,12 +245,12 @@ class ContaminationTracker:
 
         logger.warning(f"Contamination spread: {source} -> {target} via {vector}")
 
-    def get_contamination_paths(self, source: str) -> List[List[str]]:
+    def get_contamination_paths(self, source: str) -> list[list[str]]:
         """Get all contamination paths from a source component."""
         paths = []
         visited = set()
 
-        def dfs(current: str, path: List[str]) -> None:
+        def dfs(current: str, path: list[str]) -> None:
             if current in visited:
                 return
 
@@ -305,7 +296,7 @@ class ContaminationTracker:
 
         logger.info(f"Component {component} quarantined")
 
-    def get_contamination_report(self) -> Dict[str, Any]:
+    def get_contamination_report(self) -> dict[str, Any]:
         """Generate comprehensive contamination report."""
         total_components = len(self.component_states)
         contaminated_count = sum(
@@ -341,7 +332,7 @@ class OmegaStateRegister:
 
     def __init__(
         self,
-        vault_path: Optional[Path] = None,
+        vault_path: Path | None = None,
         critical_threshold: float = 0.8,
         containment_timeout: float = 60.0,
     ) -> None:
@@ -355,11 +346,11 @@ class OmegaStateRegister:
         self.contamination_tracker = ContaminationTracker()
 
         # State tracking
-        self.active_omega_states: Dict[str, OmegaState] = {}
+        self.active_omega_states: dict[str, OmegaState] = {}
         self.state_history: deque = deque(maxlen=10000)
 
         # Entropy monitoring
-        self.entropy_levels: Dict[str, float] = {}
+        self.entropy_levels: dict[str, float] = {}
         self.entropy_history: deque = deque(maxlen=1000)
 
         # Containment strategies
@@ -372,7 +363,7 @@ class OmegaStateRegister:
         }
 
         # Event correlation
-        self.event_correlation: Dict[str, List[str]] = defaultdict(list)
+        self.event_correlation: dict[str, list[str]] = defaultdict(list)
 
         # Performance metrics
         self.states_detected = 0
@@ -535,7 +526,7 @@ class OmegaStateRegister:
 
             return success
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.containment_failures += 1
             logger.error(f"Containment timeout for Omega state {omega_id[:8]}")
             raise OmegaStateError(
@@ -548,10 +539,10 @@ class OmegaStateRegister:
 
     async def detect_omega_state(
         self,
-        components: List[str],
-        events: List[Event],
-        system_metrics: Dict[str, float],
-    ) -> Optional[OmegaState]:
+        components: list[str],
+        events: list[Event],
+        system_metrics: dict[str, float],
+    ) -> OmegaState | None:
         """
         Detect potential Omega states based on system conditions.
 
@@ -613,8 +604,8 @@ class OmegaStateRegister:
         return omega_state
 
     async def correlate_events(
-        self, primary_event: Event, related_events: List[Event]
-    ) -> List[str]:
+        self, primary_event: Event, related_events: list[Event]
+    ) -> list[str]:
         """
         Correlate events to identify potential Omega state triggers.
 
@@ -660,7 +651,7 @@ class OmegaStateRegister:
 
         return correlations
 
-    async def get_quarantine_status(self, token: str) -> Dict[str, Any]:
+    async def get_quarantine_status(self, token: str) -> dict[str, Any]:
         """Get quarantine status for a token or omega_id."""
         # First try to check if it's a direct token
         if self.quarantine_vault.is_quarantined(token):
@@ -695,7 +686,7 @@ class OmegaStateRegister:
 
         return {"quarantined": False}
 
-    def get_system_health(self) -> Dict[str, Any]:
+    def get_system_health(self) -> dict[str, Any]:
         """Get comprehensive system health report."""
         active_critical = sum(
             1
@@ -742,7 +733,7 @@ class OmegaStateRegister:
             "system_status": self._determine_system_status(),
         }
 
-    def list_active_omega_states(self) -> List[Dict[str, Any]]:
+    def list_active_omega_states(self) -> list[dict[str, Any]]:
         """List all active Omega states."""
         return [
             {
@@ -873,7 +864,7 @@ class OmegaStateRegister:
 
         return True
 
-    async def _analyze_entropy_conditions(self, metrics: Dict[str, float]) -> float:
+    async def _analyze_entropy_conditions(self, metrics: dict[str, float]) -> float:
         """Analyze entropy conditions to determine risk score."""
         entropy_score = 0.0
 
@@ -905,7 +896,7 @@ class OmegaStateRegister:
 
         return min(1.0, entropy_score)
 
-    async def _analyze_event_patterns(self, events: List[Event]) -> float:
+    async def _analyze_event_patterns(self, events: list[Event]) -> float:
         """Analyze event patterns to determine risk score."""
         if not events:
             return 0.0
@@ -939,7 +930,7 @@ class OmegaStateRegister:
 
         return min(1.0, pattern_score)
 
-    async def _analyze_component_states(self, components: List[str]) -> float:
+    async def _analyze_component_states(self, components: list[str]) -> float:
         """Analyze component states to determine risk score."""
         if not components:
             return 0.0
@@ -1043,7 +1034,7 @@ class OmegaStateRegister:
         result = ContaminationResult()
         return result
 
-    async def analyze_entropy_distribution(self) -> Dict[str, Any]:
+    async def analyze_entropy_distribution(self) -> dict[str, Any]:
         """Analyze entropy distribution across omega states."""
         if not self.active_omega_states:
             return {
@@ -1083,7 +1074,7 @@ class OmegaStateRegister:
 
         high_entropy_states = [
             omega_id
-            for omega_id, entropy in zip(omega_ids, entropy_values)
+            for omega_id, entropy in zip(omega_ids, entropy_values, strict=False)
             if entropy > 0.8
         ]
 
@@ -1093,12 +1084,12 @@ class OmegaStateRegister:
             "high_entropy_states": high_entropy_states,
             "low_entropy_states": [
                 omega_id
-                for omega_id, entropy in zip(omega_ids, entropy_values)
+                for omega_id, entropy in zip(omega_ids, entropy_values, strict=False)
                 if entropy < 0.3
             ],
         }
 
-    async def list_states(self) -> List[Any]:
+    async def list_states(self) -> list[Any]:
         """List all registered omega states."""
 
         class MockState:

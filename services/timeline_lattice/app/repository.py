@@ -17,16 +17,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from cassandra.cluster import Cluster
     from cassandra.auth import PlainTextAuthProvider
+    from cassandra.cluster import Cluster
     from cassandra.policies import DCAwareRoundRobinPolicy
-    from cassandra.query import SimpleStatement, PreparedStatement
+    from cassandra.query import PreparedStatement, SimpleStatement
+
     CASSANDRA_AVAILABLE = True
 except ImportError:
     CASSANDRA_AVAILABLE = False
 
-from .models import TimelineEvent, Timeline, TemporalParadox, ParadoxType
-from .config import TimelineServiceConfig, DatabaseType
+from .config import DatabaseType, TimelineServiceConfig
+from .models import ParadoxType, TemporalParadox, Timeline, TimelineEvent
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class BaseRepository:
         timeline_id: str,
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ) -> List[TimelineEvent]:
         """Retrieve events from a timeline with temporal filtering."""
         raise NotImplementedError
@@ -53,10 +54,7 @@ class BaseRepository:
         raise NotImplementedError
 
     async def branch_timeline(
-        self,
-        source_id: str,
-        branch_point: int,
-        new_timeline_id: str
+        self, source_id: str, branch_point: int, new_timeline_id: str
     ) -> bool:
         """Create a branched timeline from a specific point in time."""
         raise NotImplementedError
@@ -99,7 +97,7 @@ class ScyllaRepository(BaseRepository):
         if self.config.database.username and self.config.database.password:
             auth_provider = PlainTextAuthProvider(
                 username=self.config.database.username,
-                password=self.config.database.password
+                password=self.config.database.password,
             )
 
         # Create cluster connection
@@ -108,7 +106,7 @@ class ScyllaRepository(BaseRepository):
             port=self.config.database.port,
             auth_provider=auth_provider,
             load_balancing_policy=DCAwareRoundRobinPolicy(),
-            protocol_version=4
+            protocol_version=4,
         )
 
         if self.cluster is not None:
@@ -132,7 +130,9 @@ class ScyllaRepository(BaseRepository):
         # Prepare statements for better performance
         await self._prepare_statements()
 
-        logger.info(f"ScyllaDB repository initialized with keyspace: {self.config.database.keyspace}")
+        logger.info(
+            f"ScyllaDB repository initialized with keyspace: {self.config.database.keyspace}"
+        )
 
     async def _create_keyspace(self):
         """Create keyspace with proper replication strategy."""
@@ -226,34 +226,42 @@ class ScyllaRepository(BaseRepository):
             return
 
         # Event insertion
-        self._prepared_statements['insert_event'] = self.session.prepare("""
+        self._prepared_statements["insert_event"] = self.session.prepare(
+            """
             INSERT INTO timeline_events (
                 event_id, timeline_id, actor_id, parent_id, event_type,
                 payload, metadata, valid_at_us, recorded_at_us, signature, checksum
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """)
+        """
+        )
 
         # Event retrieval by timeline
-        self._prepared_statements['get_events_by_timeline'] = self.session.prepare("""
+        self._prepared_statements["get_events_by_timeline"] = self.session.prepare(
+            """
             SELECT * FROM timeline_events
             WHERE timeline_id = ?
             ORDER BY valid_at_us ASC
-        """)
+        """
+        )
 
         # Timeline creation
-        self._prepared_statements['create_timeline'] = self.session.prepare("""
+        self._prepared_statements["create_timeline"] = self.session.prepare(
+            """
             INSERT INTO timelines (
                 timeline_id, name, description, created_at, status, metadata
             ) VALUES (?, ?, ?, ?, ?, ?)
-        """)
+        """
+        )
 
         # Paradox insertion
-        self._prepared_statements['insert_paradox'] = self.session.prepare("""
+        self._prepared_statements["insert_paradox"] = self.session.prepare(
+            """
             INSERT INTO temporal_paradoxes (
                 paradox_id, timeline_id, paradox_type, severity, description,
                 affected_events, detected_at, resolved, resolution_method
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """)
+        """
+        )
 
     async def store_event(self, event: TimelineEvent):
         """Store timeline event."""
@@ -268,13 +276,13 @@ class ScyllaRepository(BaseRepository):
             if self.session is None:
                 logger.error("ScyllaDB session is None, cannot store event")
                 return
-            if self._prepared_statements.get('insert_event') is None:
+            if self._prepared_statements.get("insert_event") is None:
                 logger.error("Prepared statement for insert_event is not available")
                 return
             # Ensure session is not None before executing
             if self.session is not None:
                 self.session.execute(
-                    self._prepared_statements['insert_event'],
+                    self._prepared_statements["insert_event"],
                     [
                         uuid.UUID(event.event_id),
                         event.timeline_id,
@@ -286,10 +294,12 @@ class ScyllaRepository(BaseRepository):
                         event.valid_at_us,
                         event.recorded_at_us,
                         event.signature,
-                        self._calculate_event_checksum(event)
-                    ]
+                        self._calculate_event_checksum(event),
+                    ],
                 )
-                logger.debug(f"Stored event {event.event_id} for timeline {event.timeline_id}")
+                logger.debug(
+                    f"Stored event {event.event_id} for timeline {event.timeline_id}"
+                )
             else:
                 logger.error("ScyllaDB session became None before storing event")
         except Exception as e:
@@ -300,7 +310,7 @@ class ScyllaRepository(BaseRepository):
         timeline_id: str,
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ) -> List[TimelineEvent]:
         """Retrieve events with temporal filtering."""
         if self.session is None:
@@ -310,8 +320,7 @@ class ScyllaRepository(BaseRepository):
         try:
             # Base query
             rows = self.session.execute(
-                self._prepared_statements['get_events_by_timeline'],
-                [timeline_id]
+                self._prepared_statements["get_events_by_timeline"], [timeline_id]
             )
 
             events = []
@@ -349,15 +358,15 @@ class ScyllaRepository(BaseRepository):
 
         try:
             self.session.execute(
-                self._prepared_statements['create_timeline'],
+                self._prepared_statements["create_timeline"],
                 [
                     timeline.timeline_id,
                     timeline.name,
                     timeline.description,
                     datetime.now(timezone.utc),
                     timeline.status.value,
-                    timeline.metadata
-                ]
+                    timeline.metadata,
+                ],
             )
 
             logger.info(f"Created timeline {timeline.timeline_id}")
@@ -368,10 +377,7 @@ class ScyllaRepository(BaseRepository):
             return False
 
     async def branch_timeline(
-        self,
-        source_id: str,
-        branch_point: int,
-        new_timeline_id: str
+        self, source_id: str, branch_point: int, new_timeline_id: str
     ) -> bool:
         """Create branched timeline from specific point."""
         if not self._ensure_session():
@@ -383,12 +389,14 @@ class ScyllaRepository(BaseRepository):
                 logger.error("Session not available for branch preparation")
                 return False
 
-            branch_stmt = self.session.prepare("""
+            branch_stmt = self.session.prepare(
+                """
                 INSERT INTO timeline_branches (
                     branch_id, source_timeline_id, target_timeline_id,
                     branch_point_us, created_at
                 ) VALUES (?, ?, ?, ?, ?)
-            """)
+            """
+            )
 
             self.session.execute(
                 branch_stmt,
@@ -397,23 +405,22 @@ class ScyllaRepository(BaseRepository):
                     source_id,
                     new_timeline_id,
                     branch_point,
-                    datetime.now(timezone.utc)
-                ]
+                    datetime.now(timezone.utc),
+                ],
             )
 
             # Copy events up to branch point
-            source_events = await self.get_events(
-                source_id,
-                end_time=branch_point
-            )
+            source_events = await self.get_events(source_id, end_time=branch_point)
 
             for event in source_events:
-                new_event = replace(event,
-                                  timeline_id=new_timeline_id,
-                                  event_id=str(uuid.uuid4()))
+                new_event = replace(
+                    event, timeline_id=new_timeline_id, event_id=str(uuid.uuid4())
+                )
                 await self.store_event(new_event)
 
-            logger.info(f"Branched timeline {source_id} to {new_timeline_id} at {branch_point}")
+            logger.info(
+                f"Branched timeline {source_id} to {new_timeline_id} at {branch_point}"
+            )
             return True
 
         except Exception as e:
@@ -428,7 +435,7 @@ class ScyllaRepository(BaseRepository):
 
             # Check for causality violations
             for i, event in enumerate(events):
-                for j, other_event in enumerate(events[i+1:], i+1):
+                for j, other_event in enumerate(events[i + 1 :], i + 1):
                     if self._is_causality_violation(event, other_event):
                         paradox = TemporalParadox(
                             paradox_id=str(uuid.uuid4()),
@@ -437,7 +444,7 @@ class ScyllaRepository(BaseRepository):
                             severity=0.8,
                             description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
                             affected_events=[event.event_id, other_event.event_id],
-                            detected_at=datetime.now(timezone.utc)
+                            detected_at=datetime.now(timezone.utc),
                         )
                         paradoxes.append(paradox)
 
@@ -460,7 +467,7 @@ class ScyllaRepository(BaseRepository):
             return
 
         self.session.execute(
-            self._prepared_statements['insert_paradox'],
+            self._prepared_statements["insert_paradox"],
             [
                 uuid.UUID(paradox.paradox_id),
                 paradox.timeline_id,
@@ -470,26 +477,38 @@ class ScyllaRepository(BaseRepository):
                 [uuid.UUID(eid) for eid in paradox.affected_events],
                 paradox.detected_at,
                 paradox.resolved,
-                paradox.resolution_method
-            ]
+                paradox.resolution_method,
+            ],
         )
 
     def _calculate_event_checksum(self, event: TimelineEvent) -> str:
         """Calculate cryptographic checksum for event integrity."""
-        content = f"{event.event_id}{event.timeline_id}{event.payload}{event.valid_at_us}"
+        content = (
+            f"{event.event_id}{event.timeline_id}{event.payload}{event.valid_at_us}"
+        )
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def _verify_event_integrity(self, event: TimelineEvent, stored_checksum: str) -> bool:
+    def _verify_event_integrity(
+        self, event: TimelineEvent, stored_checksum: str
+    ) -> bool:
         """Verify event integrity using checksum."""
         calculated_checksum = self._calculate_event_checksum(event)
         return calculated_checksum == stored_checksum
 
-    def _is_causality_violation(self, event1: TimelineEvent, event2: TimelineEvent) -> bool:
+    def _is_causality_violation(
+        self, event1: TimelineEvent, event2: TimelineEvent
+    ) -> bool:
         """Check if two events violate causality constraints."""
         # Simple causality check: parent event should come before child
-        if event1.event_id == event2.parent_id and event1.valid_at_us > event2.valid_at_us:
+        if (
+            event1.event_id == event2.parent_id
+            and event1.valid_at_us > event2.valid_at_us
+        ):
             return True
-        if event2.event_id == event1.parent_id and event2.valid_at_us > event1.valid_at_us:
+        if (
+            event2.event_id == event1.parent_id
+            and event2.valid_at_us > event1.valid_at_us
+        ):
             return True
         return False
 
@@ -521,7 +540,7 @@ class SQLiteRepository(BaseRepository):
         self._connection = sqlite3.connect(
             self.db_path,
             check_same_thread=False,
-            isolation_level=None  # autocommit mode
+            isolation_level=None,  # autocommit mode
         )
         self._connection.row_factory = sqlite3.Row
 
@@ -543,7 +562,8 @@ class SQLiteRepository(BaseRepository):
         cursor = self._connection.cursor()
 
         # Timeline events table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS timeline_events (
                 event_id TEXT PRIMARY KEY,
                 timeline_id TEXT NOT NULL,
@@ -558,10 +578,12 @@ class SQLiteRepository(BaseRepository):
                 checksum TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Timeline metadata table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS timelines (
                 timeline_id TEXT PRIMARY KEY,
                 name TEXT,
@@ -572,10 +594,12 @@ class SQLiteRepository(BaseRepository):
                 event_count INTEGER DEFAULT 0,
                 last_modified DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Paradoxes table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS temporal_paradoxes (
                 paradox_id TEXT PRIMARY KEY,
                 timeline_id TEXT,
@@ -587,10 +611,12 @@ class SQLiteRepository(BaseRepository):
                 resolved BOOLEAN DEFAULT FALSE,
                 resolution_method TEXT
             )
-        """)
+        """
+        )
 
         # Timeline branches table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS timeline_branches (
                 branch_id TEXT PRIMARY KEY,
                 source_timeline_id TEXT,
@@ -598,15 +624,21 @@ class SQLiteRepository(BaseRepository):
                 branch_point_us INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Create indexes for performance
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_timeline ON timeline_events(timeline_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_time ON timeline_events(valid_at_us)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_paradoxes_timeline ON temporal_paradoxes(timeline_id)")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_events_timeline ON timeline_events(timeline_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_events_time ON timeline_events(valid_at_us)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_paradoxes_timeline ON temporal_paradoxes(timeline_id)"
+        )
 
         if self._connection is not None:
-
 
             self._connection.commit()
 
@@ -627,27 +659,29 @@ class SQLiteRepository(BaseRepository):
                     return False
 
                 cursor = self._connection.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO timeline_events (
                         event_id, timeline_id, actor_id, parent_id, event_type,
                         payload, metadata, valid_at_us, recorded_at_us, signature, checksum
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, [
-                    event.event_id,
-                    event.timeline_id,
-                    event.actor_id,
-                    event.parent_id,
-                    event.event_type.value,
-                    event.payload,
-                    json.dumps(event.metadata) if event.metadata else None,
-                    event.valid_at_us,
-                    event.recorded_at_us,
-                    event.signature,
-                    checksum
-                ])
+                """,
+                    [
+                        event.event_id,
+                        event.timeline_id,
+                        event.actor_id,
+                        event.parent_id,
+                        event.event_type.value,
+                        event.payload,
+                        json.dumps(event.metadata) if event.metadata else None,
+                        event.valid_at_us,
+                        event.recorded_at_us,
+                        event.signature,
+                        checksum,
+                    ],
+                )
 
                 if self._connection is not None:
-
 
                     self._connection.commit()
                 logger.debug(f"Stored event {event.event_id} in SQLite")
@@ -662,7 +696,7 @@ class SQLiteRepository(BaseRepository):
         timeline_id: str,
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ) -> List[TimelineEvent]:
         """Retrieve events from SQLite."""
         async with self._lock:
@@ -699,7 +733,7 @@ class SQLiteRepository(BaseRepository):
                 events = []
                 for row in rows:
                     event = TimelineEvent.from_sqlite_row(dict(row))
-                    if self._verify_event_integrity(event, row['checksum']):
+                    if self._verify_event_integrity(event, row["checksum"]):
                         events.append(event)
                     else:
                         logger.warning(f"Checksum mismatch for event {row['event_id']}")
@@ -719,19 +753,21 @@ class SQLiteRepository(BaseRepository):
                     return False
 
                 cursor = self._connection.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO timelines (timeline_id, name, description, status, metadata)
                     VALUES (?, ?, ?, ?, ?)
-                """, [
-                    timeline.timeline_id,
-                    timeline.name,
-                    timeline.description,
-                    timeline.status.value,
-                    json.dumps(timeline.metadata) if timeline.metadata else None
-                ])
+                """,
+                    [
+                        timeline.timeline_id,
+                        timeline.name,
+                        timeline.description,
+                        timeline.status.value,
+                        json.dumps(timeline.metadata) if timeline.metadata else None,
+                    ],
+                )
 
                 if self._connection is not None:
-
 
                     self._connection.commit()
                 logger.info(f"Created timeline {timeline.timeline_id} in SQLite")
@@ -742,10 +778,7 @@ class SQLiteRepository(BaseRepository):
                 return False
 
     async def branch_timeline(
-        self,
-        source_id: str,
-        branch_point: int,
-        new_timeline_id: str
+        self, source_id: str, branch_point: int, new_timeline_id: str
     ) -> bool:
         """Create branched timeline in SQLite."""
         async with self._lock:
@@ -757,23 +790,25 @@ class SQLiteRepository(BaseRepository):
                 cursor = self._connection.cursor()
 
                 # Insert branch record
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO timeline_branches
                     (branch_id, source_timeline_id, target_timeline_id, branch_point_us)
                     VALUES (?, ?, ?, ?)
-                """, [str(uuid.uuid4()), source_id, new_timeline_id, branch_point])
+                """,
+                    [str(uuid.uuid4()), source_id, new_timeline_id, branch_point],
+                )
 
                 # Copy events up to branch point
                 source_events = await self.get_events(source_id, end_time=branch_point)
 
                 for event in source_events:
-                    new_event = replace(event,
-                                      timeline_id=new_timeline_id,
-                                      event_id=str(uuid.uuid4()))
+                    new_event = replace(
+                        event, timeline_id=new_timeline_id, event_id=str(uuid.uuid4())
+                    )
                     await self.store_event(new_event)
 
                 if self._connection is not None:
-
 
                     self._connection.commit()
                 logger.info(f"Branched timeline {source_id} to {new_timeline_id}")
@@ -791,7 +826,7 @@ class SQLiteRepository(BaseRepository):
 
             # Simple causality violation detection
             for i, event in enumerate(events):
-                for j, other_event in enumerate(events[i+1:], i+1):
+                for j, other_event in enumerate(events[i + 1 :], i + 1):
                     if self._is_causality_violation(event, other_event):
                         paradox = TemporalParadox(
                             paradox_id=str(uuid.uuid4()),
@@ -800,7 +835,7 @@ class SQLiteRepository(BaseRepository):
                             severity=0.8,
                             description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
                             affected_events=[event.event_id, other_event.event_id],
-                            detected_at=datetime.now(timezone.utc)
+                            detected_at=datetime.now(timezone.utc),
                         )
                         paradoxes.append(paradox)
                         await self._store_paradox(paradox)
@@ -818,40 +853,55 @@ class SQLiteRepository(BaseRepository):
             return False
 
         cursor = self._connection.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO temporal_paradoxes (
                 paradox_id, timeline_id, paradox_type, severity, description,
                 affected_events, resolved, resolution_method
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, [
-            paradox.paradox_id,
-            paradox.timeline_id,
-            paradox.paradox_type.value,
-            paradox.severity,
-            paradox.description,
-            json.dumps(paradox.affected_events),
-            paradox.resolved,
-            paradox.resolution_method
-        ])
+        """,
+            [
+                paradox.paradox_id,
+                paradox.timeline_id,
+                paradox.paradox_type.value,
+                paradox.severity,
+                paradox.description,
+                json.dumps(paradox.affected_events),
+                paradox.resolved,
+                paradox.resolution_method,
+            ],
+        )
         if self._connection is not None:
 
             self._connection.commit()
 
     def _calculate_event_checksum(self, event: TimelineEvent) -> str:
         """Calculate event checksum."""
-        content = f"{event.event_id}{event.timeline_id}{event.payload}{event.valid_at_us}"
+        content = (
+            f"{event.event_id}{event.timeline_id}{event.payload}{event.valid_at_us}"
+        )
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def _verify_event_integrity(self, event: TimelineEvent, stored_checksum: str) -> bool:
+    def _verify_event_integrity(
+        self, event: TimelineEvent, stored_checksum: str
+    ) -> bool:
         """Verify event integrity."""
         calculated_checksum = self._calculate_event_checksum(event)
         return calculated_checksum == stored_checksum
 
-    def _is_causality_violation(self, event1: TimelineEvent, event2: TimelineEvent) -> bool:
+    def _is_causality_violation(
+        self, event1: TimelineEvent, event2: TimelineEvent
+    ) -> bool:
         """Check for causality violations."""
-        if event1.event_id == event2.parent_id and event1.valid_at_us > event2.valid_at_us:
+        if (
+            event1.event_id == event2.parent_id
+            and event1.valid_at_us > event2.valid_at_us
+        ):
             return True
-        if event2.event_id == event1.parent_id and event2.valid_at_us > event1.valid_at_us:
+        if (
+            event2.event_id == event1.parent_id
+            and event2.valid_at_us > event1.valid_at_us
+        ):
             return True
         return False
 

@@ -15,18 +15,20 @@ Enterprise Features:
 - Compliance and audit logging configuration
 """
 
-import os
 import logging
+import os
 import secrets
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 import yaml
 
 
 class Environment(str, Enum):
     """Deployment environment types."""
+
     DEVELOPMENT = "development"
     TESTING = "testing"
     STAGING = "staging"
@@ -35,6 +37,7 @@ class Environment(str, Enum):
 
 class LogLevel(str, Enum):
     """Logging levels."""
+
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -44,6 +47,7 @@ class LogLevel(str, Enum):
 
 class DatabaseType(str, Enum):
     """Supported database backends."""
+
     SCYLLA = "scylla"
     CASSANDRA = "cassandra"
     POSTGRESQL = "postgresql"
@@ -52,6 +56,7 @@ class DatabaseType(str, Enum):
 
 class TLSMode(str, Enum):
     """TLS configuration modes."""
+
     DISABLED = "disabled"
     ENABLED = "enabled"
     MUTUAL = "mutual"
@@ -62,25 +67,56 @@ class SecurityConfig:
     """Security configuration for enterprise deployment."""
 
     # TLS Configuration
-    enable_tls: bool = field(default_factory=lambda: os.getenv("TIMELINE_TLS_ENABLED", "true").lower() == "true")
-    tls_mode: TLSMode = field(default_factory=lambda: TLSMode(os.getenv("TIMELINE_TLS_MODE", "enabled")))
-    cert_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_TLS_CERT"))
-    key_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_TLS_KEY"))
+    enable_tls: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_TLS_ENABLED", "true").lower()
+        == "true"
+    )
+    tls_mode: TLSMode = field(
+        default_factory=lambda: TLSMode(os.getenv("TIMELINE_TLS_MODE", "enabled"))
+    )
+    cert_file: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_TLS_CERT")
+    )
+    key_file: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_TLS_KEY")
+    )
     ca_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_TLS_CA"))
 
     # JWT Configuration
-    jwt_secret_key: str = field(default_factory=lambda: os.getenv("TIMELINE_JWT_SECRET", secrets.token_urlsafe(32)))
-    jwt_algorithm: str = field(default_factory=lambda: os.getenv("TIMELINE_JWT_ALGORITHM", "HS256"))
-    jwt_expiration_hours: int = field(default_factory=lambda: int(os.getenv("TIMELINE_JWT_EXPIRATION", "24")))
+    jwt_secret_key: str = field(
+        default_factory=lambda: os.getenv(
+            "TIMELINE_JWT_SECRET", secrets.token_urlsafe(32)
+        )
+    )
+    jwt_algorithm: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_JWT_ALGORITHM", "HS256")
+    )
+    jwt_expiration_hours: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_JWT_EXPIRATION", "24"))
+    )
 
     # API Security
-    enable_api_key_auth: bool = field(default_factory=lambda: os.getenv("TIMELINE_API_KEY_AUTH", "false").lower() == "true")
-    api_key_header: str = field(default_factory=lambda: os.getenv("TIMELINE_API_KEY_HEADER", "X-API-Key"))
-    rate_limit_per_minute: int = field(default_factory=lambda: int(os.getenv("TIMELINE_RATE_LIMIT", "1000")))
+    enable_api_key_auth: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_API_KEY_AUTH", "false").lower()
+        == "true"
+    )
+    api_key_header: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_API_KEY_HEADER", "X-API-Key")
+    )
+    rate_limit_per_minute: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_RATE_LIMIT", "1000"))
+    )
 
     # Encryption
-    encryption_key: str = field(default_factory=lambda: os.getenv("TIMELINE_ENCRYPTION_KEY", secrets.token_urlsafe(32)))
-    enable_event_encryption: bool = field(default_factory=lambda: os.getenv("TIMELINE_ENCRYPT_EVENTS", "false").lower() == "true")
+    encryption_key: str = field(
+        default_factory=lambda: os.getenv(
+            "TIMELINE_ENCRYPTION_KEY", secrets.token_urlsafe(32)
+        )
+    )
+    enable_event_encryption: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_ENCRYPT_EVENTS", "false").lower()
+        == "true"
+    )
 
 
 @dataclass
@@ -88,35 +124,78 @@ class DatabaseConfig:
     """Enterprise database configuration with connection pooling and failover."""
 
     # Database Type and Connection
-    database_type: DatabaseType = field(default_factory=lambda: DatabaseType(os.getenv("TIMELINE_DB_TYPE", "scylla")))
-    hosts: List[str] = field(default_factory=lambda: os.getenv("TIMELINE_DB_HOSTS", "127.0.0.1").split(","))
-    port: int = field(default_factory=lambda: int(os.getenv("TIMELINE_DB_PORT", "9042")))
-    keyspace: str = field(default_factory=lambda: os.getenv("TIMELINE_DB_KEYSPACE", "omega_timeline"))
+    database_type: DatabaseType = field(
+        default_factory=lambda: DatabaseType(os.getenv("TIMELINE_DB_TYPE", "scylla"))
+    )
+    hosts: List[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_HOSTS", "127.0.0.1").split(",")
+    )
+    port: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_DB_PORT", "9042"))
+    )
+    keyspace: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_KEYSPACE", "omega_timeline")
+    )
 
     # Authentication
-    username: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_DB_USERNAME"))
-    password: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_DB_PASSWORD"))
+    username: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_USERNAME")
+    )
+    password: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_PASSWORD")
+    )
 
     # Connection Pooling
-    max_connections: int = field(default_factory=lambda: int(os.getenv("TIMELINE_DB_MAX_CONNECTIONS", "100")))
-    min_connections: int = field(default_factory=lambda: int(os.getenv("TIMELINE_DB_MIN_CONNECTIONS", "10")))
-    connection_timeout_seconds: int = field(default_factory=lambda: int(os.getenv("TIMELINE_DB_TIMEOUT", "30")))
+    max_connections: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_DB_MAX_CONNECTIONS", "100"))
+    )
+    min_connections: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_DB_MIN_CONNECTIONS", "10"))
+    )
+    connection_timeout_seconds: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_DB_TIMEOUT", "30"))
+    )
 
     # High Availability
-    enable_load_balancing: bool = field(default_factory=lambda: os.getenv("TIMELINE_DB_LOAD_BALANCING", "true").lower() == "true")
-    dc_preference: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_DB_DC_PREFERENCE"))
+    enable_load_balancing: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_LOAD_BALANCING", "true").lower()
+        == "true"
+    )
+    dc_preference: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_DC_PREFERENCE")
+    )
 
     # Performance Tuning
-    read_consistency: str = field(default_factory=lambda: os.getenv("TIMELINE_DB_READ_CONSISTENCY", "LOCAL_QUORUM"))
-    write_consistency: str = field(default_factory=lambda: os.getenv("TIMELINE_DB_WRITE_CONSISTENCY", "LOCAL_QUORUM"))
+    read_consistency: str = field(
+        default_factory=lambda: os.getenv(
+            "TIMELINE_DB_READ_CONSISTENCY", "LOCAL_QUORUM"
+        )
+    )
+    write_consistency: str = field(
+        default_factory=lambda: os.getenv(
+            "TIMELINE_DB_WRITE_CONSISTENCY", "LOCAL_QUORUM"
+        )
+    )
 
     # Backup and Recovery
-    enable_backup: bool = field(default_factory=lambda: os.getenv("TIMELINE_DB_BACKUP", "false").lower() == "true")
-    backup_schedule: str = field(default_factory=lambda: os.getenv("TIMELINE_DB_BACKUP_SCHEDULE", "0 2 * * *"))  # Daily at 2 AM
+    enable_backup: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_BACKUP", "false").lower()
+        == "true"
+    )
+    backup_schedule: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_DB_BACKUP_SCHEDULE", "0 2 * * *")
+    )  # Daily at 2 AM
 
     # SQLite fallback for development
-    sqlite_path: str = field(default_factory=lambda: os.getenv("TIMELINE_SQLITE_PATH", "/tmp/omega_timeline.db"))
-    sqlite_wal_mode: bool = field(default_factory=lambda: os.getenv("TIMELINE_SQLITE_WAL", "true").lower() == "true")
+    sqlite_path: str = field(
+        default_factory=lambda: os.getenv(
+            "TIMELINE_SQLITE_PATH", "/tmp/omega_timeline.db"
+        )
+    )
+    sqlite_wal_mode: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_SQLITE_WAL", "true").lower()
+        == "true"
+    )
 
 
 @dataclass
@@ -126,20 +205,38 @@ class ServerConfig:
     # Basic Server Settings
     host: str = field(default_factory=lambda: os.getenv("TIMELINE_HOST", "0.0.0.0"))
     port: int = field(default_factory=lambda: int(os.getenv("TIMELINE_PORT", "50051")))
-    max_workers: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_WORKERS", "10")))
+    max_workers: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_WORKERS", "10"))
+    )
 
     # Performance Configuration
-    max_receive_message_length: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_MESSAGE_SIZE", "4194304")))  # 4MB
-    max_send_message_length: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_SEND_SIZE", "4194304")))  # 4MB
-    keepalive_time_ms: int = field(default_factory=lambda: int(os.getenv("TIMELINE_KEEPALIVE_TIME", "30000")))  # 30s
-    keepalive_timeout_ms: int = field(default_factory=lambda: int(os.getenv("TIMELINE_KEEPALIVE_TIMEOUT", "5000")))  # 5s
+    max_receive_message_length: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_MESSAGE_SIZE", "4194304"))
+    )  # 4MB
+    max_send_message_length: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_SEND_SIZE", "4194304"))
+    )  # 4MB
+    keepalive_time_ms: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_KEEPALIVE_TIME", "30000"))
+    )  # 30s
+    keepalive_timeout_ms: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_KEEPALIVE_TIMEOUT", "5000"))
+    )  # 5s
 
     # Health Check Configuration
-    enable_health_check: bool = field(default_factory=lambda: os.getenv("TIMELINE_HEALTH_CHECK", "true").lower() == "true")
-    health_check_interval_seconds: int = field(default_factory=lambda: int(os.getenv("TIMELINE_HEALTH_INTERVAL", "30")))
+    enable_health_check: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_HEALTH_CHECK", "true").lower()
+        == "true"
+    )
+    health_check_interval_seconds: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_HEALTH_INTERVAL", "30"))
+    )
 
     # Reflection and Development
-    enable_reflection: bool = field(default_factory=lambda: os.getenv("TIMELINE_REFLECTION", "false").lower() == "true")
+    enable_reflection: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_REFLECTION", "false").lower()
+        == "true"
+    )
 
 
 @dataclass
@@ -147,25 +244,55 @@ class ObservabilityConfig:
     """Comprehensive observability and monitoring configuration."""
 
     # Logging Configuration
-    log_level: LogLevel = field(default_factory=lambda: LogLevel(os.getenv("TIMELINE_LOG_LEVEL", "INFO")))
-    log_format: str = field(default_factory=lambda: os.getenv("TIMELINE_LOG_FORMAT", "json"))
-    log_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_LOG_FILE"))
-    enable_structured_logging: bool = field(default_factory=lambda: os.getenv("TIMELINE_STRUCTURED_LOGS", "true").lower() == "true")
+    log_level: LogLevel = field(
+        default_factory=lambda: LogLevel(os.getenv("TIMELINE_LOG_LEVEL", "INFO"))
+    )
+    log_format: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_LOG_FORMAT", "json")
+    )
+    log_file: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_LOG_FILE")
+    )
+    enable_structured_logging: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_STRUCTURED_LOGS", "true").lower()
+        == "true"
+    )
 
     # Metrics Configuration
-    enable_metrics: bool = field(default_factory=lambda: os.getenv("TIMELINE_METRICS", "true").lower() == "true")
-    metrics_port: int = field(default_factory=lambda: int(os.getenv("TIMELINE_METRICS_PORT", "9090")))
-    metrics_path: str = field(default_factory=lambda: os.getenv("TIMELINE_METRICS_PATH", "/metrics"))
+    enable_metrics: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_METRICS", "true").lower() == "true"
+    )
+    metrics_port: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_METRICS_PORT", "9090"))
+    )
+    metrics_path: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_METRICS_PATH", "/metrics")
+    )
 
     # Tracing Configuration
-    enable_tracing: bool = field(default_factory=lambda: os.getenv("TIMELINE_TRACING", "false").lower() == "true")
-    jaeger_endpoint: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_JAEGER_ENDPOINT"))
-    trace_sample_rate: float = field(default_factory=lambda: float(os.getenv("TIMELINE_TRACE_SAMPLE_RATE", "0.1")))
+    enable_tracing: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_TRACING", "false").lower() == "true"
+    )
+    jaeger_endpoint: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_JAEGER_ENDPOINT")
+    )
+    trace_sample_rate: float = field(
+        default_factory=lambda: float(os.getenv("TIMELINE_TRACE_SAMPLE_RATE", "0.1"))
+    )
 
     # Performance Monitoring
-    enable_profiling: bool = field(default_factory=lambda: os.getenv("TIMELINE_PROFILING", "false").lower() == "true")
-    profile_cpu: bool = field(default_factory=lambda: os.getenv("TIMELINE_PROFILE_CPU", "false").lower() == "true")
-    profile_memory: bool = field(default_factory=lambda: os.getenv("TIMELINE_PROFILE_MEMORY", "false").lower() == "true")
+    enable_profiling: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_PROFILING", "false").lower()
+        == "true"
+    )
+    profile_cpu: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_PROFILE_CPU", "false").lower()
+        == "true"
+    )
+    profile_memory: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_PROFILE_MEMORY", "false").lower()
+        == "true"
+    )
 
 
 @dataclass
@@ -173,24 +300,51 @@ class TimelineConfig:
     """Timeline-specific configuration and business logic settings."""
 
     # Timeline Limits
-    max_timelines: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_TIMELINES", "10000")))
-    max_events_per_timeline: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_EVENTS", "1000000")))
-    max_timeline_depth: int = field(default_factory=lambda: int(os.getenv("TIMELINE_MAX_DEPTH", "100")))
+    max_timelines: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_TIMELINES", "10000"))
+    )
+    max_events_per_timeline: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_EVENTS", "1000000"))
+    )
+    max_timeline_depth: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_MAX_DEPTH", "100"))
+    )
 
     # Paradox Detection
-    paradox_threshold: float = field(default_factory=lambda: float(os.getenv("TIMELINE_PARADOX_THRESHOLD", "0.1")))
-    enable_auto_paradox_detection: bool = field(default_factory=lambda: os.getenv("TIMELINE_AUTO_PARADOX", "true").lower() == "true")
-    paradox_analysis_window: int = field(default_factory=lambda: int(os.getenv("TIMELINE_PARADOX_WINDOW", "100")))
+    paradox_threshold: float = field(
+        default_factory=lambda: float(os.getenv("TIMELINE_PARADOX_THRESHOLD", "0.1"))
+    )
+    enable_auto_paradox_detection: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_AUTO_PARADOX", "true").lower()
+        == "true"
+    )
+    paradox_analysis_window: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_PARADOX_WINDOW", "100"))
+    )
 
     # Temporal Operations
-    enable_timeline_branching: bool = field(default_factory=lambda: os.getenv("TIMELINE_BRANCHING", "true").lower() == "true")
-    enable_timeline_merging: bool = field(default_factory=lambda: os.getenv("TIMELINE_MERGING", "true").lower() == "true")
-    enable_timeline_rewind: bool = field(default_factory=lambda: os.getenv("TIMELINE_REWIND", "true").lower() == "true")
+    enable_timeline_branching: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_BRANCHING", "true").lower()
+        == "true"
+    )
+    enable_timeline_merging: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_MERGING", "true").lower() == "true"
+    )
+    enable_timeline_rewind: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_REWIND", "true").lower() == "true"
+    )
 
     # Caching and Performance
-    enable_event_cache: bool = field(default_factory=lambda: os.getenv("TIMELINE_CACHE_EVENTS", "true").lower() == "true")
-    cache_ttl_seconds: int = field(default_factory=lambda: int(os.getenv("TIMELINE_CACHE_TTL", "300")))
-    cache_max_size: int = field(default_factory=lambda: int(os.getenv("TIMELINE_CACHE_SIZE", "10000")))
+    enable_event_cache: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_CACHE_EVENTS", "true").lower()
+        == "true"
+    )
+    cache_ttl_seconds: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_CACHE_TTL", "300"))
+    )
+    cache_max_size: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_CACHE_SIZE", "10000"))
+    )
 
 
 @dataclass
@@ -198,17 +352,35 @@ class ComplianceConfig:
     """Compliance and audit configuration for enterprise deployments."""
 
     # Audit Logging
-    enable_audit_logging: bool = field(default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOGGING", "false").lower() == "true")
-    audit_log_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOG_FILE"))
-    audit_log_format: str = field(default_factory=lambda: os.getenv("TIMELINE_AUDIT_FORMAT", "json"))
+    enable_audit_logging: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOGGING", "false").lower()
+        == "true"
+    )
+    audit_log_file: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOG_FILE")
+    )
+    audit_log_format: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_AUDIT_FORMAT", "json")
+    )
 
     # Data Retention
-    data_retention_days: int = field(default_factory=lambda: int(os.getenv("TIMELINE_DATA_RETENTION", "365")))
-    enable_auto_cleanup: bool = field(default_factory=lambda: os.getenv("TIMELINE_AUTO_CLEANUP", "false").lower() == "true")
+    data_retention_days: int = field(
+        default_factory=lambda: int(os.getenv("TIMELINE_DATA_RETENTION", "365"))
+    )
+    enable_auto_cleanup: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_AUTO_CLEANUP", "false").lower()
+        == "true"
+    )
 
     # Privacy and GDPR
-    enable_data_anonymization: bool = field(default_factory=lambda: os.getenv("TIMELINE_ANONYMIZATION", "false").lower() == "true")
-    pii_detection_enabled: bool = field(default_factory=lambda: os.getenv("TIMELINE_PII_DETECTION", "false").lower() == "true")
+    enable_data_anonymization: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_ANONYMIZATION", "false").lower()
+        == "true"
+    )
+    pii_detection_enabled: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_PII_DETECTION", "false").lower()
+        == "true"
+    )
 
 
 @dataclass
@@ -216,8 +388,14 @@ class TimelineServiceConfig:
     """Master configuration class for Timeline Lattice service."""
 
     # Environment
-    environment: Environment = field(default_factory=lambda: Environment(os.getenv("TIMELINE_ENVIRONMENT", "development")))
-    debug: bool = field(default_factory=lambda: os.getenv("TIMELINE_DEBUG", "false").lower() == "true")
+    environment: Environment = field(
+        default_factory=lambda: Environment(
+            os.getenv("TIMELINE_ENVIRONMENT", "development")
+        )
+    )
+    debug: bool = field(
+        default_factory=lambda: os.getenv("TIMELINE_DEBUG", "false").lower() == "true"
+    )
 
     # Configuration Components
     security: SecurityConfig = field(default_factory=SecurityConfig)
@@ -228,8 +406,12 @@ class TimelineServiceConfig:
     compliance: ComplianceConfig = field(default_factory=ComplianceConfig)
 
     # Advanced Configuration
-    config_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_CONFIG_FILE"))
-    secrets_backend: str = field(default_factory=lambda: os.getenv("TIMELINE_SECRETS_BACKEND", "environment"))
+    config_file: Optional[str] = field(
+        default_factory=lambda: os.getenv("TIMELINE_CONFIG_FILE")
+    )
+    secrets_backend: str = field(
+        default_factory=lambda: os.getenv("TIMELINE_SECRETS_BACKEND", "environment")
+    )
 
     def __post_init__(self):
         """Post-initialization validation and setup."""
@@ -249,7 +431,7 @@ class TimelineServiceConfig:
             return
 
         try:
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file, "r") as f:
                 config_data = yaml.safe_load(f)
 
             # Update configuration with file values
@@ -281,10 +463,14 @@ class TimelineServiceConfig:
 
         # Validate timeline configuration
         if self.timeline.paradox_threshold < 0 or self.timeline.paradox_threshold > 1:
-            errors.append(f"Paradox threshold must be between 0 and 1: {self.timeline.paradox_threshold}")
+            errors.append(
+                f"Paradox threshold must be between 0 and 1: {self.timeline.paradox_threshold}"
+            )
 
         # Validate security configuration
-        if self.security.enable_tls and not all([self.security.cert_file, self.security.key_file]):
+        if self.security.enable_tls and not all(
+            [self.security.cert_file, self.security.key_file]
+        ):
             errors.append("TLS enabled but cert_file or key_file not specified")
 
         if errors:
@@ -297,6 +483,7 @@ class TimelineServiceConfig:
         if self.observability.enable_structured_logging:
             # Setup structured logging with JSON format
             import structlog
+
             structlog.configure(
                 processors=[
                     structlog.stdlib.filter_by_level,
@@ -306,7 +493,7 @@ class TimelineServiceConfig:
                     structlog.processors.TimeStamper(fmt="iso"),
                     structlog.processors.StackInfoRenderer(),
                     structlog.processors.format_exc_info,
-                    structlog.processors.JSONRenderer()
+                    structlog.processors.JSONRenderer(),
                 ],
                 context_class=dict,
                 logger_factory=structlog.stdlib.LoggerFactory(),
@@ -322,7 +509,7 @@ class TimelineServiceConfig:
         logging.basicConfig(
             level=log_level,
             handlers=handlers,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
     @classmethod
@@ -340,8 +527,9 @@ class TimelineServiceConfig:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
+
         def _convert_dataclass(obj) -> Any:
-            if hasattr(obj, '__dataclass_fields__'):
+            if hasattr(obj, "__dataclass_fields__"):
                 return {k: _convert_dataclass(v) for k, v in obj.__dict__.items()}
             elif isinstance(obj, Enum):
                 return obj.value
@@ -383,7 +571,9 @@ def create_research_config() -> TimelineServiceConfig:
 
 
 # Configuration validation helpers
-def validate_ssl_config(use_ssl: bool, ssl_cert_file: Optional[str], ssl_key_file: Optional[str]) -> List[str]:
+def validate_ssl_config(
+    use_ssl: bool, ssl_cert_file: Optional[str], ssl_key_file: Optional[str]
+) -> List[str]:
     """Validate SSL configuration."""
     errors = []
     if use_ssl and (not ssl_cert_file or not ssl_key_file):
@@ -410,7 +600,9 @@ def validate_paradox_threshold(threshold: float) -> List[str]:
     return errors
 
 
-def validate_timeline_limits(max_timelines: int, max_events_per_timeline: int) -> List[str]:
+def validate_timeline_limits(
+    max_timelines: int, max_events_per_timeline: int
+) -> List[str]:
     """Validate timeline limits."""
     errors = []
     if max_timelines < 1:
@@ -422,7 +614,9 @@ def validate_timeline_limits(max_timelines: int, max_events_per_timeline: int) -
     return errors
 
 
-def validate_database_config(scylla_offline: bool, scylla_hosts: List[str]) -> List[str]:
+def validate_database_config(
+    scylla_offline: bool, scylla_hosts: List[str]
+) -> List[str]:
     """Validate database configuration."""
     errors = []
     if not scylla_offline and not scylla_hosts:
@@ -469,7 +663,7 @@ def config_to_dict(config: TimelineServiceConfig) -> Dict[str, Any]:
         log_level = os.getenv("LOG_LEVEL", "INFO").upper()
         logging.basicConfig(
             level=getattr(logging, log_level, logging.INFO),
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
 
@@ -480,7 +674,9 @@ def get_config() -> TimelineServiceConfig:
     # Validate configuration
     errors = config.validate()
     if errors:
-        error_msg = "Configuration validation failed:\n" + "\n".join(f"  - {error}" for error in errors)
+        error_msg = "Configuration validation failed:\n" + "\n".join(
+            f"  - {error}" for error in errors
+        )
         raise ValueError(error_msg)
 
     return config
@@ -491,32 +687,32 @@ def load_config_from_file(config_path: str) -> TimelineServiceConfig:
     try:
         import yaml
 
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             data = yaml.safe_load(f)
 
         # Map YAML structure to environment variables
         env_mapping = {
-            'server.host': 'TIMELINE_HOST',
-            'server.port': 'TIMELINE_PORT',
-            'server.max_workers': 'TIMELINE_MAX_WORKERS',
-            'database.scylla_hosts': 'SCYLLA_HOSTS',
-            'database.scylla_keyspace': 'SCYLLA_KEYSPACE',
-            'database.scylla_offline': 'SCYLLA_OFFLINE',
-            'timeline.max_timelines': 'MAX_TIMELINES',
-            'timeline.paradox_threshold': 'PARADOX_THRESHOLD',
+            "server.host": "TIMELINE_HOST",
+            "server.port": "TIMELINE_PORT",
+            "server.max_workers": "TIMELINE_MAX_WORKERS",
+            "database.scylla_hosts": "SCYLLA_HOSTS",
+            "database.scylla_keyspace": "SCYLLA_KEYSPACE",
+            "database.scylla_offline": "SCYLLA_OFFLINE",
+            "timeline.max_timelines": "MAX_TIMELINES",
+            "timeline.paradox_threshold": "PARADOX_THRESHOLD",
         }
 
         # Set environment variables from YAML
         for yaml_path, env_var in env_mapping.items():
             value = data
-            for key in yaml_path.split('.'):
+            for key in yaml_path.split("."):
                 value = value.get(key)
                 if value is None:
                     break
 
             if value is not None:
                 if isinstance(value, list):
-                    os.environ[env_var] = ','.join(map(str, value))
+                    os.environ[env_var] = ",".join(map(str, value))
                 else:
                     os.environ[env_var] = str(value)
 
@@ -532,14 +728,16 @@ def load_config_from_file(config_path: str) -> TimelineServiceConfig:
 
 def create_development_config() -> TimelineServiceConfig:
     """Create configuration optimized for development."""
-    os.environ.update({
-        "TIMELINE_HOST": "127.0.0.1",
-        "TIMELINE_PORT": "50051",
-        "SCYLLA_OFFLINE": "true",
-        "SQLITE_PATH": "/tmp/omega_timeline_dev.db",
-        "LOG_LEVEL": "DEBUG",
-        "ENABLE_METRICS": "true",
-        "PARADOX_DETECTION_ENABLED": "true",
-    })
+    os.environ.update(
+        {
+            "TIMELINE_HOST": "127.0.0.1",
+            "TIMELINE_PORT": "50051",
+            "SCYLLA_OFFLINE": "true",
+            "SQLITE_PATH": "/tmp/omega_timeline_dev.db",
+            "LOG_LEVEL": "DEBUG",
+            "ENABLE_METRICS": "true",
+            "PARADOX_DETECTION_ENABLED": "true",
+        }
+    )
 
     return get_config()

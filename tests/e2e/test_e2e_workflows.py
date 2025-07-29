@@ -3,14 +3,14 @@ End-to-End Tests for Omega PHR framework.
 Tests the complete framework functionality for research-grade stability.
 """
 
-import unittest
 import asyncio
 import json
-import time
-from datetime import datetime
-from unittest.mock import Mock, patch, AsyncMock
-import tempfile
 import os
+import tempfile
+import time
+import unittest
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 
 
 class TestE2EWorkflows(unittest.TestCase):
@@ -23,6 +23,7 @@ class TestE2EWorkflows(unittest.TestCase):
     def tearDown(self):
         """Clean up test environment."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_basic_security_scan_workflow(self):
@@ -34,14 +35,14 @@ class TestE2EWorkflows(unittest.TestCase):
         test_config = {
             "target": "192.168.1.0/24",
             "test_type": "network_scan",
-            "parameters": {"ports": [22, 80, 443]}
+            "parameters": {"ports": [22, 80, 443]},
         }
         workflow_steps.append(("init", test_config))
 
         # Step 2: Agent assignment
         agent_assignment = {
             "agent_id": "scanner-001",
-            "capabilities": ["port_scan", "service_detection"]
+            "capabilities": ["port_scan", "service_detection"],
         }
         workflow_steps.append(("assign_agent", agent_assignment))
 
@@ -49,7 +50,7 @@ class TestE2EWorkflows(unittest.TestCase):
         scan_results = {
             "open_ports": [80, 443],
             "services": {"80": "http", "443": "https"},
-            "duration": 30.5
+            "duration": 30.5,
         }
         workflow_steps.append(("execute_scan", scan_results))
 
@@ -57,9 +58,9 @@ class TestE2EWorkflows(unittest.TestCase):
         report = {
             "findings": [
                 {"severity": "info", "port": 80, "service": "http"},
-                {"severity": "info", "port": 443, "service": "https"}
+                {"severity": "info", "port": 443, "service": "https"},
             ],
-            "summary": {"total_ports": 2, "open_ports": 2}
+            "summary": {"total_ports": 2, "open_ports": 2},
         }
         workflow_steps.append(("generate_report", report))
 
@@ -79,21 +80,37 @@ class TestE2EWorkflows(unittest.TestCase):
         # Simulate multi-agent coordination
         agents = [
             {"id": "scanner-001", "type": "port_scanner", "status": "active"},
-            {"id": "analyzer-001", "type": "vulnerability_analyzer", "status": "active"},
-            {"id": "reporter-001", "type": "report_generator", "status": "active"}
+            {
+                "id": "analyzer-001",
+                "type": "vulnerability_analyzer",
+                "status": "active",
+            },
+            {"id": "reporter-001", "type": "report_generator", "status": "active"},
         ]
 
         # Task distribution
         tasks = [
             {"id": "task-001", "type": "port_scan", "assigned_to": "scanner-001"},
-            {"id": "task-002", "type": "vulnerability_analysis", "assigned_to": "analyzer-001"},
-            {"id": "task-003", "type": "report_generation", "assigned_to": "reporter-001"}
+            {
+                "id": "task-002",
+                "type": "vulnerability_analysis",
+                "assigned_to": "analyzer-001",
+            },
+            {
+                "id": "task-003",
+                "type": "report_generation",
+                "assigned_to": "reporter-001",
+            },
         ]
 
         # Verify agent assignments
         for task in tasks:
-            assigned_agent = next((a for a in agents if a["id"] == task["assigned_to"]), None)
-            self.assertIsNotNone(assigned_agent, f"No agent found for task {task['id']}")
+            assigned_agent = next(
+                (a for a in agents if a["id"] == task["assigned_to"]), None
+            )
+            self.assertIsNotNone(
+                assigned_agent, f"No agent found for task {task['id']}"
+            )
             if assigned_agent is not None:
                 self.assertEqual(assigned_agent["status"], "active")
 
@@ -103,7 +120,7 @@ class TestE2EWorkflows(unittest.TestCase):
             results[task["id"]] = {
                 "status": "completed",
                 "duration": 10.0 + len(task["id"]),  # Simulate variable duration
-                "output": f"Results from {task['type']}"
+                "output": f"Results from {task['type']}",
             }
 
         # Verify all tasks completed
@@ -125,7 +142,7 @@ class TestE2EWorkflows(unittest.TestCase):
             {"type": "scan_started", "timestamp": start_time + 2},
             {"type": "vulnerability_detected", "timestamp": start_time + 15},
             {"type": "scan_completed", "timestamp": start_time + 30},
-            {"type": "report_generated", "timestamp": start_time + 35}
+            {"type": "report_generated", "timestamp": start_time + 35},
         ]
 
         timeline.extend(events)
@@ -136,15 +153,18 @@ class TestE2EWorkflows(unittest.TestCase):
         # Check chronological order
         for i in range(1, len(timeline)):
             self.assertGreaterEqual(
-                timeline[i]["timestamp"],
-                timeline[i-1]["timestamp"]
+                timeline[i]["timestamp"], timeline[i - 1]["timestamp"]
             )
 
         # Verify logical sequence
         event_types = [event["type"] for event in timeline]
         expected_sequence = [
-            "test_initiated", "agent_assigned", "scan_started",
-            "vulnerability_detected", "scan_completed", "report_generated"
+            "test_initiated",
+            "agent_assigned",
+            "scan_started",
+            "vulnerability_detected",
+            "scan_completed",
+            "report_generated",
         ]
         self.assertEqual(event_types, expected_sequence)
 
@@ -157,7 +177,7 @@ class TestE2EWorkflows(unittest.TestCase):
         test_data = {
             "target": "192.168.1.100",
             "scan_results": {"ports": [22, 80], "services": ["ssh", "http"]},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         memory_store["test_001"] = test_data
@@ -167,7 +187,7 @@ class TestE2EWorkflows(unittest.TestCase):
             "agent_id": "scanner-001",
             "status": "busy",
             "current_task": "port_scan",
-            "last_heartbeat": datetime.now().isoformat()
+            "last_heartbeat": datetime.now().isoformat(),
         }
 
         memory_store["agent_scanner-001"] = agent_state
@@ -193,20 +213,20 @@ class TestE2EWorkflows(unittest.TestCase):
                 "scenario": "agent_timeout",
                 "error": "Agent scanner-001 timeout after 30 seconds",
                 "recovery": "Reassign task to agent scanner-002",
-                "outcome": "success"
+                "outcome": "success",
             },
             {
                 "scenario": "network_unreachable",
                 "error": "Target 192.168.1.100 unreachable",
                 "recovery": "Skip target and continue with next",
-                "outcome": "partial_success"
+                "outcome": "partial_success",
             },
             {
                 "scenario": "insufficient_permissions",
                 "error": "Permission denied for port 22",
                 "recovery": "Log warning and continue scan",
-                "outcome": "success_with_warnings"
-            }
+                "outcome": "success_with_warnings",
+            },
         ]
 
         # Process error scenarios
@@ -216,7 +236,7 @@ class TestE2EWorkflows(unittest.TestCase):
                 "scenario": scenario["scenario"],
                 "error_handled": True,
                 "recovery_applied": True,
-                "final_outcome": scenario["outcome"]
+                "final_outcome": scenario["outcome"],
             }
             recovery_results.append(result)
 
@@ -226,8 +246,10 @@ class TestE2EWorkflows(unittest.TestCase):
         for result in recovery_results:
             self.assertTrue(result["error_handled"])
             self.assertTrue(result["recovery_applied"])
-            self.assertIn(result["final_outcome"],
-                         ["success", "partial_success", "success_with_warnings"])
+            self.assertIn(
+                result["final_outcome"],
+                ["success", "partial_success", "success_with_warnings"],
+            )
 
     def test_performance_benchmarks(self):
         """Test performance benchmarks for research-grade stability."""
@@ -236,7 +258,7 @@ class TestE2EWorkflows(unittest.TestCase):
             "agent_response_time": [],
             "task_completion_time": [],
             "memory_usage": [],
-            "throughput": []
+            "throughput": [],
         }
 
         # Simulate multiple test runs
@@ -260,7 +282,7 @@ class TestE2EWorkflows(unittest.TestCase):
                 "avg": sum(values) / len(values),
                 "min": min(values),
                 "max": max(values),
-                "count": len(values)
+                "count": len(values),
             }
 
         # Verify performance requirements
@@ -283,7 +305,7 @@ class TestE2EWorkflows(unittest.TestCase):
                     "title": "Open SSH port",
                     "description": "SSH service running on port 22",
                     "host": "192.168.1.10",
-                    "port": 22
+                    "port": 22,
                 },
                 {
                     "id": "finding_002",
@@ -291,16 +313,16 @@ class TestE2EWorkflows(unittest.TestCase):
                     "title": "HTTP service detected",
                     "description": "Web server running on port 80",
                     "host": "192.168.1.10",
-                    "port": 80
-                }
+                    "port": 80,
+                },
             ],
             "summary": {
                 "total_hosts": 1,
                 "total_findings": 2,
                 "high_severity": 1,
                 "medium_severity": 1,
-                "low_severity": 0
-            }
+                "low_severity": 0,
+            },
         }
 
         # Test JSON export
@@ -321,7 +343,7 @@ class TestE2EWorkflows(unittest.TestCase):
                 finding["severity"],
                 finding["title"],
                 finding["host"],
-                str(finding["port"])
+                str(finding["port"]),
             ]
             csv_rows.append(row)
 
@@ -347,7 +369,7 @@ class TestServiceIntegration(unittest.TestCase):
             "id": "event_001",
             "type": "agent_registered",
             "timestamp": datetime.now().isoformat(),
-            "data": {"agent_id": "scanner-001"}
+            "data": {"agent_id": "scanner-001"},
         }
         timeline_events.append(event)
 
@@ -356,7 +378,7 @@ class TestServiceIntegration(unittest.TestCase):
             "id": "op_001",
             "type": "assign_task",
             "agent_id": "scanner-001",
-            "task": {"type": "port_scan", "target": "192.168.1.1"}
+            "task": {"type": "port_scan", "target": "192.168.1.1"},
         }
         hive_operations.append(operation)
 
@@ -365,7 +387,7 @@ class TestServiceIntegration(unittest.TestCase):
             "id": "event_002",
             "type": "task_assigned",
             "timestamp": datetime.now().isoformat(),
-            "data": {"operation_id": "op_001", "agent_id": "scanner-001"}
+            "data": {"operation_id": "op_001", "agent_id": "scanner-001"},
         }
         timeline_events.append(completion_event)
 
@@ -393,7 +415,7 @@ class TestServiceIntegration(unittest.TestCase):
             "name": "Scanner Service",
             "endpoint": "http://localhost:8001",
             "capabilities": ["port_scan", "service_detection"],
-            "status": "active"
+            "status": "active",
         }
         registered_services[service_info["id"]] = service_info
 
@@ -402,7 +424,7 @@ class TestServiceIntegration(unittest.TestCase):
             "registration_time": datetime.now().isoformat(),
             "last_heartbeat": datetime.now().isoformat(),
             "request_count": 0,
-            "avg_response_time": 0.0
+            "avg_response_time": 0.0,
         }
 
         # Update service metrics
@@ -425,10 +447,7 @@ def run_e2e_tests():
     suite = unittest.TestSuite()
 
     # Add test classes
-    test_classes = [
-        TestE2EWorkflows,
-        TestServiceIntegration
-    ]
+    test_classes = [TestE2EWorkflows, TestServiceIntegration]
 
     for test_class in test_classes:
         tests = loader.loadTestsFromTestCase(test_class)
@@ -444,7 +463,7 @@ def run_e2e_tests():
         "errors": len(result.errors),
         "success": result.wasSuccessful(),
         "failure_details": [str(failure) for failure in result.failures],
-        "error_details": [str(error) for error in result.errors]
+        "error_details": [str(error) for error in result.errors],
     }
 
 
@@ -461,20 +480,20 @@ if __name__ == "__main__":
     print(f"Errors: {results['errors']}")
     print(f"Success: {results['success']}")
 
-    if results['failure_details']:
+    if results["failure_details"]:
         print("\nFailure Details:")
-        for failure in results['failure_details']:
+        for failure in results["failure_details"]:
             print(f"  - {failure}")
 
-    if results['error_details']:
+    if results["error_details"]:
         print("\nError Details:")
-        for error in results['error_details']:
+        for error in results["error_details"]:
             print(f"  - {error}")
 
-    if results['success']:
+    if results["success"]:
         print("\n✅ All E2E tests passed! Research-grade stability confirmed.")
         print("🔬 Framework ready for advanced AI security research.")
     else:
         print("\n❌ Some E2E tests failed. Please review the output above.")
 
-    exit(0 if results['success'] else 1)
+    exit(0 if results["success"] else 1)

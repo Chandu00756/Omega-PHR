@@ -5,12 +5,10 @@ This module defines all custom exceptions used throughout the
 Omega-Paradox Hive Recursion framework.
 """
 
-from typing import Optional
-
 
 class OmegaPHRException(Exception):
     def __init__(
-        self, message: str, error_code: str = "", context: Optional[dict] = None
+        self, message: str, error_code: str = "", context: dict | None = None
     ) -> None:
         super().__init__(message)
         self.message = message

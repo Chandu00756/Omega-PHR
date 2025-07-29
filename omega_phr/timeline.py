@@ -6,12 +6,11 @@ for testing AI systems under temporal paradox conditions.
 """
 
 import asyncio
-import hashlib
 import logging
 import time
 import uuid
 from collections import defaultdict, deque
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 try:
     import structlog
@@ -43,25 +42,25 @@ class TimelineLattice:
         self.paradox_threshold = paradox_threshold
 
         # Timeline storage: timeline_id -> ordered list of events
-        self.timelines: Dict[str, List[Event]] = defaultdict(list)
+        self.timelines: dict[str, list[Event]] = defaultdict(list)
 
         # Timeline metadata
-        self.timeline_metadata: Dict[str, Dict] = defaultdict(dict)
+        self.timeline_metadata: dict[str, dict] = defaultdict(dict)
 
         # Active paradoxes
-        self.active_paradoxes: Dict[str, ParadoxResult] = {}
+        self.active_paradoxes: dict[str, ParadoxResult] = {}
 
         # Causal dependency graph: event_id -> set of dependent event_ids
-        self.causal_graph: Dict[str, Set[str]] = defaultdict(set)
+        self.causal_graph: dict[str, set[str]] = defaultdict(set)
 
         # Timeline branch tracking: child_timeline -> parent_timeline
-        self.timeline_hierarchy: Dict[str, str] = {}
+        self.timeline_hierarchy: dict[str, str] = {}
 
         # Entropy tracking for Ω-state detection
         self.entropy_history: deque = deque(maxlen=1000)
 
         # Cache for consistency checks
-        self._consistency_cache: Dict[str, float] = {}
+        self._consistency_cache: dict[str, float] = {}
 
         logger.info(
             f"Timeline Lattice initialized with max_timelines={max_timelines}, paradox_threshold={paradox_threshold}"
@@ -140,7 +139,7 @@ class TimelineLattice:
         self,
         source_timeline: str,
         branch_point_event_id: str,
-        new_timeline_id: Optional[str] = None,
+        new_timeline_id: str | None = None,
     ) -> str:
         """
         Create a new timeline branch from a specific event.
@@ -292,7 +291,7 @@ class TimelineLattice:
         primary_timeline: str,
         secondary_timeline: str,
         merge_strategy: str = "chronological",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Merge two timelines, potentially creating paradoxes.
 
@@ -377,7 +376,7 @@ class TimelineLattice:
             "strategy": merge_strategy,
         }
 
-    async def test_paradox(self, event_or_timeline) -> ParadoxResult:
+    async def test_paradox(self, event_or_timeline: Event | str) -> ParadoxResult:
         """
         Test if an event would create temporal paradoxes, or analyze a timeline.
 
@@ -526,7 +525,7 @@ class TimelineLattice:
         self._consistency_cache[cache_key] = consistency_score
         return consistency_score
 
-    def get_timeline_info(self, timeline_id: str) -> Dict:
+    def get_timeline_info(self, timeline_id: str) -> dict:
         """Get comprehensive information about a timeline."""
         if timeline_id not in self.timelines:
             return {}
@@ -544,11 +543,11 @@ class TimelineLattice:
             "metadata": self.timeline_metadata.get(timeline_id, {}),
         }
 
-    def list_timelines(self) -> List[str]:
+    def list_timelines(self) -> list[str]:
         """Get list of all timeline IDs."""
         return list(self.timelines.keys())
 
-    def get_active_paradoxes(self) -> Dict[str, ParadoxResult]:
+    def get_active_paradoxes(self) -> dict[str, ParadoxResult]:
         """Get all currently active paradoxes."""
         return self.active_paradoxes.copy()
 
@@ -716,7 +715,7 @@ class TimelineLattice:
 
         return (size_entropy + type_rarity) / 2.0
 
-    def _shannon_entropy(self, data: List[str]) -> float:
+    def _shannon_entropy(self, data: list[str]) -> float:
         """Calculate Shannon entropy for a list of categorical data."""
         if not data:
             return 0.0
@@ -785,7 +784,7 @@ class TimelineLattice:
         """Add event to timeline (backward compatibility method)."""
         return await self.append_event(event)
 
-    def get_events(self, timeline_id: str, limit: Optional[int] = None) -> List[Event]:
+    def get_events(self, timeline_id: str, limit: int | None = None) -> list[Event]:
         """Get events from timeline (backward compatibility method)."""
         if timeline_id not in self.timelines:
             return []

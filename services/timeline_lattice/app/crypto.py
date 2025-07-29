@@ -18,27 +18,29 @@ Advanced Security Features:
 - Distributed key management with rotation support
 """
 
-import os
-import time
-import json
-import hashlib
-import secrets
-import logging
-from typing import Any, Dict, List, Optional, Union, Tuple
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
 import asyncio
+import hashlib
+import json
+import logging
+import os
+import secrets
+import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 try:
+    import base64
+
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.exceptions import InvalidSignature
-    import base64
+
     CRYPTO_AVAILABLE = True
 except ImportError:
     # Fallback implementation for development
@@ -59,11 +61,13 @@ except ImportError:
 
 class CryptoError(Exception):
     """Cryptographic operation errors."""
+
     pass
 
 
 class CryptographicAlgorithm(str, Enum):
     """Supported cryptographic algorithms."""
+
     ED25519 = "Ed25519"
     ECDSA_P256 = "ECDSA-P256"
     RSA_PSS = "RSA-PSS"
@@ -71,6 +75,7 @@ class CryptographicAlgorithm(str, Enum):
 
 class TemporalProofType(str, Enum):
     """Types of temporal proofs."""
+
     EVENT_EXISTENCE = "event_existence"
     CAUSALITY_CHAIN = "causality_chain"
     TEMPORAL_ORDERING = "temporal_ordering"
@@ -81,6 +86,7 @@ class TemporalProofType(str, Enum):
 @dataclass
 class CryptographicKeyPair:
     """Research-grade cryptographic key pair."""
+
     private_key: Any
     public_key: Any
     algorithm: CryptographicAlgorithm
@@ -106,6 +112,7 @@ class CryptographicKeyPair:
 @dataclass
 class TemporalSignature:
     """Temporal digital signature."""
+
     signature: bytes
     algorithm: CryptographicAlgorithm
     key_id: str
@@ -117,26 +124,40 @@ class TemporalSignature:
     def to_dict(self) -> Dict[str, Any]:
         """Convert signature to dictionary."""
         return {
-            'signature': base64.b64encode(self.signature).decode() if base64 else self.signature.hex(),
-            'algorithm': self.algorithm.value,
-            'key_id': self.key_id,
-            'timestamp': self.timestamp.isoformat(),
-            'sequence_number': self.sequence_number,
-            'nonce': base64.b64encode(self.nonce).decode() if base64 else self.nonce.hex(),
-            'metadata': self.metadata
+            "signature": (
+                base64.b64encode(self.signature).decode()
+                if base64
+                else self.signature.hex()
+            ),
+            "algorithm": self.algorithm.value,
+            "key_id": self.key_id,
+            "timestamp": self.timestamp.isoformat(),
+            "sequence_number": self.sequence_number,
+            "nonce": (
+                base64.b64encode(self.nonce).decode() if base64 else self.nonce.hex()
+            ),
+            "metadata": self.metadata,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TemporalSignature':
+    def from_dict(cls, data: Dict[str, Any]) -> "TemporalSignature":
         """Create signature from dictionary."""
         return cls(
-            signature=base64.b64decode(data['signature']) if base64 else bytes.fromhex(data['signature']),
-            algorithm=CryptographicAlgorithm(data['algorithm']),
-            key_id=data['key_id'],
-            timestamp=datetime.fromisoformat(data['timestamp']),
-            sequence_number=data['sequence_number'],
-            nonce=base64.b64decode(data['nonce']) if base64 else bytes.fromhex(data['nonce']),
-            metadata=data.get('metadata', {})
+            signature=(
+                base64.b64decode(data["signature"])
+                if base64
+                else bytes.fromhex(data["signature"])
+            ),
+            algorithm=CryptographicAlgorithm(data["algorithm"]),
+            key_id=data["key_id"],
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            sequence_number=data["sequence_number"],
+            nonce=(
+                base64.b64decode(data["nonce"])
+                if base64
+                else bytes.fromhex(data["nonce"])
+            ),
+            metadata=data.get("metadata", {}),
         )
 
 
@@ -149,11 +170,13 @@ class AdvancedEventSigner:
     distributed temporal computing systems.
     """
 
-    def __init__(self,
-                 key_dir: Optional[Path] = None,
-                 hsm_enabled: bool = False,
-                 quantum_resistant: bool = False,
-                 key_rotation_interval: timedelta = timedelta(days=90)):
+    def __init__(
+        self,
+        key_dir: Optional[Path] = None,
+        hsm_enabled: bool = False,
+        quantum_resistant: bool = False,
+        key_rotation_interval: timedelta = timedelta(days=90),
+    ):
         """
         Initialize advanced event signer.
 
@@ -198,7 +221,9 @@ class AdvancedEventSigner:
     def _initialize_crypto_backend(self) -> None:
         """Initialize cryptographic backend."""
         if not CRYPTO_AVAILABLE:
-            self.logger.warning("Cryptography package not available, using fallback implementation")
+            self.logger.warning(
+                "Cryptography package not available, using fallback implementation"
+            )
             self.backend = None
             return
 
@@ -235,7 +260,7 @@ class AdvancedEventSigner:
                 public_key=b"fallback_public_key",
                 algorithm=CryptographicAlgorithm.ED25519,
                 key_id=f"master_{secrets.token_hex(8)}",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
 
         # Generate Ed25519 key pair
@@ -255,7 +280,7 @@ class AdvancedEventSigner:
             algorithm=CryptographicAlgorithm.ED25519,
             key_id=key_id,
             created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + self.key_rotation_interval
+            expires_at=datetime.now(timezone.utc) + self.key_rotation_interval,
         )
 
     def _load_master_key(self) -> Optional[CryptographicKeyPair]:
@@ -264,7 +289,7 @@ class AdvancedEventSigner:
             return None
 
         try:
-            with open(self.master_key_path, 'rb') as f:
+            with open(self.master_key_path, "rb") as f:
                 # In a real implementation, this would be encrypted
                 key_data = f.read()
                 # Deserialize key data (placeholder for research)
@@ -276,7 +301,7 @@ class AdvancedEventSigner:
     def _save_master_key(self, key_pair: CryptographicKeyPair) -> None:
         """Save master key to secure storage."""
         try:
-            with open(self.master_key_path, 'wb') as f:
+            with open(self.master_key_path, "wb") as f:
                 # In a real implementation, this would be encrypted
                 f.write(b"encrypted_master_key_data")  # Placeholder
 
@@ -286,9 +311,15 @@ class AdvancedEventSigner:
 
     def _get_key_creation_time(self) -> float:
         """Get key creation timestamp."""
-        return self.master_key.created_at.timestamp() if hasattr(self, 'master_key') else time.time()
+        return (
+            self.master_key.created_at.timestamp()
+            if hasattr(self, "master_key")
+            else time.time()
+        )
 
-    async def sign_event(self, event_data: Dict[str, Any], timeline_id: str, event_id: str) -> TemporalSignature:
+    async def sign_event(
+        self, event_data: Dict[str, Any], timeline_id: str, event_id: str
+    ) -> TemporalSignature:
         """
         Sign a temporal event with research cryptographic signature.
 
@@ -312,25 +343,27 @@ class AdvancedEventSigner:
 
             # Create comprehensive signature payload
             payload = {
-                'data': signing_data,
-                'timeline_id': timeline_id,
-                'event_id': event_id,
-                'sequence_number': sequence_number,
-                'nonce': base64.b64encode(nonce).decode() if base64 else nonce.hex(),
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'algorithm': self.master_key.algorithm.value,
-                'key_id': self.master_key.key_id
+                "data": signing_data,
+                "timeline_id": timeline_id,
+                "event_id": event_id,
+                "sequence_number": sequence_number,
+                "nonce": base64.b64encode(nonce).decode() if base64 else nonce.hex(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "algorithm": self.master_key.algorithm.value,
+                "key_id": self.master_key.key_id,
             }
 
             payload_bytes = json.dumps(payload, sort_keys=True).encode()
 
             # Sign the payload with Ed25519
-            if CRYPTO_AVAILABLE and hasattr(self.master_key.private_key, 'sign'):
+            if CRYPTO_AVAILABLE and hasattr(self.master_key.private_key, "sign"):
                 signature_bytes = self.master_key.private_key.sign(payload_bytes)
                 self.master_key.increment_usage()
             else:
                 # Fallback signature using HMAC-SHA256
-                signature_bytes = hashlib.sha256(payload_bytes + self.master_key.key_id.encode()).digest()
+                signature_bytes = hashlib.sha256(
+                    payload_bytes + self.master_key.key_id.encode()
+                ).digest()
 
             # Create research temporal signature
             temporal_signature = TemporalSignature(
@@ -341,26 +374,30 @@ class AdvancedEventSigner:
                 sequence_number=sequence_number,
                 nonce=nonce,
                 metadata={
-                    'timeline_id': timeline_id,
-                    'event_id': event_id,
-                    'payload_hash': hashlib.sha256(payload_bytes).hexdigest(),
-                    'entropy_level': self._calculate_signature_entropy(payload_bytes),
-                    'temporal_verification': True
-                }
+                    "timeline_id": timeline_id,
+                    "event_id": event_id,
+                    "payload_hash": hashlib.sha256(payload_bytes).hexdigest(),
+                    "entropy_level": self._calculate_signature_entropy(payload_bytes),
+                    "temporal_verification": True,
+                },
             )
 
-            self.logger.debug(f"Signed temporal event {event_id} in timeline {timeline_id}")
+            self.logger.debug(
+                f"Signed temporal event {event_id} in timeline {timeline_id}"
+            )
             return temporal_signature
 
         except Exception as e:
             self.logger.error(f"Failed to sign temporal event: {e}")
             raise CryptoError(f"Event signing failed: {e}")
 
-    async def verify_signature(self,
-                              signature: TemporalSignature,
-                              event_data: Dict[str, Any],
-                              timeline_id: str,
-                              event_id: str) -> bool:
+    async def verify_signature(
+        self,
+        signature: TemporalSignature,
+        event_data: Dict[str, Any],
+        timeline_id: str,
+        event_id: str,
+    ) -> bool:
         """
         Verify a research temporal signature.
 
@@ -379,32 +416,42 @@ class AdvancedEventSigner:
 
             # Recreate payload
             payload = {
-                'data': signing_data,
-                'timeline_id': timeline_id,
-                'event_id': event_id,
-                'sequence_number': signature.sequence_number,
-                'nonce': base64.b64encode(signature.nonce).decode() if base64 else signature.nonce.hex(),
-                'timestamp': signature.timestamp.isoformat(),
-                'algorithm': signature.algorithm.value,
-                'key_id': signature.key_id
+                "data": signing_data,
+                "timeline_id": timeline_id,
+                "event_id": event_id,
+                "sequence_number": signature.sequence_number,
+                "nonce": (
+                    base64.b64encode(signature.nonce).decode()
+                    if base64
+                    else signature.nonce.hex()
+                ),
+                "timestamp": signature.timestamp.isoformat(),
+                "algorithm": signature.algorithm.value,
+                "key_id": signature.key_id,
             }
 
             payload_bytes = json.dumps(payload, sort_keys=True).encode()
 
             # Verify cryptographic signature
-            if CRYPTO_AVAILABLE and hasattr(self.master_key.public_key, 'verify'):
+            if CRYPTO_AVAILABLE and hasattr(self.master_key.public_key, "verify"):
                 try:
-                    self.master_key.public_key.verify(signature.signature, payload_bytes)
+                    self.master_key.public_key.verify(
+                        signature.signature, payload_bytes
+                    )
                     crypto_verification = True
                 except InvalidSignature:
                     crypto_verification = False
             else:
                 # Fallback verification
-                expected_signature = hashlib.sha256(payload_bytes + signature.key_id.encode()).digest()
+                expected_signature = hashlib.sha256(
+                    payload_bytes + signature.key_id.encode()
+                ).digest()
                 crypto_verification = signature.signature == expected_signature
 
             # Enterprise temporal verification
-            temporal_valid = self._verify_research_temporal_constraints(signature, timeline_id, event_id)
+            temporal_valid = self._verify_research_temporal_constraints(
+                signature, timeline_id, event_id
+            )
 
             # Entropy verification
             entropy_valid = self._verify_signature_entropy(signature, payload_bytes)
@@ -412,21 +459,25 @@ class AdvancedEventSigner:
             # Comprehensive validation result
             result = crypto_verification and temporal_valid and entropy_valid
 
-            self.logger.debug(f"Verified research temporal signature for event {event_id}: {result}")
+            self.logger.debug(
+                f"Verified research temporal signature for event {event_id}: {result}"
+            )
             return result
 
         except Exception as e:
             self.logger.error(f"Failed to verify temporal signature: {e}")
             return False
 
-    def _prepare_signing_data(self, event_data: Dict[str, Any], timeline_id: str, event_id: str) -> str:
+    def _prepare_signing_data(
+        self, event_data: Dict[str, Any], timeline_id: str, event_id: str
+    ) -> str:
         """Prepare comprehensive data for signing."""
         signing_payload = {
-            'event_data': event_data,
-            'timeline_id': timeline_id,
-            'event_id': event_id,
-            'framework_version': '0.9.3',
-            'security_level': 'research'
+            "event_data": event_data,
+            "timeline_id": timeline_id,
+            "event_id": event_id,
+            "framework_version": "0.9.3",
+            "security_level": "research",
         }
         return json.dumps(signing_payload, sort_keys=True)
 
@@ -435,7 +486,9 @@ class AdvancedEventSigner:
         self.sequence_counter += 1
         return self.sequence_counter
 
-    def _verify_research_temporal_constraints(self, signature: TemporalSignature, timeline_id: str, event_id: str) -> bool:
+    def _verify_research_temporal_constraints(
+        self, signature: TemporalSignature, timeline_id: str, event_id: str
+    ) -> bool:
         """Verify research temporal constraints for signature."""
         # Check timestamp validity (research requirements)
         now = datetime.now(timezone.utc)
@@ -443,7 +496,9 @@ class AdvancedEventSigner:
 
         # Enterprise: Allow 30 minutes time skew maximum
         if time_diff > 1800:
-            self.logger.warning(f"Enterprise temporal signature timestamp outside valid window: {time_diff}s")
+            self.logger.warning(
+                f"Enterprise temporal signature timestamp outside valid window: {time_diff}s"
+            )
             return False
 
         # Verify sequence number ordering (research anti-replay)
@@ -453,7 +508,9 @@ class AdvancedEventSigner:
 
         # Verify nonce uniqueness (research requirement)
         if len(signature.nonce) < 32:
-            self.logger.warning(f"Insufficient nonce entropy: {len(signature.nonce)} bytes")
+            self.logger.warning(
+                f"Insufficient nonce entropy: {len(signature.nonce)} bytes"
+            )
             return False
 
         return True
@@ -480,13 +537,15 @@ class AdvancedEventSigner:
         max_entropy = 8.0  # Maximum entropy for byte data
         return min(entropy / max_entropy, 1.0) if max_entropy > 0 else 0.0
 
-    def _verify_signature_entropy(self, signature: TemporalSignature, payload_bytes: bytes) -> bool:
+    def _verify_signature_entropy(
+        self, signature: TemporalSignature, payload_bytes: bytes
+    ) -> bool:
         """Verify signature meets research entropy requirements."""
-        if 'entropy_level' not in signature.metadata:
+        if "entropy_level" not in signature.metadata:
             return True  # Skip entropy check if not provided
 
         calculated_entropy = self._calculate_signature_entropy(payload_bytes)
-        stored_entropy = signature.metadata['entropy_level']
+        stored_entropy = signature.metadata["entropy_level"]
 
         # Allow small entropy variations (research tolerance)
         entropy_diff = abs(calculated_entropy - stored_entropy)
@@ -494,7 +553,7 @@ class AdvancedEventSigner:
 
     def should_rotate_keys(self) -> bool:
         """Check if keys should be rotated based on research security policy."""
-        if not hasattr(self, 'master_key'):
+        if not hasattr(self, "master_key"):
             return False
 
         # Check time-based rotation
@@ -503,7 +562,10 @@ class AdvancedEventSigner:
             return True
 
         # Check usage-based rotation
-        if self.master_key.max_usage and self.master_key.usage_count >= self.master_key.max_usage:
+        if (
+            self.master_key.max_usage
+            and self.master_key.usage_count >= self.master_key.max_usage
+        ):
             return True
 
         # Check expiration
@@ -527,7 +589,9 @@ class AdvancedEventSigner:
             # Update creation time
             self.key_created_at = new_master_key.created_at.timestamp()
 
-            self.logger.info(f"Enterprise key rotation completed: {old_key_id} -> {new_master_key.key_id}")
+            self.logger.info(
+                f"Enterprise key rotation completed: {old_key_id} -> {new_master_key.key_id}"
+            )
 
         except Exception as e:
             self.logger.error(f"Enterprise key rotation failed: {e}")
@@ -536,18 +600,22 @@ class AdvancedEventSigner:
     def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive research cryptographic system status."""
         return {
-            'crypto_backend': 'Enterprise Ed25519' if CRYPTO_AVAILABLE else 'Fallback HMAC',
-            'master_key_id': self.master_key.key_id,
-            'master_key_algorithm': self.master_key.algorithm.value,
-            'master_key_age_days': (datetime.now(timezone.utc) - self.master_key.created_at).days,
-            'key_rotation_due': self.should_rotate_keys(),
-            'hsm_enabled': self.hsm_enabled,
-            'quantum_resistant': self.quantum_resistant,
-            'total_signatures': self.sequence_counter,
-            'key_usage_count': self.master_key.usage_count,
-            'entropy_pool_size': len(self.entropy_pool),
-            'security_level': 'Enterprise',
-            'framework_version': '0.9.3'
+            "crypto_backend": (
+                "Enterprise Ed25519" if CRYPTO_AVAILABLE else "Fallback HMAC"
+            ),
+            "master_key_id": self.master_key.key_id,
+            "master_key_algorithm": self.master_key.algorithm.value,
+            "master_key_age_days": (
+                datetime.now(timezone.utc) - self.master_key.created_at
+            ).days,
+            "key_rotation_due": self.should_rotate_keys(),
+            "hsm_enabled": self.hsm_enabled,
+            "quantum_resistant": self.quantum_resistant,
+            "total_signatures": self.sequence_counter,
+            "key_usage_count": self.master_key.usage_count,
+            "entropy_pool_size": len(self.entropy_pool),
+            "security_level": "Enterprise",
+            "framework_version": "0.9.3",
         }
 
 
@@ -588,7 +656,7 @@ if __name__ == "__main__":
             "type": "temporal_event",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": {"test": "research_value"},
-            "paradox_risk": 0.1
+            "paradox_risk": 0.1,
         }
 
         timeline_id = "research_timeline_001"
@@ -599,7 +667,9 @@ if __name__ == "__main__":
         print(f"Enterprise event signed: {signature.key_id}")
 
         # Verify signature
-        is_valid = await signer.verify_signature(signature, event_data, timeline_id, event_id)
+        is_valid = await signer.verify_signature(
+            signature, event_data, timeline_id, event_id
+        )
         print(f"Enterprise signature valid: {is_valid}")
 
         # Check rotation need

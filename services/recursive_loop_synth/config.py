@@ -4,8 +4,8 @@ Research-grade stability settings.
 """
 
 import os
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -51,7 +51,9 @@ class RecursiveLoopSynthConfig:
             stability_threshold=float(os.getenv("LOOP_STABILITY_THRESHOLD", "0.8")),
             entropy_threshold=float(os.getenv("LOOP_ENTROPY_THRESHOLD", "3.0")),
             max_synthesis_iterations=int(os.getenv("LOOP_MAX_ITERATIONS", "1000")),
-            convergence_threshold=float(os.getenv("LOOP_CONVERGENCE_THRESHOLD", "0.01")),
+            convergence_threshold=float(
+                os.getenv("LOOP_CONVERGENCE_THRESHOLD", "0.01")
+            ),
             max_input_patterns=int(os.getenv("LOOP_MAX_INPUT_PATTERNS", "10")),
             synthesis_timeout=int(os.getenv("LOOP_SYNTHESIS_TIMEOUT", "300")),
             max_patterns=int(os.getenv("LOOP_MAX_PATTERNS", "10000")),
@@ -59,5 +61,5 @@ class RecursiveLoopSynthConfig:
             cleanup_interval=int(os.getenv("LOOP_CLEANUP_INTERVAL", "3600")),
             pattern_retention_hours=int(os.getenv("LOOP_RETENTION_HOURS", "24")),
             synthesis_interval=int(os.getenv("LOOP_SYNTHESIS_INTERVAL", "60")),
-            analysis_batch_size=int(os.getenv("LOOP_BATCH_SIZE", "100"))
+            analysis_batch_size=int(os.getenv("LOOP_BATCH_SIZE", "100")),
         )

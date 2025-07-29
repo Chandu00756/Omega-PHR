@@ -2,12 +2,12 @@
 Data models for Timeline Lattice service.
 """
 
+import hashlib
 import json
 import time
-import hashlib
-from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 from timeline_pb2 import Event as ProtoEvent
 
@@ -19,6 +19,7 @@ class EventModel:
 
     This model provides conversion between protobuf and internal representations.
     """
+
     event_id: str
     actor_id: str
     timeline_id: str
@@ -43,7 +44,7 @@ class EventModel:
             recorded_at_us=proto_event.recorded_at_us,
             signature=proto_event.signature,
             event_type=proto_event.event_type,
-            metadata=dict(proto_event.metadata)
+            metadata=dict(proto_event.metadata),
         )
 
     def to_proto(self) -> ProtoEvent:
@@ -78,18 +79,19 @@ class EventModel:
             "actor_id": self.actor_id,
             "timeline_id": self.timeline_id,
             "parent_id": self.parent_id,
-            "payload": self.payload.decode('utf-8', errors='ignore'),
+            "payload": self.payload.decode("utf-8", errors="ignore"),
             "valid_at_us": self.valid_at_us,
             "recorded_at_us": self.recorded_at_us,
             "signature": self.signature.hex(),
             "event_type": self.event_type,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class TimelineInfo:
     """Information about a timeline."""
+
     timeline_id: str
     event_count: int
     created_at: Optional[int] = None
@@ -102,6 +104,7 @@ class TimelineInfo:
 @dataclass
 class ParadoxResult:
     """Result of paradox testing."""
+
     has_paradox: bool
     paradox_type: str = ""
     severity: float = 0.0

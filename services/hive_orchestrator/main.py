@@ -6,14 +6,14 @@ for the distributed adversarial attack coordination service.
 """
 
 import asyncio
+import logging
 import signal
 import sys
-import logging
 from typing import Optional
 
 try:
-    from structlog import configure, get_logger
     import structlog
+    from structlog import configure, get_logger
 
     # Configure structured logging
     structlog.configure(
@@ -26,7 +26,7 @@ try:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -38,13 +38,14 @@ except ImportError:
     # Fallback to standard logging
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     logger = logging.getLogger(__name__)
 
 try:
     import grpc
     from grpc import aio
+
     GRPC_AVAILABLE = True
 except ImportError:
     logger.warning("gRPC not available, service will run in limited mode")
@@ -52,6 +53,7 @@ except ImportError:
 
 try:
     import ray
+
     RAY_AVAILABLE = True
 except ImportError:
     logger.warning("Ray not available, distributed features disabled")
@@ -104,7 +106,9 @@ class HiveService:
                 logger.warning("gRPC not available, starting in standalone mode")
                 await self._start_standalone_mode()
 
-            logger.info(f"Hive service started successfully on {self.config.host}:{self.config.port}")
+            logger.info(
+                f"Hive service started successfully on {self.config.host}:{self.config.port}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to start Hive service: {str(e)}")
