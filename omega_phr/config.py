@@ -414,7 +414,7 @@ class FrameworkConfig:
             raise FileNotFoundError(f"❌ Configuration file not found: {file_path}")
 
         with open(file_path) as f:
-            config_dict = json.load(f)
+            json.load(f)
 
         # This is a simplified loader - in research you'd want proper deserialization
         config = cls()

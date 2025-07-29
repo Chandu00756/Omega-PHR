@@ -5,11 +5,8 @@ This module provides data persistence and retrieval functionality
 for timeline events and metadata.
 """
 
-import asyncio
-import json
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from structlog import get_logger
@@ -33,9 +30,9 @@ class TimelineRepository:
 
     def __init__(self):
         """Initialize the repository."""
-        self.events: Dict[str, List[EventModel]] = {}
-        self.timelines: Dict[str, TimelineInfo] = {}
-        self.indexes: Dict[str, Dict[str, Any]] = {
+        self.events: dict[str, list[EventModel]] = {}
+        self.timelines: dict[str, TimelineInfo] = {}
+        self.indexes: dict[str, dict[str, Any]] = {
             "by_actor": {},
             "by_timestamp": {},
             "by_event_type": {},
@@ -89,11 +86,11 @@ class TimelineRepository:
     async def get_events(
         self,
         timeline_id: str,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-    ) -> List[EventModel]:
+        start_time: int | None = None,
+        end_time: int | None = None,
+    ) -> list[EventModel]:
         """
         Retrieve events from a timeline.
 
@@ -147,7 +144,7 @@ class TimelineRepository:
             )
             return []
 
-    async def get_event_by_id(self, event_id: str) -> Optional[EventModel]:
+    async def get_event_by_id(self, event_id: str) -> EventModel | None:
         """
         Retrieve a specific event by ID.
 
@@ -172,7 +169,7 @@ class TimelineRepository:
             )
             return None
 
-    async def get_timeline_info(self, timeline_id: str) -> Optional[TimelineInfo]:
+    async def get_timeline_info(self, timeline_id: str) -> TimelineInfo | None:
         """
         Get information about a timeline.
 
@@ -186,10 +183,10 @@ class TimelineRepository:
 
     async def list_timelines(
         self,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        filter_pattern: Optional[str] = None,
-    ) -> List[TimelineInfo]:
+        filter_pattern: str | None = None,
+    ) -> list[TimelineInfo]:
         """
         List all timelines with optional filtering.
 
@@ -264,12 +261,12 @@ class TimelineRepository:
 
     async def search_events(
         self,
-        actor_id: Optional[str] = None,
-        event_type: Optional[str] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
+        actor_id: str | None = None,
+        event_type: str | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
         limit: int = 100,
-    ) -> List[EventModel]:
+    ) -> list[EventModel]:
         """
         Search events across all timelines.
 
@@ -312,7 +309,7 @@ class TimelineRepository:
             logger.error("Error searching events", error=str(e))
             return []
 
-    async def get_statistics(self) -> Dict[str, Any]:
+    async def get_statistics(self) -> dict[str, Any]:
         """
         Get repository statistics.
 

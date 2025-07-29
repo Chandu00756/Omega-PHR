@@ -6,14 +6,13 @@ and swarm intelligence for comprehensive adversarial testing.
 """
 
 import asyncio
-import json
 import logging
 import random
 import time
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from .agent import (
     AdversarialAgent,
@@ -50,16 +49,16 @@ class CampaignConfig:
     campaign_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Default Campaign"
     description: str = ""
-    target_models: List[str] = field(default_factory=lambda: ["gpt-4"])
+    target_models: list[str] = field(default_factory=lambda: ["gpt-4"])
     max_agents: int = 10
     max_duration: int = 3600  # seconds
     attack_interval: float = 1.0  # seconds between attacks
     strategy_type: StrategyType = StrategyType.ADAPTIVE
-    objectives: List[ObjectiveType] = field(
+    objectives: list[ObjectiveType] = field(
         default_factory=lambda: [ObjectiveType.MAXIMIZE_SUCCESS_RATE]
     )
-    safety_limits: Dict[str, Any] = field(default_factory=dict)
-    context: Dict[str, Any] = field(default_factory=dict)
+    safety_limits: dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -67,10 +66,10 @@ class CampaignMetrics:
     """Metrics tracking for campaigns."""
 
     start_time: float = field(default_factory=time.time)
-    end_time: Optional[float] = None
+    end_time: float | None = None
     total_attacks: int = 0
     successful_attacks: int = 0
-    unique_vulnerabilities: Set[str] = field(default_factory=set)
+    unique_vulnerabilities: set[str] = field(default_factory=set)
     agent_count: int = 0
     coverage_percentage: float = 0.0
     success_rate: float = 0.0
@@ -84,10 +83,10 @@ class HiveCoordinator:
 
     def __init__(self, config: HiveConfig):
         self.config = config
-        self.agent_pool: Dict[str, AdversarialAgent] = {}
-        self.active_campaigns: Dict[str, CampaignConfig] = {}
-        self.campaign_metrics: Dict[str, CampaignMetrics] = {}
-        self.strategy_bank: Dict[str, AttackStrategy] = {}
+        self.agent_pool: dict[str, AdversarialAgent] = {}
+        self.active_campaigns: dict[str, CampaignConfig] = {}
+        self.campaign_metrics: dict[str, CampaignMetrics] = {}
+        self.strategy_bank: dict[str, AttackStrategy] = {}
         self.swarm_intelligence = SwarmIntelligence(config)
 
         self.state = CampaignState.IDLE
@@ -111,8 +110,8 @@ class HiveCoordinator:
             self.strategy_bank[strategy_type.value] = strategy
 
     async def spawn_agents(
-        self, agent_types: Optional[List[AgentType]] = None, count_per_type: int = 2
-    ) -> List[str]:
+        self, agent_types: list[AgentType] | None = None, count_per_type: int = 2
+    ) -> list[str]:
         """Spawn new adversarial agents."""
         if agent_types is None:
             agent_types = [
@@ -265,7 +264,7 @@ class HiveCoordinator:
             raise
 
     async def _process_attack_results(
-        self, campaign_id: str, results: List[AttackResult], strategy: AttackStrategy
+        self, campaign_id: str, results: list[AttackResult], strategy: AttackStrategy
     ) -> None:
         """Process and analyze attack results."""
         if not results:
@@ -335,12 +334,9 @@ class HiveCoordinator:
             return False
 
         # Check duration limits
-        if config.max_duration > self.config.max_attack_duration:
-            return False
+        return not config.max_duration > self.config.max_attack_duration
 
-        return True
-
-    def _check_safety_conditions(self, results: List[AttackResult]) -> bool:
+    def _check_safety_conditions(self, results: list[AttackResult]) -> bool:
         """Check if current attack results violate safety conditions."""
         if not results:
             return True
@@ -400,7 +396,7 @@ class HiveCoordinator:
 
         logger.critical("Emergency shutdown activated")
 
-    def get_hive_status(self) -> Dict[str, Any]:
+    def get_hive_status(self) -> dict[str, Any]:
         """Get comprehensive hive status."""
         active_agents = len(
             [a for a in self.agent_pool.values() if a.state == AgentState.ACTIVE]
@@ -428,7 +424,7 @@ class HiveCoordinator:
             "swarm_intelligence": self.swarm_intelligence.get_status(),
         }
 
-    def _get_agent_distribution(self) -> Dict[str, int]:
+    def _get_agent_distribution(self) -> dict[str, int]:
         """Get distribution of agents by type."""
         distribution = {}
         for agent in self.agent_pool.values():
@@ -436,7 +432,7 @@ class HiveCoordinator:
             distribution[agent_type] = distribution.get(agent_type, 0) + 1
         return distribution
 
-    def get_campaign_status(self, campaign_id: str) -> Optional[Dict[str, Any]]:
+    def get_campaign_status(self, campaign_id: str) -> dict[str, Any] | None:
         """Get status of a specific campaign."""
         if campaign_id not in self.active_campaigns:
             return None

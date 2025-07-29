@@ -6,15 +6,14 @@ Provides research-grade stability for complex pattern synthesis.
 """
 
 import asyncio
-import json
 import logging
 import math
 import uuid
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,7 +49,7 @@ class LoopNode:
     value: Any
     timestamp: int
     depth: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -60,7 +59,7 @@ class RecursivePattern:
     id: str
     pattern_type: LoopType
     complexity: PatternComplexity
-    nodes: List[LoopNode]
+    nodes: list[LoopNode]
     cycle_length: int
     stability_score: float
     entropy: float
@@ -73,12 +72,12 @@ class SynthesisResult:
     """Result of pattern synthesis."""
 
     id: str
-    input_patterns: List[str]  # Pattern IDs
+    input_patterns: list[str]  # Pattern IDs
     synthesized_pattern: RecursivePattern
     confidence: float
     iteration_count: int
     convergence_time: float
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class RecursiveAnalyzer:
@@ -89,7 +88,7 @@ class RecursiveAnalyzer:
         self.max_cycle_length = 100
         self.stability_threshold = 0.8
 
-    async def detect_patterns(self, nodes: List[LoopNode]) -> List[RecursivePattern]:
+    async def detect_patterns(self, nodes: list[LoopNode]) -> list[RecursivePattern]:
         """Detect recursive patterns in a sequence of nodes."""
         patterns = []
 
@@ -118,8 +117,8 @@ class RecursiveAnalyzer:
         return patterns
 
     async def _detect_simple_cycles(
-        self, nodes: List[LoopNode]
-    ) -> List[RecursivePattern]:
+        self, nodes: list[LoopNode]
+    ) -> list[RecursivePattern]:
         """Detect simple recurring cycles."""
         patterns = []
 
@@ -153,8 +152,8 @@ class RecursiveAnalyzer:
         return patterns
 
     async def _detect_nested_patterns(
-        self, nodes: List[LoopNode]
-    ) -> List[RecursivePattern]:
+        self, nodes: list[LoopNode]
+    ) -> list[RecursivePattern]:
         """Detect nested recursive patterns."""
         patterns = []
 
@@ -178,8 +177,8 @@ class RecursiveAnalyzer:
         return patterns
 
     async def _detect_mutual_recursion(
-        self, nodes: List[LoopNode]
-    ) -> List[RecursivePattern]:
+        self, nodes: list[LoopNode]
+    ) -> list[RecursivePattern]:
         """Detect mutual recursion patterns."""
         patterns = []
 
@@ -203,8 +202,8 @@ class RecursiveAnalyzer:
         return patterns
 
     async def _detect_mathematical_patterns(
-        self, nodes: List[LoopNode]
-    ) -> List[RecursivePattern]:
+        self, nodes: list[LoopNode]
+    ) -> list[RecursivePattern]:
         """Detect mathematical recursive patterns like Fibonacci."""
         patterns = []
 
@@ -212,7 +211,7 @@ class RecursiveAnalyzer:
         numeric_values = []
         numeric_nodes = []
         for node in nodes:
-            if isinstance(node.value, (int, float)):
+            if isinstance(node.value, int | float):
                 numeric_values.append(node.value)
                 numeric_nodes.append(node)
 
@@ -251,7 +250,7 @@ class RecursiveAnalyzer:
 
         return patterns
 
-    def _is_cycle(self, values: List[Any], cycle_len: int) -> bool:
+    def _is_cycle(self, values: list[Any], cycle_len: int) -> bool:
         """Check if values contain a cycle of given length."""
         if len(values) < cycle_len * 2:
             return False
@@ -271,7 +270,7 @@ class RecursiveAnalyzer:
 
         return True
 
-    def _calculate_stability(self, values: List[Any], cycle_len: int) -> float:
+    def _calculate_stability(self, values: list[Any], cycle_len: int) -> float:
         """Calculate the stability score of a cycle."""
         if len(values) < cycle_len * 2:
             return 0.0
@@ -295,7 +294,7 @@ class RecursiveAnalyzer:
 
         return matches / total_comparisons if total_comparisons > 0 else 0.0
 
-    def _calculate_entropy(self, values: List[Any]) -> float:
+    def _calculate_entropy(self, values: list[Any]) -> float:
         """Calculate entropy of a sequence."""
         if not values:
             return 0.0
@@ -344,8 +343,8 @@ class RecursiveAnalyzer:
             return f"other_{type(value).__name__}"
 
     async def _analyze_depth_relationship(
-        self, nodes1: List[LoopNode], nodes2: List[LoopNode]
-    ) -> Optional[RecursivePattern]:
+        self, nodes1: list[LoopNode], nodes2: list[LoopNode]
+    ) -> RecursivePattern | None:
         """Analyze relationship between nodes at different depths."""
         if len(nodes1) < 2 or len(nodes2) < 2:
             return None
@@ -370,8 +369,8 @@ class RecursiveAnalyzer:
         return None
 
     async def _analyze_mutual_pattern(
-        self, nodes1: List[LoopNode], nodes2: List[LoopNode]
-    ) -> Optional[RecursivePattern]:
+        self, nodes1: list[LoopNode], nodes2: list[LoopNode]
+    ) -> RecursivePattern | None:
         """Analyze mutual recursion pattern between node groups."""
         if len(nodes1) < 2 or len(nodes2) < 2:
             return None
@@ -380,7 +379,6 @@ class RecursiveAnalyzer:
         all_nodes = sorted(nodes1 + nodes2, key=lambda n: n.timestamp)
 
         # Simple alternation check
-        alternates = True
         current_group = self._get_value_category(all_nodes[0].value)
         alternation_count = 0
 
@@ -406,7 +404,7 @@ class RecursiveAnalyzer:
 
         return None
 
-    def _is_fibonacci_like(self, values: List[float]) -> bool:
+    def _is_fibonacci_like(self, values: list[float]) -> bool:
         """Check if sequence follows Fibonacci-like pattern."""
         if len(values) < 3:
             return False
@@ -428,7 +426,7 @@ class RecursiveAnalyzer:
         # Require at least 70% matches
         return fibonacci_matches >= (len(values) - 2) * 0.7
 
-    def _is_exponential_pattern(self, values: List[float]) -> bool:
+    def _is_exponential_pattern(self, values: list[float]) -> bool:
         """Check if sequence follows exponential pattern."""
         if len(values) < 3:
             return False
@@ -463,8 +461,8 @@ class PatternSynthesizer:
         self.convergence_threshold = 0.01
 
     async def synthesize_patterns(
-        self, patterns: List[RecursivePattern]
-    ) -> List[SynthesisResult]:
+        self, patterns: list[RecursivePattern]
+    ) -> list[SynthesisResult]:
         """Synthesize new patterns from existing ones."""
         results = []
 
@@ -491,7 +489,7 @@ class PatternSynthesizer:
 
     async def _synthesize_pair(
         self, pattern1: RecursivePattern, pattern2: RecursivePattern
-    ) -> Optional[SynthesisResult]:
+    ) -> SynthesisResult | None:
         """Synthesize a new pattern from two existing patterns."""
         start_time = datetime.now()
 
@@ -550,8 +548,8 @@ class PatternSynthesizer:
         )
 
     async def _synthesize_multiple(
-        self, patterns: List[RecursivePattern]
-    ) -> Optional[SynthesisResult]:
+        self, patterns: list[RecursivePattern]
+    ) -> SynthesisResult | None:
         """Synthesize from multiple patterns using iterative approach."""
         start_time = datetime.now()
 
@@ -633,8 +631,8 @@ class RecursiveLoopSynthService:
     def __init__(self):
         self.analyzer = RecursiveAnalyzer()
         self.synthesizer = PatternSynthesizer()
-        self.patterns: Dict[str, RecursivePattern] = {}
-        self.synthesis_results: Dict[str, SynthesisResult] = {}
+        self.patterns: dict[str, RecursivePattern] = {}
+        self.synthesis_results: dict[str, SynthesisResult] = {}
         self.running = False
 
     async def start(self):
@@ -652,7 +650,7 @@ class RecursiveLoopSynthService:
         self.running = False
         logger.info("Recursive Loop Synthesis Service stopped")
 
-    async def submit_sequence(self, sequence_data: Dict[str, Any]) -> str:
+    async def submit_sequence(self, sequence_data: dict[str, Any]) -> str:
         """Submit a sequence for pattern analysis."""
         # Parse nodes from sequence data
         nodes = []
@@ -682,8 +680,8 @@ class RecursiveLoopSynthService:
         return sequence_id
 
     async def get_patterns(
-        self, pattern_type: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, pattern_type: str | None = None
+    ) -> list[dict[str, Any]]:
         """Get detected patterns, optionally filtered by type."""
         patterns = list(self.patterns.values())
 
@@ -696,7 +694,7 @@ class RecursiveLoopSynthService:
 
         return [asdict(pattern) for pattern in patterns]
 
-    async def synthesize_patterns(self, pattern_ids: List[str]) -> str:
+    async def synthesize_patterns(self, pattern_ids: list[str]) -> str:
         """Synthesize new patterns from existing ones."""
         # Get patterns by IDs
         input_patterns = []
@@ -720,11 +718,11 @@ class RecursiveLoopSynthService:
         logger.info(f"Synthesis {synthesis_id}: {len(results)} new patterns created")
         return synthesis_id
 
-    async def get_synthesis_results(self) -> List[Dict[str, Any]]:
+    async def get_synthesis_results(self) -> list[dict[str, Any]]:
         """Get all synthesis results."""
         return [asdict(result) for result in self.synthesis_results.values()]
 
-    async def get_service_stats(self) -> Dict[str, Any]:
+    async def get_service_stats(self) -> dict[str, Any]:
         """Get service statistics."""
         pattern_type_counts = defaultdict(int)
         complexity_counts = defaultdict(int)

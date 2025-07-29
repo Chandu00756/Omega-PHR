@@ -21,7 +21,7 @@ import secrets
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -74,13 +74,11 @@ class SecurityConfig:
     tls_mode: TLSMode = field(
         default_factory=lambda: TLSMode(os.getenv("TIMELINE_TLS_MODE", "enabled"))
     )
-    cert_file: Optional[str] = field(
+    cert_file: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_TLS_CERT")
     )
-    key_file: Optional[str] = field(
-        default_factory=lambda: os.getenv("TIMELINE_TLS_KEY")
-    )
-    ca_file: Optional[str] = field(default_factory=lambda: os.getenv("TIMELINE_TLS_CA"))
+    key_file: str | None = field(default_factory=lambda: os.getenv("TIMELINE_TLS_KEY"))
+    ca_file: str | None = field(default_factory=lambda: os.getenv("TIMELINE_TLS_CA"))
 
     # JWT Configuration
     jwt_secret_key: str = field(
@@ -127,7 +125,7 @@ class DatabaseConfig:
     database_type: DatabaseType = field(
         default_factory=lambda: DatabaseType(os.getenv("TIMELINE_DB_TYPE", "scylla"))
     )
-    hosts: List[str] = field(
+    hosts: list[str] = field(
         default_factory=lambda: os.getenv("TIMELINE_DB_HOSTS", "127.0.0.1").split(",")
     )
     port: int = field(
@@ -138,10 +136,10 @@ class DatabaseConfig:
     )
 
     # Authentication
-    username: Optional[str] = field(
+    username: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_DB_USERNAME")
     )
-    password: Optional[str] = field(
+    password: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_DB_PASSWORD")
     )
 
@@ -161,7 +159,7 @@ class DatabaseConfig:
         default_factory=lambda: os.getenv("TIMELINE_DB_LOAD_BALANCING", "true").lower()
         == "true"
     )
-    dc_preference: Optional[str] = field(
+    dc_preference: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_DB_DC_PREFERENCE")
     )
 
@@ -250,9 +248,7 @@ class ObservabilityConfig:
     log_format: str = field(
         default_factory=lambda: os.getenv("TIMELINE_LOG_FORMAT", "json")
     )
-    log_file: Optional[str] = field(
-        default_factory=lambda: os.getenv("TIMELINE_LOG_FILE")
-    )
+    log_file: str | None = field(default_factory=lambda: os.getenv("TIMELINE_LOG_FILE"))
     enable_structured_logging: bool = field(
         default_factory=lambda: os.getenv("TIMELINE_STRUCTURED_LOGS", "true").lower()
         == "true"
@@ -273,7 +269,7 @@ class ObservabilityConfig:
     enable_tracing: bool = field(
         default_factory=lambda: os.getenv("TIMELINE_TRACING", "false").lower() == "true"
     )
-    jaeger_endpoint: Optional[str] = field(
+    jaeger_endpoint: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_JAEGER_ENDPOINT")
     )
     trace_sample_rate: float = field(
@@ -356,7 +352,7 @@ class ComplianceConfig:
         default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOGGING", "false").lower()
         == "true"
     )
-    audit_log_file: Optional[str] = field(
+    audit_log_file: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_AUDIT_LOG_FILE")
     )
     audit_log_format: str = field(
@@ -406,7 +402,7 @@ class TimelineServiceConfig:
     compliance: ComplianceConfig = field(default_factory=ComplianceConfig)
 
     # Advanced Configuration
-    config_file: Optional[str] = field(
+    config_file: str | None = field(
         default_factory=lambda: os.getenv("TIMELINE_CONFIG_FILE")
     )
     secrets_backend: str = field(
@@ -431,7 +427,7 @@ class TimelineServiceConfig:
             return
 
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_file) as f:
                 config_data = yaml.safe_load(f)
 
             # Update configuration with file values
@@ -502,7 +498,7 @@ class TimelineServiceConfig:
             )
 
         # Configure standard logging
-        handlers: List[Any] = [logging.StreamHandler()]
+        handlers: list[Any] = [logging.StreamHandler()]
         if self.observability.log_file:
             handlers.append(logging.FileHandler(self.observability.log_file))
 
@@ -525,7 +521,7 @@ class TimelineServiceConfig:
         config._load_from_file()
         return config
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
 
         def _convert_dataclass(obj) -> Any:
@@ -541,7 +537,7 @@ class TimelineServiceConfig:
         result = _convert_dataclass(self)
         return result if isinstance(result, dict) else {}
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate configuration and return list of errors."""
         try:
             self._validate_configuration()
@@ -572,8 +568,8 @@ def create_research_config() -> TimelineServiceConfig:
 
 # Configuration validation helpers
 def validate_ssl_config(
-    use_ssl: bool, ssl_cert_file: Optional[str], ssl_key_file: Optional[str]
-) -> List[str]:
+    use_ssl: bool, ssl_cert_file: str | None, ssl_key_file: str | None
+) -> list[str]:
     """Validate SSL configuration."""
     errors = []
     if use_ssl and (not ssl_cert_file or not ssl_key_file):
@@ -592,7 +588,7 @@ def validate_ssl_config(
     return errors
 
 
-def validate_paradox_threshold(threshold: float) -> List[str]:
+def validate_paradox_threshold(threshold: float) -> list[str]:
     """Validate paradox threshold."""
     errors = []
     if threshold < 0.0 or threshold > 1.0:
@@ -602,7 +598,7 @@ def validate_paradox_threshold(threshold: float) -> List[str]:
 
 def validate_timeline_limits(
     max_timelines: int, max_events_per_timeline: int
-) -> List[str]:
+) -> list[str]:
     """Validate timeline limits."""
     errors = []
     if max_timelines < 1:
@@ -615,8 +611,8 @@ def validate_timeline_limits(
 
 
 def validate_database_config(
-    scylla_offline: bool, scylla_hosts: List[str]
-) -> List[str]:
+    scylla_offline: bool, scylla_hosts: list[str]
+) -> list[str]:
     """Validate database configuration."""
     errors = []
     if not scylla_offline and not scylla_hosts:
@@ -625,7 +621,7 @@ def validate_database_config(
     return errors
 
 
-def validate_auth_config(enable_auth: bool, jwt_secret: Optional[str]) -> List[str]:
+def validate_auth_config(enable_auth: bool, jwt_secret: str | None) -> list[str]:
     """Validate authentication configuration."""
     errors = []
     if enable_auth and not jwt_secret:
@@ -634,7 +630,7 @@ def validate_auth_config(enable_auth: bool, jwt_secret: Optional[str]) -> List[s
     return errors
 
 
-def config_to_dict(config: TimelineServiceConfig) -> Dict[str, Any]:
+def config_to_dict(config: TimelineServiceConfig) -> dict[str, Any]:
     """Convert configuration to dictionary."""
     return {
         "server": {
@@ -687,7 +683,7 @@ def load_config_from_file(config_path: str) -> TimelineServiceConfig:
     try:
         import yaml
 
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             data = yaml.safe_load(f)
 
         # Map YAML structure to environment variables

@@ -5,23 +5,19 @@ This module implements the gRPC server for the Timeline Lattice service,
 connecting the protobuf interface with the core TimelineLattice engine.
 """
 
-import asyncio
-import logging
 import time
-from typing import Any, AsyncIterator, Dict, Optional
 
 import grpc
 import timeline_pb2_grpc
 from config import TimelineServiceConfig
 from grpc import aio
-from models import EventModel, ParadoxResult, TimelineInfo
+from models import EventModel, TimelineInfo
 from structlog import get_logger
 from timeline_pb2 import (
     AppendEventRequest,
     AppendEventResponse,
     BranchTimelineRequest,
     BranchTimelineResponse,
-    Event,
     GetTimelineInfoRequest,
     GetTimelineInfoResponse,
     ListTimelinesRequest,
@@ -39,7 +35,6 @@ from timeline_pb2 import (
 from timeline_pb2 import TimelineInfo as ProtoTimelineInfo
 
 from omega_phr.models import Event as CoreEvent
-from omega_phr.models import ParadoxResult as CoreParadoxResult
 from omega_phr.timeline import TimelineLattice
 
 logger = get_logger(__name__)
@@ -57,7 +52,7 @@ class TimelineService(timeline_pb2_grpc.TimelineServiceServicer):
         """Initialize the Timeline service."""
         self.config = config
         self.timeline_lattice = TimelineLattice()
-        self.active_timelines: Dict[str, TimelineInfo] = {}
+        self.active_timelines: dict[str, TimelineInfo] = {}
         logger.info("Timeline service initialized", config=config.__dict__)
 
     async def AppendEvent(

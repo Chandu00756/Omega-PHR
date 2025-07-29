@@ -352,7 +352,8 @@ class MemoryInverter:
         context["intensity"] = intensity
 
         logger.info(
-            f"Applying memory inversion with strategy '{strategy}' at intensity {intensity}"
+            f"Applying memory inversion with strategy '{strategy}' at "
+            f"intensity {intensity}"
         )
 
         # Create snapshot before inversion
@@ -397,7 +398,8 @@ class MemoryInverter:
                 memory_state.artifacts = await self._detect_artifacts(memory_state)
 
                 logger.warning(
-                    f"Memory corruption detected with consistency score {memory_state.consistency_score}"
+                    f"Memory corruption detected with consistency score "
+                    f"{memory_state.consistency_score}"
                 )
 
             # Store active inversion
@@ -426,7 +428,7 @@ class MemoryInverter:
             logger.error(f"Memory inversion failed: {e}")
             raise MemoryInversionError(
                 f"Inversion failed with strategy {strategy}: {str(e)}"
-            )
+            ) from e
 
     async def rollback_memory(self, snapshot_id: str) -> dict[str, Any]:
         """
@@ -453,9 +455,8 @@ class MemoryInverter:
         logger.info(f"Rolling back memory to snapshot {snapshot_id[:8]}")
 
         # Clear current state
-        if self.current_state:
-            if self.current_state.state_id in self.active_inversions:
-                del self.active_inversions[self.current_state.state_id]
+        if self.current_state and self.current_state.state_id in self.active_inversions:
+            del self.active_inversions[self.current_state.state_id]
 
         self.current_state = None
         self.rollback_count += 1
@@ -568,7 +569,7 @@ class MemoryInverter:
         consistency_score = 1.0
 
         # Check structural consistency
-        if type(original) != type(inverted):
+        if type(original) is not type(inverted):
             consistency_score *= 0.5
 
         if isinstance(original, dict) and isinstance(inverted, dict):
@@ -586,7 +587,7 @@ class MemoryInverter:
 
             # Check value type consistency
             for key in original_keys & inverted_keys:
-                if type(original[key]) != type(inverted[key]):
+                if type(original[key]) is not type(inverted[key]):
                     consistency_score *= 0.9
 
         # Check for obvious corruptions
@@ -614,7 +615,7 @@ class MemoryInverter:
         inverted = memory_state.inverted_content
 
         # Check for data type mutations
-        if type(original) != type(inverted):
+        if type(original) is not type(inverted):
             artifacts.append(
                 f"type_mutation: {type(original).__name__} -> {type(inverted).__name__}"
             )
@@ -698,7 +699,7 @@ class MemoryInverter:
     def _has_type_inconsistencies(self, content: dict[str, Any]) -> bool:
         """Check for type inconsistencies in content."""
         if not isinstance(content, dict):
-            return False  # type: ignore[unreachable]
+            return False
 
         # Check if similar keys have different types
         key_groups: dict[str, list[type]] = {}
@@ -709,18 +710,14 @@ class MemoryInverter:
             key_groups[key_base].append(type(value))
 
         # Check for type inconsistencies within groups
-        for key_base, types in key_groups.items():
-            if len(set(types)) > 1:
-                return True
-
-        return False
+        return any(len(set(types)) > 1 for key_base, types in key_groups.items())
 
     async def _find_contradictions(self, content: dict[str, Any]) -> list[str]:
         """Find logical contradictions in content."""
         contradictions = []
 
         if not isinstance(content, dict):
-            return contradictions  # type: ignore[unreachable]
+            return contradictions
 
         # Extract text values
         text_values = []
@@ -773,7 +770,7 @@ class MemoryInverter:
         issues = []
 
         if not isinstance(content, dict):
-            return issues  # type: ignore[unreachable]
+            return issues
 
         # Extract temporal statements
         temporal_statements = []
@@ -825,10 +822,10 @@ class MemoryInverter:
         words2 = set(stmt2.split())
         common_words = words1 & words2
 
-        if len(common_words) >= 2:  # Same event likely referenced
-            # Conflict if one is past and other is future
-            if (stmt1_past and stmt2_future) or (stmt1_future and stmt2_past):
-                return True
+        if len(common_words) >= 2 and (  # Same event likely referenced
+            (stmt1_past and stmt2_future) or (stmt1_future and stmt2_past)
+        ):  # Conflict if one is past and other is future
+            return True
 
         return False
 

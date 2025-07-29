@@ -4,11 +4,10 @@ Simplified Timeline Lattice gRPC Client
 This is a minimal working client to resolve import issues.
 """
 
-import asyncio
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 try:
     import grpc
@@ -21,13 +20,13 @@ except ImportError:
     aio = None
 
 from .config import TimelineServiceConfig
-from .models import EventType, ParadoxType, TemporalParadox, TimelineEvent
+from .models import ParadoxType, TemporalParadox, TimelineEvent
 
 
 class TimelineLatticeClient:
     """Simplified gRPC client for Timeline Lattice service."""
 
-    def __init__(self, config: Optional[TimelineServiceConfig] = None):
+    def __init__(self, config: TimelineServiceConfig | None = None):
         """Initialize client."""
         self.config = config or TimelineServiceConfig()
         self.address = f"{self.config.server.host}:{self.config.server.port}"
@@ -74,11 +73,11 @@ class TimelineLatticeClient:
         self,
         name: str,
         description: str = "",
-        initial_timestamp: Optional[datetime] = None,
+        initial_timestamp: datetime | None = None,
     ) -> str:
         """Create a new temporal timeline."""
         if initial_timestamp is None:
-            initial_timestamp = datetime.now(timezone.utc)
+            initial_timestamp = datetime.now(UTC)
 
         timeline_id = f"timeline_{uuid.uuid4().hex[:8]}"
 
@@ -114,7 +113,7 @@ class TimelineLatticeClient:
             self.logger.error(f"Failed to add event: {e}")
             return False
 
-    async def analyze_paradox(self, timeline_id: str) -> List[TemporalParadox]:
+    async def analyze_paradox(self, timeline_id: str) -> list[TemporalParadox]:
         """Analyze timeline for temporal paradoxes."""
         if not GRPC_AVAILABLE or self.stub is None:
             # Mock paradox
@@ -125,7 +124,7 @@ class TimelineLatticeClient:
                 severity=0.5,
                 description="Mock paradox for testing",
                 affected_events=["event_001", "event_002"],
-                detected_at=datetime.now(timezone.utc),
+                detected_at=datetime.now(UTC),
             )
             self.logger.info(f"Mock: Analyzed paradox in timeline {timeline_id}")
             return [mock_paradox]
@@ -139,14 +138,14 @@ class TimelineLatticeClient:
             self.logger.error(f"Failed to analyze paradox: {e}")
             return []
 
-    async def get_timeline_status(self, timeline_id: str) -> Dict[str, Any]:
+    async def get_timeline_status(self, timeline_id: str) -> dict[str, Any]:
         """Get timeline status."""
         if not GRPC_AVAILABLE or self.stub is None:
             return {
                 "timeline_id": timeline_id,
                 "status": "active",
                 "event_count": 0,
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
         try:
@@ -155,7 +154,7 @@ class TimelineLatticeClient:
                 "timeline_id": timeline_id,
                 "status": "active",
                 "event_count": 0,
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:

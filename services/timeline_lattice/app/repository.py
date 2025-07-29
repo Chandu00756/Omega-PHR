@@ -12,9 +12,9 @@ import logging
 import sqlite3
 import uuid
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     from cassandra.auth import PlainTextAuthProvider
@@ -42,10 +42,10 @@ class BaseRepository:
     async def get_events(
         self,
         timeline_id: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> List[TimelineEvent]:
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int | None = None,
+    ) -> list[TimelineEvent]:
         """Retrieve events from a timeline with temporal filtering."""
         raise NotImplementedError
 
@@ -59,7 +59,7 @@ class BaseRepository:
         """Create a branched timeline from a specific point in time."""
         raise NotImplementedError
 
-    async def detect_paradoxes(self, timeline_id: str) -> List[TemporalParadox]:
+    async def detect_paradoxes(self, timeline_id: str) -> list[TemporalParadox]:
         """Analyze timeline for temporal paradoxes and inconsistencies."""
         raise NotImplementedError
 
@@ -69,9 +69,9 @@ class ScyllaRepository(BaseRepository):
 
     def __init__(self, config: TimelineServiceConfig):
         self.config = config
-        self.cluster: Optional[Any] = None
-        self.session: Optional[Any] = None
-        self._prepared_statements: Dict[str, Any] = {}
+        self.cluster: Any | None = None
+        self.session: Any | None = None
+        self._prepared_statements: dict[str, Any] = {}
 
     def _ensure_connection(self) -> bool:
         """Ensure connection (session) is available, return False if not."""
@@ -308,10 +308,10 @@ class ScyllaRepository(BaseRepository):
     async def get_events(
         self,
         timeline_id: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> List[TimelineEvent]:
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int | None = None,
+    ) -> list[TimelineEvent]:
         """Retrieve events with temporal filtering."""
         if self.session is None:
             logger.error("ScyllaDB session not available")
@@ -363,7 +363,7 @@ class ScyllaRepository(BaseRepository):
                     timeline.timeline_id,
                     timeline.name,
                     timeline.description,
-                    datetime.now(timezone.utc),
+                    datetime.now(UTC),
                     timeline.status.value,
                     timeline.metadata,
                 ],
@@ -405,7 +405,7 @@ class ScyllaRepository(BaseRepository):
                     source_id,
                     new_timeline_id,
                     branch_point,
-                    datetime.now(timezone.utc),
+                    datetime.now(UTC),
                 ],
             )
 
@@ -427,7 +427,7 @@ class ScyllaRepository(BaseRepository):
             logger.error(f"Failed to branch timeline {source_id}: {e}")
             return False
 
-    async def detect_paradoxes(self, timeline_id: str) -> List[TemporalParadox]:
+    async def detect_paradoxes(self, timeline_id: str) -> list[TemporalParadox]:
         """Detect temporal paradoxes in timeline."""
         try:
             events = await self.get_events(timeline_id)
@@ -435,7 +435,7 @@ class ScyllaRepository(BaseRepository):
 
             # Check for causality violations
             for i, event in enumerate(events):
-                for j, other_event in enumerate(events[i + 1 :], i + 1):
+                for _j, other_event in enumerate(events[i + 1 :], i + 1):
                     if self._is_causality_violation(event, other_event):
                         paradox = TemporalParadox(
                             paradox_id=str(uuid.uuid4()),
@@ -444,7 +444,7 @@ class ScyllaRepository(BaseRepository):
                             severity=0.8,
                             description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
                             affected_events=[event.event_id, other_event.event_id],
-                            detected_at=datetime.now(timezone.utc),
+                            detected_at=datetime.now(UTC),
                         )
                         paradoxes.append(paradox)
 
@@ -505,12 +505,10 @@ class ScyllaRepository(BaseRepository):
             and event1.valid_at_us > event2.valid_at_us
         ):
             return True
-        if (
+        return bool(
             event2.event_id == event1.parent_id
             and event2.valid_at_us > event1.valid_at_us
-        ):
-            return True
-        return False
+        )
 
     async def close(self):
         """Close database connections."""
@@ -694,10 +692,10 @@ class SQLiteRepository(BaseRepository):
     async def get_events(
         self,
         timeline_id: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> List[TimelineEvent]:
+        start_time: int | None = None,
+        end_time: int | None = None,
+        limit: int | None = None,
+    ) -> list[TimelineEvent]:
         """Retrieve events from SQLite."""
         async with self._lock:
             try:
@@ -711,7 +709,7 @@ class SQLiteRepository(BaseRepository):
                 cursor = self._connection.cursor()
 
                 query = "SELECT * FROM timeline_events WHERE timeline_id = ?"
-                params: List[Any] = [timeline_id]
+                params: list[Any] = [timeline_id]
 
                 if start_time:
                     query += " AND valid_at_us >= ?"
@@ -818,7 +816,7 @@ class SQLiteRepository(BaseRepository):
                 logger.error(f"Failed to branch timeline in SQLite: {e}")
                 return False
 
-    async def detect_paradoxes(self, timeline_id: str) -> List[TemporalParadox]:
+    async def detect_paradoxes(self, timeline_id: str) -> list[TemporalParadox]:
         """Detect paradoxes in SQLite timeline."""
         try:
             events = await self.get_events(timeline_id)
@@ -826,7 +824,7 @@ class SQLiteRepository(BaseRepository):
 
             # Simple causality violation detection
             for i, event in enumerate(events):
-                for j, other_event in enumerate(events[i + 1 :], i + 1):
+                for _j, other_event in enumerate(events[i + 1 :], i + 1):
                     if self._is_causality_violation(event, other_event):
                         paradox = TemporalParadox(
                             paradox_id=str(uuid.uuid4()),
@@ -835,7 +833,7 @@ class SQLiteRepository(BaseRepository):
                             severity=0.8,
                             description=f"Causality violation between events {event.event_id} and {other_event.event_id}",
                             affected_events=[event.event_id, other_event.event_id],
-                            detected_at=datetime.now(timezone.utc),
+                            detected_at=datetime.now(UTC),
                         )
                         paradoxes.append(paradox)
                         await self._store_paradox(paradox)
@@ -898,12 +896,10 @@ class SQLiteRepository(BaseRepository):
             and event1.valid_at_us > event2.valid_at_us
         ):
             return True
-        if (
+        return bool(
             event2.event_id == event1.parent_id
             and event2.valid_at_us > event1.valid_at_us
-        ):
-            return True
-        return False
+        )
 
     async def close(self):
         """Close SQLite connection."""

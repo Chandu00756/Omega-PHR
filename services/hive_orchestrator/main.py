@@ -9,7 +9,6 @@ import asyncio
 import logging
 import signal
 import sys
-from typing import Optional
 
 try:
     import structlog
@@ -44,7 +43,6 @@ except ImportError:
 
 try:
     import grpc
-    from grpc import aio
 
     GRPC_AVAILABLE = True
 except ImportError:
@@ -59,7 +57,12 @@ except ImportError:
     logger.warning("Ray not available, distributed features disabled")
     RAY_AVAILABLE = False
 
+from typing import TYPE_CHECKING
+
 from .config import HiveServiceConfig
+
+if TYPE_CHECKING:
+    from grpc import aio
 
 if GRPC_AVAILABLE:
     from .server import create_server
@@ -81,7 +84,7 @@ class HiveService:
             config: Service configuration
         """
         self.config = config
-        self.server: Optional[aio.Server] = None
+        self.server: aio.Server | None = None
         self._shutdown_event = asyncio.Event()
 
         # Simple validation - just check if config exists

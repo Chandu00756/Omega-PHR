@@ -4,7 +4,6 @@ Configuration management for Timeline Lattice service.
 
 import os
 from dataclasses import dataclass
-from typing import Any, Dict
 
 
 @dataclass

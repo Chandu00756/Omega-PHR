@@ -5,16 +5,14 @@ Advanced collective intelligence and coordination mechanisms
 for distributed adversarial agent behavior.
 """
 
-import asyncio
-import json
 import logging
 import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from .agent import AdversarialAgent, AgentType, AttackResult
+from .agent import AdversarialAgent, AttackResult
 from .config import HiveConfig
 
 logger = logging.getLogger(__name__)
@@ -48,11 +46,11 @@ class SwarmNode:
     """Node in the swarm intelligence network."""
 
     node_id: str
-    position: Tuple[float, float] = (0.0, 0.0)
+    position: tuple[float, float] = (0.0, 0.0)
     influence_radius: float = 1.0
     activity_level: float = 0.5
-    knowledge_cache: Dict[str, Any] = field(default_factory=dict)
-    connected_nodes: List[str] = field(default_factory=list)
+    knowledge_cache: dict[str, Any] = field(default_factory=dict)
+    connected_nodes: list[str] = field(default_factory=list)
 
 
 class SwarmIntelligence:
@@ -60,10 +58,10 @@ class SwarmIntelligence:
 
     def __init__(self, config: HiveConfig):
         self.config = config
-        self.agents: Dict[str, AdversarialAgent] = {}
-        self.pheromone_trails: Dict[str, PheromoneTrail] = {}
-        self.swarm_nodes: Dict[str, SwarmNode] = {}
-        self.collective_memory: Dict[str, Any] = {}
+        self.agents: dict[str, AdversarialAgent] = {}
+        self.pheromone_trails: dict[str, PheromoneTrail] = {}
+        self.swarm_nodes: dict[str, SwarmNode] = {}
+        self.collective_memory: dict[str, Any] = {}
         self.current_behavior = SwarmBehavior.EXPLORATION
 
         # Swarm parameters
@@ -77,7 +75,7 @@ class SwarmIntelligence:
         self.diversity_index = 0.0
         self.convergence_rate = 0.0
 
-    async def register_agents(self, agents: List[AdversarialAgent]) -> None:
+    async def register_agents(self, agents: list[AdversarialAgent]) -> None:
         """Register agents with the swarm intelligence system."""
         for agent in agents:
             self.agents[agent.agent_id] = agent
@@ -93,7 +91,7 @@ class SwarmIntelligence:
 
             logger.debug(f"Registered agent {agent.agent_id} with swarm intelligence")
 
-    def _calculate_agent_position(self, agent: AdversarialAgent) -> Tuple[float, float]:
+    def _calculate_agent_position(self, agent: AdversarialAgent) -> tuple[float, float]:
         """Calculate agent position in swarm space."""
         # Map agent characteristics to 2D position
         x = agent.success_rate * math.cos(hash(agent.agent_type.value) % (2 * math.pi))
@@ -102,7 +100,7 @@ class SwarmIntelligence:
         )
         return (x, y)
 
-    async def process_attack_results(self, results: List[AttackResult]) -> None:
+    async def process_attack_results(self, results: list[AttackResult]) -> None:
         """Process attack results to update swarm intelligence."""
         if not results:
             return
@@ -122,7 +120,7 @@ class SwarmIntelligence:
         # Update node connections
         await self._update_node_connections()
 
-    async def _update_pheromone_trails(self, results: List[AttackResult]) -> None:
+    async def _update_pheromone_trails(self, results: list[AttackResult]) -> None:
         """Update pheromone trails based on attack results."""
         for result in results:
             # Create trail identifier based on attack characteristics
@@ -150,7 +148,7 @@ class SwarmIntelligence:
             decay_factor = math.exp(-self.pheromone_decay * time_delta)
             trail.strength *= decay_factor
 
-    async def _update_collective_memory(self, results: List[AttackResult]) -> None:
+    async def _update_collective_memory(self, results: list[AttackResult]) -> None:
         """Update collective memory with successful patterns."""
         for result in results:
             if result.success and result.confidence > 0.7:
@@ -183,7 +181,7 @@ class SwarmIntelligence:
             for pattern_key, _ in patterns_to_remove:
                 del self.collective_memory[pattern_key]
 
-    async def _analyze_swarm_performance(self, results: List[AttackResult]) -> None:
+    async def _analyze_swarm_performance(self, results: list[AttackResult]) -> None:
         """Analyze overall swarm performance metrics."""
         if not results:
             return
@@ -220,7 +218,7 @@ class SwarmIntelligence:
             1, len(results) * (len(results) - 1) / 2
         )
 
-    async def _adapt_swarm_behavior(self, results: List[AttackResult]) -> None:
+    async def _adapt_swarm_behavior(self, results: list[AttackResult]) -> None:
         """Adapt swarm behavior based on performance."""
         # Determine optimal behavior based on current state
         if self.swarm_effectiveness < 0.3:
@@ -307,7 +305,7 @@ class SwarmIntelligence:
 
     async def get_swarm_recommendations(
         self, agent: AdversarialAgent
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get swarm intelligence recommendations for an agent."""
         recommendations = {
             "preferred_targets": [],
@@ -352,7 +350,7 @@ class SwarmIntelligence:
 
         return recommendations
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get swarm intelligence status."""
         return {
             "current_behavior": self.current_behavior.value,
@@ -379,7 +377,7 @@ class SwarmIntelligence:
             },
         }
 
-    async def export_knowledge(self) -> Dict[str, Any]:
+    async def export_knowledge(self) -> dict[str, Any]:
         """Export swarm intelligence knowledge for analysis."""
         return {
             "collective_memory": {

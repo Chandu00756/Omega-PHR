@@ -63,7 +63,8 @@ class TimelineLattice:
         self._consistency_cache: dict[str, float] = {}
 
         logger.info(
-            f"Timeline Lattice initialized with max_timelines={max_timelines}, paradox_threshold={paradox_threshold}"
+            f"Timeline Lattice initialized with max_timelines={max_timelines}, "
+            f"paradox_threshold={paradox_threshold}"
         )
 
     async def append_event(self, event: Event) -> bool:
@@ -77,7 +78,8 @@ class TimelineLattice:
             bool: True if event was successfully appended
 
         Raises:
-            TemporalParadoxError: If adding the event would create an unresolvable paradox
+            TemporalParadoxError: If adding the event would create an
+                unresolvable paradox
         """
         logger.debug(
             f"Appending event {event.event_id} to timeline {event.timeline_id}"
@@ -425,14 +427,13 @@ class TimelineLattice:
             paradoxes_found = []
             for i, event in enumerate(events):
                 for j, other_event in enumerate(events):
-                    if i != j:
-                        # Check if events contradict each other
-                        if (
-                            event.valid_at_us > other_event.valid_at_us
-                            and "contradicts" in event.payload
-                            and event.payload["contradicts"] == other_event.event_id
-                        ):
-                            paradoxes_found.append((event, other_event))
+                    if (
+                        i != j
+                        and event.valid_at_us > other_event.valid_at_us
+                        and "contradicts" in event.payload
+                        and event.payload["contradicts"] == other_event.event_id
+                    ):
+                        paradoxes_found.append((event, other_event))
 
             from .models import ParadoxResult
 

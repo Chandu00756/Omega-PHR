@@ -7,7 +7,7 @@ for the distributed adversarial attack coordination service.
 
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -20,15 +20,13 @@ class HiveServiceConfig:
     use_ssl: bool = field(
         default_factory=lambda: os.getenv("HIVE_USE_SSL", "false").lower() == "true"
     )
-    ssl_cert_file: Optional[str] = field(
+    ssl_cert_file: str | None = field(
         default_factory=lambda: os.getenv("HIVE_SSL_CERT")
     )
-    ssl_key_file: Optional[str] = field(
-        default_factory=lambda: os.getenv("HIVE_SSL_KEY")
-    )
+    ssl_key_file: str | None = field(default_factory=lambda: os.getenv("HIVE_SSL_KEY"))
 
     # Ray Configuration
-    ray_address: Optional[str] = field(default_factory=lambda: os.getenv("RAY_ADDRESS"))
+    ray_address: str | None = field(default_factory=lambda: os.getenv("RAY_ADDRESS"))
     ray_namespace: str = field(
         default_factory=lambda: os.getenv("RAY_NAMESPACE", "omega-phr-hive")
     )
@@ -126,7 +124,7 @@ class HiveServiceConfig:
     )
 
     # AI Model Configuration
-    ai_model_endpoint: Optional[str] = field(
+    ai_model_endpoint: str | None = field(
         default_factory=lambda: os.getenv("HIVE_AI_MODEL_ENDPOINT")
     )
     ai_model_timeout: int = field(
@@ -139,7 +137,7 @@ class HiveServiceConfig:
         == "true"
     )
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """
         Validate configuration and return list of errors.
 
@@ -214,7 +212,7 @@ class HiveServiceConfig:
 
         return errors
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
             field.name: getattr(self, field.name)
@@ -226,7 +224,7 @@ class HiveServiceConfig:
         """Create configuration from environment variables."""
         return cls()
 
-    def get_ray_config(self) -> Dict[str, Any]:
+    def get_ray_config(self) -> dict[str, Any]:
         """Get Ray-specific configuration."""
         config = {
             "namespace": self.ray_namespace,
@@ -238,7 +236,7 @@ class HiveServiceConfig:
 
         return config
 
-    def get_server_options(self) -> List[tuple]:
+    def get_server_options(self) -> list[tuple]:
         """Get gRPC server options."""
         return [
             ("grpc.keepalive_time_ms", 30000),

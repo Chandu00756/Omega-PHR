@@ -9,9 +9,6 @@ through high-performance remote procedure calls.
 
 import asyncio
 import logging
-import signal
-import sys
-from typing import Optional
 
 import grpc
 from grpc import aio
@@ -19,7 +16,6 @@ from grpc import aio
 from .config import TimelineServiceConfig
 
 # Import service implementation
-from .models import TemporalParadox, TimelineEvent
 
 
 class SimpleTimelineRepository:

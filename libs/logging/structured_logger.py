@@ -9,10 +9,11 @@ import functools
 import logging
 import time
 import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
-from .formatter import JSONFormatter, configure_logging, get_logger
+from .formatter import configure_logging, get_logger
 
 
 class StructuredLogger:
@@ -29,7 +30,7 @@ class StructuredLogger:
         environment: str = "development",
         enable_console: bool = True,
         enable_file: bool = False,
-        log_file: Optional[str] = None,
+        log_file: str | None = None,
     ) -> None:
         """Initialize logging configuration."""
         if self._initialized:
@@ -81,12 +82,12 @@ class StructuredLogger:
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                with self.trace_context(operation, function=func.__name__) as logger:
+                with self.trace_context(operation, function=func.__name__):
                     return await func(*args, **kwargs)
 
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
-                with self.trace_context(operation, function=func.__name__) as logger:
+                with self.trace_context(operation, function=func.__name__):
                     return func(*args, **kwargs)
 
             return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
@@ -94,7 +95,7 @@ class StructuredLogger:
         return decorator
 
     def audit_log(
-        self, action: str, resource: str, user_id: Optional[str] = None, **context: Any
+        self, action: str, resource: str, user_id: str | None = None, **context: Any
     ) -> None:
         """Log audit event."""
         logger = logging.getLogger("audit")

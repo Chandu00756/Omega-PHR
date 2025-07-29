@@ -3,11 +3,8 @@ Data models for Timeline Lattice service.
 """
 
 import hashlib
-import json
-import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from timeline_pb2 import Event as ProtoEvent
 
@@ -29,7 +26,7 @@ class EventModel:
     recorded_at_us: int
     signature: bytes
     event_type: str = "NORMAL"
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_proto(cls, proto_event: ProtoEvent) -> "EventModel":
@@ -72,7 +69,7 @@ class EventModel:
         expected_signature = self.calculate_signature()
         return self.signature == expected_signature
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary representation."""
         return {
             "event_id": self.event_id,
@@ -94,11 +91,11 @@ class TimelineInfo:
 
     timeline_id: str
     event_count: int
-    created_at: Optional[int] = None
+    created_at: int | None = None
     consistency_score: float = 1.0
     entropy_level: float = 0.0
     has_paradoxes: bool = False
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

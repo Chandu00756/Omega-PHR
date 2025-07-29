@@ -22,15 +22,14 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import secrets
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 try:
     import base64
@@ -92,17 +91,15 @@ class CryptographicKeyPair:
     algorithm: CryptographicAlgorithm
     key_id: str
     created_at: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     usage_count: int = 0
-    max_usage: Optional[int] = None
+    max_usage: int | None = None
 
     def is_expired(self) -> bool:
         """Check if key pair is expired."""
-        if self.expires_at and datetime.now(timezone.utc) > self.expires_at:
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
             return True
-        if self.max_usage and self.usage_count >= self.max_usage:
-            return True
-        return False
+        return bool(self.max_usage and self.usage_count >= self.max_usage)
 
     def increment_usage(self) -> None:
         """Increment usage counter."""
@@ -119,9 +116,9 @@ class TemporalSignature:
     timestamp: datetime
     sequence_number: int
     nonce: bytes
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert signature to dictionary."""
         return {
             "signature": (
@@ -140,7 +137,7 @@ class TemporalSignature:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TemporalSignature":
+    def from_dict(cls, data: dict[str, Any]) -> "TemporalSignature":
         """Create signature from dictionary."""
         return cls(
             signature=(
@@ -172,7 +169,7 @@ class AdvancedEventSigner:
 
     def __init__(
         self,
-        key_dir: Optional[Path] = None,
+        key_dir: Path | None = None,
         hsm_enabled: bool = False,
         quantum_resistant: bool = False,
         key_rotation_interval: timedelta = timedelta(days=90),
@@ -200,7 +197,7 @@ class AdvancedEventSigner:
 
         # Initialize cryptographic state
         self.sequence_counter: int = 0
-        self.entropy_pool: List[bytes] = []
+        self.entropy_pool: list[bytes] = []
 
         # Thread pool for concurrent operations
         self.executor = ThreadPoolExecutor(max_workers=8)
@@ -260,7 +257,7 @@ class AdvancedEventSigner:
                 public_key=b"fallback_public_key",
                 algorithm=CryptographicAlgorithm.ED25519,
                 key_id=f"master_{secrets.token_hex(8)}",
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Generate Ed25519 key pair
@@ -279,11 +276,11 @@ class AdvancedEventSigner:
             public_key=public_key,
             algorithm=CryptographicAlgorithm.ED25519,
             key_id=key_id,
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + self.key_rotation_interval,
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + self.key_rotation_interval,
         )
 
-    def _load_master_key(self) -> Optional[CryptographicKeyPair]:
+    def _load_master_key(self) -> CryptographicKeyPair | None:
         """Load master key from secure storage."""
         if not self.master_key_path.exists():
             return None
@@ -291,7 +288,7 @@ class AdvancedEventSigner:
         try:
             with open(self.master_key_path, "rb") as f:
                 # In a real implementation, this would be encrypted
-                key_data = f.read()
+                f.read()
                 # Deserialize key data (placeholder for research)
                 return None  # Placeholder for encrypted key loading
         except Exception as e:
@@ -318,7 +315,7 @@ class AdvancedEventSigner:
         )
 
     async def sign_event(
-        self, event_data: Dict[str, Any], timeline_id: str, event_id: str
+        self, event_data: dict[str, Any], timeline_id: str, event_id: str
     ) -> TemporalSignature:
         """
         Sign a temporal event with research cryptographic signature.
@@ -348,7 +345,7 @@ class AdvancedEventSigner:
                 "event_id": event_id,
                 "sequence_number": sequence_number,
                 "nonce": base64.b64encode(nonce).decode() if base64 else nonce.hex(),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "algorithm": self.master_key.algorithm.value,
                 "key_id": self.master_key.key_id,
             }
@@ -370,7 +367,7 @@ class AdvancedEventSigner:
                 signature=signature_bytes,
                 algorithm=self.master_key.algorithm,
                 key_id=self.master_key.key_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 sequence_number=sequence_number,
                 nonce=nonce,
                 metadata={
@@ -394,7 +391,7 @@ class AdvancedEventSigner:
     async def verify_signature(
         self,
         signature: TemporalSignature,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         timeline_id: str,
         event_id: str,
     ) -> bool:
@@ -469,7 +466,7 @@ class AdvancedEventSigner:
             return False
 
     def _prepare_signing_data(
-        self, event_data: Dict[str, Any], timeline_id: str, event_id: str
+        self, event_data: dict[str, Any], timeline_id: str, event_id: str
     ) -> str:
         """Prepare comprehensive data for signing."""
         signing_payload = {
@@ -491,7 +488,7 @@ class AdvancedEventSigner:
     ) -> bool:
         """Verify research temporal constraints for signature."""
         # Check timestamp validity (research requirements)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         time_diff = abs((now - signature.timestamp).total_seconds())
 
         # Enterprise: Allow 30 minutes time skew maximum
@@ -569,10 +566,7 @@ class AdvancedEventSigner:
             return True
 
         # Check expiration
-        if self.master_key.is_expired():
-            return True
-
-        return False
+        return bool(self.master_key.is_expired())
 
     async def rotate_keys(self) -> None:
         """Perform research key rotation."""
@@ -597,7 +591,7 @@ class AdvancedEventSigner:
             self.logger.error(f"Enterprise key rotation failed: {e}")
             raise CryptoError(f"Key rotation failed: {e}")
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive research cryptographic system status."""
         return {
             "crypto_backend": (
@@ -606,7 +600,7 @@ class AdvancedEventSigner:
             "master_key_id": self.master_key.key_id,
             "master_key_algorithm": self.master_key.algorithm.value,
             "master_key_age_days": (
-                datetime.now(timezone.utc) - self.master_key.created_at
+                datetime.now(UTC) - self.master_key.created_at
             ).days,
             "key_rotation_due": self.should_rotate_keys(),
             "hsm_enabled": self.hsm_enabled,
@@ -624,10 +618,10 @@ EventSigner = AdvancedEventSigner
 
 
 # Global research cryptographic instance
-_research_signer: Optional[AdvancedEventSigner] = None
+_research_signer: AdvancedEventSigner | None = None
 
 
-def get_research_signer(key_dir: Optional[Path] = None) -> AdvancedEventSigner:
+def get_research_signer(key_dir: Path | None = None) -> AdvancedEventSigner:
     """Get global research event signer instance."""
     global _research_signer
     if _research_signer is None:
@@ -635,7 +629,7 @@ def get_research_signer(key_dir: Optional[Path] = None) -> AdvancedEventSigner:
     return _research_signer
 
 
-def get_event_signer(key_dir: Optional[Path] = None) -> AdvancedEventSigner:
+def get_event_signer(key_dir: Path | None = None) -> AdvancedEventSigner:
     """Get event signer instance (backward compatibility)."""
     return get_research_signer(key_dir)
 
@@ -654,7 +648,7 @@ if __name__ == "__main__":
         # Test event signing
         event_data = {
             "type": "temporal_event",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "data": {"test": "research_value"},
             "paradox_risk": 0.1,
         }

@@ -31,13 +31,12 @@ except ImportError:
             return math.log2(x) if x > 0 else 0
 
     np = MockNumpy()
-import json
 import logging
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .agent import AdversarialAgent, AgentType, AttackResult
 
@@ -107,8 +106,8 @@ class AttackStrategy(ABC):
     def __init__(
         self,
         strategy_type: StrategyType,
-        objectives: List[ObjectiveType],
-        params: Optional[StrategyParams] = None,
+        objectives: list[ObjectiveType],
+        params: StrategyParams | None = None,
         **kwargs,
     ):
         self.strategy_type = strategy_type
@@ -121,35 +120,35 @@ class AttackStrategy(ABC):
         self.generation = 0
 
         # Strategy-specific data
-        self.attack_history: List[AttackResult] = []
-        self.vulnerability_database: Dict[str, Any] = {}
-        self.agent_performance: Dict[str, float] = {}
+        self.attack_history: list[AttackResult] = []
+        self.vulnerability_database: dict[str, Any] = {}
+        self.agent_performance: dict[str, float] = {}
 
     @abstractmethod
     async def select_agents(
-        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
-    ) -> List[AdversarialAgent]:
+        self, available_agents: list[AdversarialAgent], context: dict[str, Any]
+    ) -> list[AdversarialAgent]:
         """Select agents for the next attack wave."""
         pass
 
     @abstractmethod
     async def coordinate_attacks(
         self,
-        selected_agents: List[AdversarialAgent],
-        target_models: List[str],
-        context: Dict[str, Any],
-    ) -> List[AttackResult]:
+        selected_agents: list[AdversarialAgent],
+        target_models: list[str],
+        context: dict[str, Any],
+    ) -> list[AttackResult]:
         """Coordinate attacks across selected agents."""
         pass
 
     @abstractmethod
     async def adapt_strategy(
-        self, results: List[AttackResult], feedback: Dict[str, Any]
+        self, results: list[AttackResult], feedback: dict[str, Any]
     ) -> None:
         """Adapt strategy based on attack results."""
         pass
 
-    def update_metrics(self, results: List[AttackResult]) -> None:
+    def update_metrics(self, results: list[AttackResult]) -> None:
         """Update strategy performance metrics."""
         if not results:
             return
@@ -170,7 +169,7 @@ class AttackStrategy(ABC):
         )
 
         # Calculate coverage (unique attack types)
-        unique_types = set(r.attack_type for r in results)
+        unique_types = {r.attack_type for r in results}
         self.metrics.coverage_score = len(unique_types) / len(AgentType)
 
         # Calculate novelty (new vulnerability patterns)
@@ -229,7 +228,7 @@ class AttackStrategy(ABC):
 
         self.last_update = time.time()
 
-    def get_strategy_info(self) -> Dict[str, Any]:
+    def get_strategy_info(self) -> dict[str, Any]:
         """Get comprehensive strategy information."""
         return {
             "strategy_type": self.strategy_type.value,
@@ -269,18 +268,18 @@ class RandomStrategy(AttackStrategy):
         )
 
     async def select_agents(
-        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
-    ) -> List[AdversarialAgent]:
+        self, available_agents: list[AdversarialAgent], context: dict[str, Any]
+    ) -> list[AdversarialAgent]:
         """Randomly select agents."""
         num_agents = min(len(available_agents), context.get("max_agents", 5))
         return random.sample(available_agents, num_agents)
 
     async def coordinate_attacks(
         self,
-        selected_agents: List[AdversarialAgent],
-        target_models: List[str],
-        context: Dict[str, Any],
-    ) -> List[AttackResult]:
+        selected_agents: list[AdversarialAgent],
+        target_models: list[str],
+        context: dict[str, Any],
+    ) -> list[AttackResult]:
         """Execute random coordinated attacks."""
         results = []
 
@@ -297,7 +296,7 @@ class RandomStrategy(AttackStrategy):
         return results
 
     async def adapt_strategy(
-        self, results: List[AttackResult], feedback: Dict[str, Any]
+        self, results: list[AttackResult], feedback: dict[str, Any]
     ) -> None:
         """Random strategy doesn't adapt."""
         pass
@@ -314,8 +313,8 @@ class GreedyStrategy(AttackStrategy):
         )
 
     async def select_agents(
-        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
-    ) -> List[AdversarialAgent]:
+        self, available_agents: list[AdversarialAgent], context: dict[str, Any]
+    ) -> list[AdversarialAgent]:
         """Select agents based on performance."""
         # Sort agents by success rate
         sorted_agents = sorted(
@@ -328,10 +327,10 @@ class GreedyStrategy(AttackStrategy):
 
     async def coordinate_attacks(
         self,
-        selected_agents: List[AdversarialAgent],
-        target_models: List[str],
-        context: Dict[str, Any],
-    ) -> List[AttackResult]:
+        selected_agents: list[AdversarialAgent],
+        target_models: list[str],
+        context: dict[str, Any],
+    ) -> list[AttackResult]:
         """Execute attacks with best-performing agents."""
         results = []
 
@@ -348,7 +347,7 @@ class GreedyStrategy(AttackStrategy):
         return results
 
     def _select_best_target(
-        self, agent: AdversarialAgent, target_models: List[str]
+        self, agent: AdversarialAgent, target_models: list[str]
     ) -> str:
         """Select the best target model for an agent."""
         # Simple heuristic: use model with highest success rate
@@ -366,7 +365,7 @@ class GreedyStrategy(AttackStrategy):
         return random.choice(target_models)
 
     async def adapt_strategy(
-        self, results: List[AttackResult], feedback: Dict[str, Any]
+        self, results: list[AttackResult], feedback: dict[str, Any]
     ) -> None:
         """Adapt greedy selection based on recent performance."""
         # Update agent performance scores
@@ -388,11 +387,11 @@ class EvolutionaryStrategy(AttackStrategy):
             objectives=[ObjectiveType.DISCOVER_NOVEL_VULNERABILITIES],
             **kwargs,
         )
-        self.population_fitness: Dict[str, float] = {}
+        self.population_fitness: dict[str, float] = {}
 
     async def select_agents(
-        self, available_agents: List[AdversarialAgent], context: Dict[str, Any]
-    ) -> List[AdversarialAgent]:
+        self, available_agents: list[AdversarialAgent], context: dict[str, Any]
+    ) -> list[AdversarialAgent]:
         """Select agents using tournament selection."""
         selected = []
         tournament_size = min(3, len(available_agents))
@@ -413,18 +412,16 @@ class EvolutionaryStrategy(AttackStrategy):
 
         # Bonus for novelty and diversity
         novelty_bonus = len(agent.memory.learned_patterns) * self.params.novelty_bonus
-        diversity_bonus = len(
-            set(r.attack_type for r in agent.memory.successful_attacks)
-        )
+        diversity_bonus = len({r.attack_type for r in agent.memory.successful_attacks})
 
         return base_fitness + novelty_bonus + diversity_bonus * 0.1
 
     async def coordinate_attacks(
         self,
-        selected_agents: List[AdversarialAgent],
-        target_models: List[str],
-        context: Dict[str, Any],
-    ) -> List[AttackResult]:
+        selected_agents: list[AdversarialAgent],
+        target_models: list[str],
+        context: dict[str, Any],
+    ) -> list[AttackResult]:
         """Execute evolutionary coordinated attacks."""
         results = []
 
@@ -452,7 +449,7 @@ class EvolutionaryStrategy(AttackStrategy):
 
         return results
 
-    def _mutate_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _mutate_context(self, context: dict[str, Any]) -> dict[str, Any]:
         """Apply random mutations to attack context."""
         mutated_context = context.copy()
 
@@ -470,7 +467,7 @@ class EvolutionaryStrategy(AttackStrategy):
         return mutated_context
 
     async def adapt_strategy(
-        self, results: List[AttackResult], feedback: Dict[str, Any]
+        self, results: list[AttackResult], feedback: dict[str, Any]
     ) -> None:
         """Evolve strategy parameters based on results."""
         self.generation += 1
@@ -507,8 +504,8 @@ class EvolutionaryStrategy(AttackStrategy):
 
 def create_strategy(
     strategy_type: StrategyType,
-    objectives: Optional[List[ObjectiveType]] = None,
-    params: Optional[StrategyParams] = None,
+    objectives: list[ObjectiveType] | None = None,
+    params: StrategyParams | None = None,
 ) -> AttackStrategy:
     """Factory function to create attack strategies."""
     if objectives is None:

@@ -1,42 +1,29 @@
 """
 Comprehensive test suite for the Omega-Paradox Hive Recursion (Ω-PHR) framework.
 
-This module provides unit, integration, and end-to-end tests for all framework components.
+This module provides unit, integration, and end-to-end tests for all framework
+components.
 """
 
 import asyncio
 import os
 import time
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from omega_phr.exceptions import (
     HiveCoordinationError,
-    InfiniteLoopException,
-    MemoryInversionError,
-    MemoryInversionException,
-    OmegaPHRException,
-    OmegaStateError,
-    ParadoxDetectedException,
     RecursiveLoopError,
     TemporalParadoxError,
 )
-from omega_phr.hive import HiveOrchestrator
+from omega_phr.hive import HiveOrchestrator, InjectionAttacker
 from omega_phr.loops import RecursiveLoopSynthesizer
 from omega_phr.memory import MemoryInverter
 
 # Import framework components
 from omega_phr.models import (
-    AttackStrategy,
     Event,
     EventType,
-    HiveResult,
-    LoopState,
-    MemoryState,
     OmegaState,
     OmegaStateLevel,
     ParadoxResult,
@@ -222,7 +209,8 @@ class TestTimelineLattice:
 
         # Verify timeline state after rewind
         events = timeline_lattice.get_events("rewind-timeline")
-        # Should have fewer events after rewind (was 5, should be 4 or less due to rewind event being added)
+        # Should have fewer events after rewind (was 5, should be 4 or less
+        # due to rewind event being added)
         assert len(events) <= 4
 
     @pytest.mark.asyncio
@@ -266,15 +254,13 @@ class TestHiveOrchestrator:
     @pytest.mark.asyncio
     async def test_add_attacker(self, hive_orchestrator):
         """Test agent creation."""
-        agent_config = {
+        _ = {
             "agent_type": "injection_attacker",
             "target_system": "test-target",
-            "parameters": {"intensity": 0.5},
+            "max_attempts": 5,
         }
 
-        agent_id = hive_orchestrator.add_attacker(
-            type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
-        )
+        agent_id = hive_orchestrator.add_attacker(InjectionAttacker, persona="test")
         assert agent_id is not None
         assert isinstance(agent_id, str)
 
@@ -288,12 +274,7 @@ class TestHiveOrchestrator:
         """Test attack launch coordination."""
         # Create some agents first
         agent_ids = []
-        for i in range(3):
-            agent_config = {
-                "agent_type": "injection_attacker",
-                "target_system": f"target-{i}",
-                "parameters": {"intensity": 0.3},
-            }
+        for _i in range(3):
             agent_id = hive_orchestrator.add_attacker(
                 type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
             )
@@ -320,12 +301,7 @@ class TestHiveOrchestrator:
         """Test swarm intelligence coordination."""
         # Create multiple agents
         agent_ids = []
-        for i in range(5):
-            agent_config = {
-                "agent_type": "social_engineering_attacker",
-                "target_system": "social-target",
-                "parameters": {"approach": f"method-{i}"},
-            }
+        for _i in range(5):
             agent_id = hive_orchestrator.add_attacker(
                 type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
             )
@@ -406,7 +382,7 @@ class TestMemoryInverter:
             "session_valid": True,
         }
 
-        snapshot_id = await memory_inverter.create_snapshot(initial_state)
+        await memory_inverter.create_snapshot(initial_state)
 
         # Apply contradiction inversion
         inversion_result = await memory_inverter.invert_memory(
@@ -430,9 +406,10 @@ class TestMemoryInverter:
         state = {"timestamp": base_time, "counter": 0, "status": "step_0"}
 
         # Create snapshot first
-        snapshot_id = await memory_inverter.create_snapshot(state)
+        await memory_inverter.create_snapshot(state)
 
-        # Apply temporal shift inversion to the actual state content, not the snapshot ID
+        # Apply temporal shift inversion to the actual state content,
+        # not the snapshot ID
         inversion_result = await memory_inverter.invert_memory(
             content=state, strategy="temporal_shift"
         )
@@ -630,7 +607,7 @@ class TestOmegaStateRegister:
         # Register multiple states with varying entropy
         entropy_levels = [0.2, 0.5, 0.8, 0.95, 0.99]
 
-        for i, entropy in enumerate(entropy_levels):
+        for i, _entropy in enumerate(entropy_levels):
             state = OmegaState(
                 omega_id=f"entropy-test-{i}",
                 level=OmegaStateLevel.WARNING,
@@ -672,11 +649,6 @@ class TestIntegration:
         hive = full_framework["hive"]
 
         # Create agent that monitors timeline
-        agent_config = {
-            "agent_type": "timeline_monitor",
-            "target_system": "timeline-001",
-            "parameters": {"monitor_events": True},
-        }
         agent_id = hive.add_attacker(
             type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
         )
@@ -742,11 +714,6 @@ class TestIntegration:
         memory_snapshot = await memory.create_snapshot(initial_memory)
 
         # 2. Launch hive attack
-        agent_config = {
-            "agent_type": "system_infiltrator",
-            "target_system": "test-system",
-            "parameters": {"stealth_mode": True},
-        }
         agent_id = hive.add_attacker(
             type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
         )
@@ -773,7 +740,7 @@ class TestIntegration:
             await timeline.append_event(event)
 
         # 4. Test for paradoxes
-        paradox_result = await timeline.test_paradox("attack-timeline")
+        await timeline.test_paradox("attack-timeline")
 
         # 5. Generate recursive loops for testing
         loop_config = {
@@ -939,7 +906,7 @@ class TestPerformance:
         start_time = time.time()
 
         for i in range(agent_count):
-            agent_config = {
+            {
                 "agent_type": "load_test_agent",
                 "target_system": f"target-{i % 10}",  # 10 different targets
                 "parameters": {"load_test": True},

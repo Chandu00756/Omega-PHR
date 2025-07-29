@@ -6,13 +6,12 @@ Provides research-grade stability for multi-agent security testing.
 """
 
 import asyncio
-import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,7 +49,7 @@ class AgentCapability:
     type: CapabilityType
     description: str
     confidence: float
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -61,12 +60,12 @@ class AgentRegistration:
     name: str
     agent_type: str
     version: str
-    capabilities: List[AgentCapability]
+    capabilities: list[AgentCapability]
     status: AgentStatus
     last_heartbeat: int
     registration_time: int
     endpoint: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -76,21 +75,21 @@ class Task:
     id: str
     agent_id: str
     task_type: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     status: str
     created_at: int
-    assigned_at: Optional[int]
-    completed_at: Optional[int]
-    result: Optional[Dict[str, Any]]
+    assigned_at: int | None
+    completed_at: int | None
+    result: dict[str, Any] | None
 
 
 class OmegaRegistry:
     """Central registry for agent management."""
 
     def __init__(self):
-        self.agents: Dict[str, AgentRegistration] = {}
-        self.tasks: Dict[str, Task] = {}
-        self.agent_capabilities: Dict[CapabilityType, Set[str]] = {}
+        self.agents: dict[str, AgentRegistration] = {}
+        self.tasks: dict[str, Task] = {}
+        self.agent_capabilities: dict[CapabilityType, set[str]] = {}
         self.heartbeat_timeout = 300  # 5 minutes
 
         # Initialize capability index
@@ -179,14 +178,14 @@ class OmegaRegistry:
 
     async def find_agents_by_capability(
         self, capability: CapabilityType
-    ) -> List[AgentRegistration]:
+    ) -> list[AgentRegistration]:
         """Find agents with specific capability."""
         agent_ids = self.agent_capabilities.get(capability, set())
         return [
             self.agents[agent_id] for agent_id in agent_ids if agent_id in self.agents
         ]
 
-    async def get_available_agents(self) -> List[AgentRegistration]:
+    async def get_available_agents(self) -> list[AgentRegistration]:
         """Get all available (active/inactive) agents."""
         return [
             agent
@@ -220,7 +219,7 @@ class OmegaRegistry:
             logger.error(f"Failed to assign task {task.id}: {e}")
             return False
 
-    async def complete_task(self, task_id: str, result: Dict[str, Any]) -> bool:
+    async def complete_task(self, task_id: str, result: dict[str, Any]) -> bool:
         """Mark a task as completed."""
         try:
             if task_id not in self.tasks:
@@ -241,11 +240,11 @@ class OmegaRegistry:
             logger.error(f"Failed to complete task {task_id}: {e}")
             return False
 
-    async def get_agent_tasks(self, agent_id: str) -> List[Task]:
+    async def get_agent_tasks(self, agent_id: str) -> list[Task]:
         """Get all tasks for an agent."""
         return [task for task in self.tasks.values() if task.agent_id == agent_id]
 
-    async def get_pending_tasks(self) -> List[Task]:
+    async def get_pending_tasks(self) -> list[Task]:
         """Get all pending tasks."""
         return [
             task
@@ -283,9 +282,9 @@ class TaskScheduler:
     async def schedule_task(
         self,
         task_type: str,
-        parameters: Dict[str, Any],
-        required_capability: Optional[CapabilityType] = None,
-    ) -> Optional[str]:
+        parameters: dict[str, Any],
+        required_capability: CapabilityType | None = None,
+    ) -> str | None:
         """Schedule a task to the best available agent."""
         try:
             # Find suitable agents
@@ -364,7 +363,7 @@ class OmegaRegisterService:
         self.running = False
         logger.info("Omega Register Service stopped")
 
-    async def register_agent(self, agent_data: Dict[str, Any]) -> str:
+    async def register_agent(self, agent_data: dict[str, Any]) -> str:
         """Register a new agent."""
         # Parse capabilities
         capabilities = []
@@ -404,7 +403,7 @@ class OmegaRegisterService:
         """Process agent heartbeat."""
         return await self.registry.heartbeat(agent_id)
 
-    async def schedule_task(self, task_data: Dict[str, Any]) -> str:
+    async def schedule_task(self, task_data: dict[str, Any]) -> str:
         """Schedule a new task."""
         task_type = task_data["type"]
         parameters = task_data.get("parameters", {})
@@ -422,11 +421,11 @@ class OmegaRegisterService:
         else:
             raise Exception("Failed to schedule task")
 
-    async def complete_task(self, task_id: str, result: Dict[str, Any]) -> bool:
+    async def complete_task(self, task_id: str, result: dict[str, Any]) -> bool:
         """Complete a task."""
         return await self.registry.complete_task(task_id, result)
 
-    async def get_registry_status(self) -> Dict[str, Any]:
+    async def get_registry_status(self) -> dict[str, Any]:
         """Get registry status and statistics."""
         agents = list(self.registry.agents.values())
         tasks = list(self.registry.tasks.values())
@@ -456,11 +455,11 @@ class OmegaRegisterService:
             "timestamp": int(datetime.now().timestamp() * 1000),
         }
 
-    async def list_agents(self) -> List[Dict[str, Any]]:
+    async def list_agents(self) -> list[dict[str, Any]]:
         """List all registered agents."""
         return [asdict(agent) for agent in self.registry.agents.values()]
 
-    async def get_agent_info(self, agent_id: str) -> Optional[Dict[str, Any]]:
+    async def get_agent_info(self, agent_id: str) -> dict[str, Any] | None:
         """Get information about a specific agent."""
         if agent_id in self.registry.agents:
             return asdict(self.registry.agents[agent_id])
@@ -494,7 +493,7 @@ class OmegaRegisterAPI:
     def __init__(self, service: OmegaRegisterService):
         self.service = service
 
-    async def register_agent(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def register_agent(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Register agent via API."""
         try:
             agent_id = await self.service.register_agent(request_data)
@@ -510,7 +509,7 @@ class OmegaRegisterAPI:
                 "message": "Failed to register agent",
             }
 
-    async def schedule_task(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def schedule_task(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Schedule task via API."""
         try:
             task_id = await self.service.schedule_task(request_data)
@@ -526,7 +525,7 @@ class OmegaRegisterAPI:
                 "message": "Failed to schedule task",
             }
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get registry status via API."""
         try:
             status = await self.service.get_registry_status()
@@ -573,7 +572,7 @@ async def main():
         logger.info(f"Agent registration result: {registration_result}")
 
         if registration_result["success"]:
-            agent_id = registration_result["agent_id"]
+            registration_result["agent_id"]
 
             # Demo: Schedule a task
             test_task = {

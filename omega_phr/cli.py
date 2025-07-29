@@ -252,7 +252,7 @@ def timeline_paradox(
         console=console,
         transient=True,
     ) as progress:
-        task = progress.add_task("Scanning for temporal paradoxes...", total=None)
+        progress.add_task("Scanning for temporal paradoxes...", total=None)
         time.sleep(2)  # Simulate analysis
 
     # Mock results
@@ -334,7 +334,7 @@ def memory_snapshot(
         console=console,
         transient=True,
     ) as progress:
-        task = progress.add_task("Capturing memory state...", total=None)
+        progress.add_task("Capturing memory state...", total=None)
         time.sleep(1.5)
 
     snapshot_id = f"snap_{uuid.uuid4().hex[:8]}"
@@ -440,7 +440,7 @@ def omega_register(
         console=console,
         transient=True,
     ) as progress:
-        task = progress.add_task("Processing Ω-state registration...", total=None)
+        progress.add_task("Processing Ω-state registration...", total=None)
         time.sleep(1)
 
     console.print("[SUCCESS] Ω-state registered successfully", style="green")
@@ -495,7 +495,7 @@ def system_health() -> None:
         ]
 
         for check in checks:
-            task = progress.add_task(f"Checking {check}...", total=None)
+            progress.add_task(f"Checking {check}...", total=None)
             time.sleep(0.5)
 
     # Health report

@@ -6,12 +6,11 @@ Provides research-grade stability for cognitive security testing.
 """
 
 import asyncio
-import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,10 +23,10 @@ class MemoryTrace:
 
     id: str
     source_id: str
-    content: Dict[str, Any]
+    content: dict[str, Any]
     timestamp: int
     confidence: float
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -36,7 +35,7 @@ class InversionPattern:
 
     id: str
     pattern_type: str
-    traces: List[str]  # Memory trace IDs
+    traces: list[str]  # Memory trace IDs
     confidence: float
     description: str
     detected_at: int
@@ -46,9 +45,9 @@ class MemoryRepository:
     """In-memory repository for memory traces and patterns."""
 
     def __init__(self):
-        self.traces: Dict[str, MemoryTrace] = {}
-        self.patterns: Dict[str, InversionPattern] = {}
-        self.source_traces: Dict[str, Set[str]] = {}  # source_id -> trace_ids
+        self.traces: dict[str, MemoryTrace] = {}
+        self.patterns: dict[str, InversionPattern] = {}
+        self.source_traces: dict[str, set[str]] = {}  # source_id -> trace_ids
 
     async def store_trace(self, trace: MemoryTrace) -> bool:
         """Store a memory trace."""
@@ -66,7 +65,7 @@ class MemoryRepository:
             logger.error(f"Failed to store trace {trace.id}: {e}")
             return False
 
-    async def get_traces_by_source(self, source_id: str) -> List[MemoryTrace]:
+    async def get_traces_by_source(self, source_id: str) -> list[MemoryTrace]:
         """Get all traces for a source."""
         if source_id not in self.source_traces:
             return []
@@ -87,7 +86,7 @@ class MemoryRepository:
             logger.error(f"Failed to store pattern {pattern.id}: {e}")
             return False
 
-    async def get_patterns(self) -> List[InversionPattern]:
+    async def get_patterns(self) -> list[InversionPattern]:
         """Get all detected patterns."""
         return list(self.patterns.values())
 
@@ -98,7 +97,7 @@ class MemoryAnalyzer:
     def __init__(self):
         self.confidence_threshold = 0.7
 
-    async def analyze_traces(self, traces: List[MemoryTrace]) -> List[InversionPattern]:
+    async def analyze_traces(self, traces: list[MemoryTrace]) -> list[InversionPattern]:
         """Analyze traces for inversion patterns."""
         patterns = []
 
@@ -120,8 +119,8 @@ class MemoryAnalyzer:
         return patterns
 
     async def _detect_temporal_inversions(
-        self, traces: List[MemoryTrace]
-    ) -> List[InversionPattern]:
+        self, traces: list[MemoryTrace]
+    ) -> list[InversionPattern]:
         """Detect temporal sequence inversions."""
         patterns = []
 
@@ -153,8 +152,8 @@ class MemoryAnalyzer:
         return patterns
 
     async def _detect_content_inversions(
-        self, traces: List[MemoryTrace]
-    ) -> List[InversionPattern]:
+        self, traces: list[MemoryTrace]
+    ) -> list[InversionPattern]:
         """Detect content-based inversions."""
         patterns = []
 
@@ -179,7 +178,7 @@ class MemoryAnalyzer:
                         pattern_type="content_inversion",
                         traces=[t.id for t in high_conf + low_conf],
                         confidence=0.75,
-                        description=f"Content inversion: similar content with opposing confidence levels",
+                        description="Content inversion: similar content with opposing confidence levels",
                         detected_at=int(datetime.now().timestamp() * 1000),
                     )
                     patterns.append(pattern)
@@ -187,8 +186,8 @@ class MemoryAnalyzer:
         return patterns
 
     async def _detect_confidence_inversions(
-        self, traces: List[MemoryTrace]
-    ) -> List[InversionPattern]:
+        self, traces: list[MemoryTrace]
+    ) -> list[InversionPattern]:
         """Detect confidence-based inversions."""
         patterns = []
 
@@ -220,14 +219,14 @@ class MemoryAnalyzer:
 
         return patterns
 
-    def _generate_content_key(self, content: Dict[str, Any]) -> str:
+    def _generate_content_key(self, content: dict[str, Any]) -> str:
         """Generate a key for content similarity."""
         # Simple content fingerprinting
         key_parts = []
         for key, value in sorted(content.items()):
             if isinstance(value, str) and len(value) > 0:
                 key_parts.append(f"{key}:{value[:20]}")
-            elif isinstance(value, (int, float)):
+            elif isinstance(value, int | float):
                 key_parts.append(f"{key}:{value}")
 
         return "|".join(key_parts)
@@ -256,7 +255,7 @@ class MemoryInversionService:
         self.running = False
         logger.info("Memory Inversion Service stopped")
 
-    async def submit_memory_trace(self, trace_data: Dict[str, Any]) -> str:
+    async def submit_memory_trace(self, trace_data: dict[str, Any]) -> str:
         """Submit a memory trace for analysis."""
         trace = MemoryTrace(
             id=str(uuid.uuid4()),
@@ -276,7 +275,7 @@ class MemoryInversionService:
         else:
             raise Exception("Failed to store memory trace")
 
-    async def analyze_source(self, source_id: str) -> List[Dict[str, Any]]:
+    async def analyze_source(self, source_id: str) -> list[dict[str, Any]]:
         """Analyze all traces for a specific source."""
         traces = await self.repository.get_traces_by_source(source_id)
         patterns = await self.analyzer.analyze_traces(traces)
@@ -288,12 +287,12 @@ class MemoryInversionService:
         # Convert to dict format for API response
         return [asdict(pattern) for pattern in patterns]
 
-    async def get_inversion_patterns(self) -> List[Dict[str, Any]]:
+    async def get_inversion_patterns(self) -> list[dict[str, Any]]:
         """Get all detected inversion patterns."""
         patterns = await self.repository.get_patterns()
         return [asdict(pattern) for pattern in patterns]
 
-    async def get_trace_stats(self) -> Dict[str, Any]:
+    async def get_trace_stats(self) -> dict[str, Any]:
         """Get statistics about stored traces."""
         total_traces = len(self.repository.traces)
         total_sources = len(self.repository.source_traces)
@@ -346,7 +345,7 @@ class MemoryInversionAPI:
     def __init__(self, service: MemoryInversionService):
         self.service = service
 
-    async def submit_trace(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def submit_trace(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Submit a memory trace via API."""
         try:
             trace_id = await self.service.submit_memory_trace(request_data)
@@ -362,7 +361,7 @@ class MemoryInversionAPI:
                 "message": "Failed to submit memory trace",
             }
 
-    async def analyze_source(self, source_id: str) -> Dict[str, Any]:
+    async def analyze_source(self, source_id: str) -> dict[str, Any]:
         """Analyze a source via API."""
         try:
             patterns = await self.service.analyze_source(source_id)
@@ -379,7 +378,7 @@ class MemoryInversionAPI:
                 "message": f"Failed to analyze source {source_id}",
             }
 
-    async def get_patterns(self) -> Dict[str, Any]:
+    async def get_patterns(self) -> dict[str, Any]:
         """Get all patterns via API."""
         try:
             patterns = await self.service.get_inversion_patterns()
@@ -391,7 +390,7 @@ class MemoryInversionAPI:
                 "message": "Failed to retrieve patterns",
             }
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get service statistics via API."""
         try:
             stats = await self.service.get_trace_stats()

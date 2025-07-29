@@ -70,7 +70,10 @@ class Event:
 
     def _generate_signature(self) -> bytes:
         """Generate cryptographic signature for event integrity."""
-        content = f"{self.event_id}{self.actor_id}{self.timeline_id}{self.payload}{self.valid_at_us}"
+        content = (
+            f"{self.event_id}{self.actor_id}{self.timeline_id}{self.payload}"
+            f"{self.valid_at_us}"
+        )
         return hashlib.sha256(content.encode()).digest()
 
     def to_dict(self) -> dict[str, Any]:

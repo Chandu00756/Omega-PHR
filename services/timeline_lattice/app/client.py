@@ -18,8 +18,8 @@ paradox analysis.
 import asyncio
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 try:
     import grpc
@@ -31,8 +31,7 @@ except ImportError:
     grpc = None
     aio = None
 
-from .config import TimelineConfig
-from .models import EventType, TemporalParadox, TimelineEvent
+from .models import EventType, TemporalParadox
 
 
 class TimelineLatticeClient:
@@ -58,8 +57,8 @@ class TimelineLatticeClient:
         self.port = port
         self.timeout = timeout
         self.address = f"{host}:{port}"
-        self.channel: Optional[Any] = None
-        self.stub: Optional[Any] = None
+        self.channel: Any | None = None
+        self.stub: Any | None = None
         self.logger = logging.getLogger(__name__)
 
         if not GRPC_AVAILABLE:
@@ -112,7 +111,7 @@ class TimelineLatticeClient:
         self,
         name: str,
         description: str = "",
-        initial_timestamp: Optional[datetime] = None,
+        initial_timestamp: datetime | None = None,
     ) -> str:
         """
         Create a new temporal timeline.
@@ -126,7 +125,7 @@ class TimelineLatticeClient:
             Timeline ID
         """
         if initial_timestamp is None:
-            initial_timestamp = datetime.now(timezone.utc)
+            initial_timestamp = datetime.now(UTC)
 
         # Generate timeline ID
         timeline_id = f"timeline_{uuid.uuid4().hex[:8]}"
@@ -173,8 +172,8 @@ class TimelineLatticeClient:
         timeline_id: str,
         event_type: EventType,
         timestamp: datetime,
-        data: Dict[str, Any],
-        causality_vector: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any],
+        causality_vector: dict[str, Any] | None = None,
     ) -> str:
         """
         Add a temporal event to a timeline.
@@ -236,7 +235,7 @@ class TimelineLatticeClient:
             self.logger.error(f"Failed to add event: {e}")
             raise
 
-    async def analyze_paradoxes(self, timeline_id: str) -> List[TemporalParadox]:
+    async def analyze_paradoxes(self, timeline_id: str) -> list[TemporalParadox]:
         """
         Analyze timeline for temporal paradoxes.
 
@@ -257,7 +256,7 @@ class TimelineLatticeClient:
                 severity=0.5,
                 description="Mock paradox for testing",
                 affected_events=["event_001", "event_002"],
-                detected_at=datetime.now(timezone.utc),
+                detected_at=datetime.now(UTC),
             )
             self.logger.info(f"Mock: Analyzed paradoxes in timeline {timeline_id}")
             return [mock_paradox]
@@ -290,7 +289,7 @@ class TimelineLatticeClient:
                         severity=p.get("severity", 0.0),
                         description=p.get("description", ""),
                         affected_events=p.get("affected_events", []),
-                        detected_at=datetime.now(timezone.utc),
+                        detected_at=datetime.now(UTC),
                     )
                     paradoxes.append(paradox)
 
@@ -305,7 +304,7 @@ class TimelineLatticeClient:
             self.logger.error(f"Failed to analyze paradoxes: {e}")
             raise
 
-    async def get_timeline_status(self, timeline_id: str) -> Dict[str, Any]:
+    async def get_timeline_status(self, timeline_id: str) -> dict[str, Any]:
         """
         Get comprehensive timeline status and metrics.
 
@@ -322,7 +321,7 @@ class TimelineLatticeClient:
                 "status": "stable",
                 "event_count": 42,
                 "paradox_count": 3,
-                "last_event_timestamp": datetime.now(timezone.utc).isoformat(),
+                "last_event_timestamp": datetime.now(UTC).isoformat(),
                 "entropy_level": 0.25,
                 "stability_index": 0.87,
             }
@@ -394,7 +393,7 @@ class TimelineClientPool:
         self.port = port
         self.pool_size = pool_size
         self.timeout = timeout
-        self.clients: List[TimelineLatticeClient] = []
+        self.clients: list[TimelineLatticeClient] = []
         self.available_clients: asyncio.Queue = asyncio.Queue()
         self.logger = logging.getLogger(__name__)
 
@@ -457,10 +456,10 @@ if __name__ == "__main__":
             )
 
             # Add events
-            event_id = await client.add_event(
+            await client.add_event(
                 timeline_id=timeline_id,
                 event_type=EventType.TEMPORAL_SHIFT,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 data={"test": "research_event"},
             )
 

@@ -6,17 +6,14 @@ Provides research-grade stability for comprehensive system monitoring.
 """
 
 import asyncio
-import base64
-import gzip
 import json
 import logging
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -62,10 +59,10 @@ class TelemetryMetric:
     metric_type: MetricType
     value: float
     unit: str
-    labels: Dict[str, str]
+    labels: dict[str, str]
     timestamp: int
     source: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -78,10 +75,10 @@ class TelemetryEvent:
     message: str
     source: str
     timestamp: int
-    duration_ms: Optional[int]
-    properties: Dict[str, Any]
-    trace_id: Optional[str]
-    span_id: Optional[str]
+    duration_ms: int | None
+    properties: dict[str, Any]
+    trace_id: str | None
+    span_id: str | None
 
 
 @dataclass
@@ -92,8 +89,8 @@ class ExportTarget:
     name: str
     format: ExportFormat
     endpoint: str
-    credentials: Dict[str, str]
-    filters: Dict[str, Any]
+    credentials: dict[str, str]
+    filters: dict[str, Any]
     enabled: bool
 
 
@@ -102,10 +99,10 @@ class MetricsAggregator:
 
     def __init__(self):
         self.aggregation_window = 60  # seconds
-        self.counters: Dict[str, float] = {}
-        self.gauges: Dict[str, float] = {}
-        self.histograms: Dict[str, List[float]] = {}
-        self.timers: Dict[str, List[float]] = {}
+        self.counters: dict[str, float] = {}
+        self.gauges: dict[str, float] = {}
+        self.histograms: dict[str, list[float]] = {}
+        self.timers: dict[str, list[float]] = {}
 
     async def add_metric(self, metric: TelemetryMetric):
         """Add a metric to aggregation."""
@@ -124,7 +121,7 @@ class MetricsAggregator:
                 self.timers[key] = []
             self.timers[key].append(metric.value)
 
-    async def get_aggregated_data(self) -> Dict[str, Any]:
+    async def get_aggregated_data(self) -> dict[str, Any]:
         """Get aggregated metrics data."""
         # Calculate histogram statistics
         histogram_stats = {}
@@ -164,7 +161,7 @@ class MetricsAggregator:
             "timestamp": int(datetime.now().timestamp() * 1000),
         }
 
-    def _percentile(self, values: List[float], percentile: int) -> float:
+    def _percentile(self, values: list[float], percentile: int) -> float:
         """Calculate percentile of values."""
         if not values:
             return 0.0
@@ -187,8 +184,8 @@ class TelemetryBuffer:
 
     def __init__(self, max_size: int = 10000):
         self.max_size = max_size
-        self.metrics: List[TelemetryMetric] = []
-        self.events: List[TelemetryEvent] = []
+        self.metrics: list[TelemetryMetric] = []
+        self.events: list[TelemetryEvent] = []
 
     async def add_metric(self, metric: TelemetryMetric):
         """Add metric to buffer."""
@@ -204,13 +201,13 @@ class TelemetryBuffer:
             # Remove oldest events
             self.events = self.events[-self.max_size :]
 
-    async def get_metrics(self, limit: Optional[int] = None) -> List[TelemetryMetric]:
+    async def get_metrics(self, limit: int | None = None) -> list[TelemetryMetric]:
         """Get metrics from buffer."""
         if limit:
             return self.metrics[-limit:]
         return self.metrics.copy()
 
-    async def get_events(self, limit: Optional[int] = None) -> List[TelemetryEvent]:
+    async def get_events(self, limit: int | None = None) -> list[TelemetryEvent]:
         """Get events from buffer."""
         if limit:
             return self.events[-limit:]
@@ -221,7 +218,7 @@ class TelemetryBuffer:
         self.metrics.clear()
         self.events.clear()
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get buffer statistics."""
         return {
             "metrics_count": len(self.metrics),
@@ -244,7 +241,7 @@ class TelemetryBuffer:
 class ExportFormatter:
     """Formats telemetry data for different export targets."""
 
-    async def format_prometheus(self, data: Dict[str, Any]) -> str:
+    async def format_prometheus(self, data: dict[str, Any]) -> str:
         """Format data for Prometheus export."""
         lines = []
         timestamp = int(time.time() * 1000)
@@ -273,7 +270,7 @@ class ExportFormatter:
 
         return "\n".join(lines)
 
-    async def format_influxdb(self, data: Dict[str, Any]) -> str:
+    async def format_influxdb(self, data: dict[str, Any]) -> str:
         """Format data for InfluxDB line protocol."""
         lines = []
         timestamp = int(time.time() * 1000000000)  # InfluxDB uses nanoseconds
@@ -298,12 +295,12 @@ class ExportFormatter:
 
         return "\n".join(lines)
 
-    async def format_json(self, data: Dict[str, Any]) -> str:
+    async def format_json(self, data: dict[str, Any]) -> str:
         """Format data as JSON."""
         return json.dumps(data, indent=2)
 
     async def format_csv(
-        self, metrics: List[TelemetryMetric], events: List[TelemetryEvent]
+        self, metrics: list[TelemetryMetric], events: list[TelemetryEvent]
     ) -> str:
         """Format data as CSV."""
         lines = []
@@ -332,7 +329,7 @@ class ExportFormatter:
 
         return "\n".join(lines)
 
-    async def format_elastic(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def format_elastic(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         """Format data for Elasticsearch."""
         documents = []
         timestamp = datetime.now().isoformat()
@@ -369,9 +366,9 @@ class TelemetryExporter:
     """Exports telemetry data to various targets."""
 
     def __init__(self):
-        self.targets: Dict[str, ExportTarget] = {}
+        self.targets: dict[str, ExportTarget] = {}
         self.formatter = ExportFormatter()
-        self.export_queue: List[Dict[str, Any]] = []
+        self.export_queue: list[dict[str, Any]] = []
 
     async def add_target(self, target: ExportTarget):
         """Add an export target."""
@@ -386,9 +383,9 @@ class TelemetryExporter:
 
     async def export_data(
         self,
-        aggregated_data: Dict[str, Any],
-        metrics: List[TelemetryMetric],
-        events: List[TelemetryEvent],
+        aggregated_data: dict[str, Any],
+        metrics: list[TelemetryMetric],
+        events: list[TelemetryEvent],
     ):
         """Export data to all configured targets."""
         for target in self.targets.values():
@@ -403,9 +400,9 @@ class TelemetryExporter:
     async def _export_to_target(
         self,
         target: ExportTarget,
-        aggregated_data: Dict[str, Any],
-        metrics: List[TelemetryMetric],
-        events: List[TelemetryEvent],
+        aggregated_data: dict[str, Any],
+        metrics: list[TelemetryMetric],
+        events: list[TelemetryEvent],
     ):
         """Export data to a specific target."""
         # Apply filters
@@ -414,22 +411,20 @@ class TelemetryExporter:
 
         # Format data based on target format
         if target.format == ExportFormat.PROMETHEUS:
-            formatted_data = await self.formatter.format_prometheus(aggregated_data)
+            await self.formatter.format_prometheus(aggregated_data)
         elif target.format == ExportFormat.INFLUXDB:
-            formatted_data = await self.formatter.format_influxdb(aggregated_data)
+            await self.formatter.format_influxdb(aggregated_data)
         elif target.format == ExportFormat.JSON:
             export_data = {
                 "aggregated": aggregated_data,
                 "metrics": [asdict(m) for m in filtered_metrics],
                 "events": [asdict(e) for e in filtered_events],
             }
-            formatted_data = await self.formatter.format_json(export_data)
+            await self.formatter.format_json(export_data)
         elif target.format == ExportFormat.CSV:
-            formatted_data = await self.formatter.format_csv(
-                filtered_metrics, filtered_events
-            )
+            await self.formatter.format_csv(filtered_metrics, filtered_events)
         elif target.format == ExportFormat.ELASTIC:
-            formatted_data = await self.formatter.format_elastic(aggregated_data)
+            await self.formatter.format_elastic(aggregated_data)
         else:
             logger.warning(f"Unsupported export format: {target.format}")
             return
@@ -443,7 +438,7 @@ class TelemetryExporter:
         # In a real implementation, you would send the data to the actual endpoint
         # await self._send_to_endpoint(target.endpoint, formatted_data, target.credentials)
 
-    async def _apply_filters(self, items: List, filters: Dict[str, Any]) -> List:
+    async def _apply_filters(self, items: list, filters: dict[str, Any]) -> list:
         """Apply filters to telemetry items."""
         if not filters:
             return items
@@ -485,7 +480,7 @@ class TelemetryExporterService:
         self.running = False
         logger.info("Telemetry Exporter Service stopped")
 
-    async def submit_metric(self, metric_data: Dict[str, Any]) -> str:
+    async def submit_metric(self, metric_data: dict[str, Any]) -> str:
         """Submit a telemetry metric."""
         metric = TelemetryMetric(
             id=str(uuid.uuid4()),
@@ -507,7 +502,7 @@ class TelemetryExporterService:
         logger.debug(f"Metric submitted: {metric.name} = {metric.value}")
         return metric.id
 
-    async def submit_event(self, event_data: Dict[str, Any]) -> str:
+    async def submit_event(self, event_data: dict[str, Any]) -> str:
         """Submit a telemetry event."""
         event = TelemetryEvent(
             id=str(uuid.uuid4()),
@@ -529,7 +524,7 @@ class TelemetryExporterService:
         logger.debug(f"Event submitted: {event.event_type} - {event.message}")
         return event.id
 
-    async def add_export_target(self, target_config: Dict[str, Any]) -> str:
+    async def add_export_target(self, target_config: dict[str, Any]) -> str:
         """Add an export target."""
         target = ExportTarget(
             id=str(uuid.uuid4()),
@@ -549,7 +544,7 @@ class TelemetryExporterService:
         await self.exporter.remove_target(target_id)
         return True
 
-    async def trigger_export(self) -> Dict[str, Any]:
+    async def trigger_export(self) -> dict[str, Any]:
         """Manually trigger an export."""
         try:
             aggregated_data = await self.aggregator.get_aggregated_data()
@@ -569,7 +564,7 @@ class TelemetryExporterService:
             logger.error(f"Manual export failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def get_service_stats(self) -> Dict[str, Any]:
+    async def get_service_stats(self) -> dict[str, Any]:
         """Get service statistics."""
         buffer_stats = await self.buffer.get_stats()
         aggregated_data = await self.aggregator.get_aggregated_data()

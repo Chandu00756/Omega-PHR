@@ -5,9 +5,7 @@ This module provides the main gRPC server setup and service implementations
 for coordinating distributed adversarial attack agents.
 """
 
-import asyncio
 import logging
-from typing import Optional
 
 try:
     import grpc
@@ -39,7 +37,7 @@ class HiveOrchestratorServicer:
         self.logger.info("Stopping Hive Orchestrator servicer")
 
 
-def create_server(config: HiveServiceConfig) -> Optional[aio.Server]:
+def create_server(config: HiveServiceConfig) -> aio.Server | None:
     """Create and configure the gRPC server."""
     if not GRPC_AVAILABLE:
         logger.error("gRPC not available, cannot create server")
@@ -48,7 +46,7 @@ def create_server(config: HiveServiceConfig) -> Optional[aio.Server]:
     server = aio.server()
 
     # Add servicer to server
-    servicer = HiveOrchestratorServicer(config)
+    HiveOrchestratorServicer(config)
 
     # Configure server options
     options = [
@@ -60,7 +58,7 @@ def create_server(config: HiveServiceConfig) -> Optional[aio.Server]:
         ("grpc.http2.min_ping_interval_without_data_ms", 300000),
     ]
 
-    for option in options:
+    for _option in options:
         server.add_generic_rpc_handlers([])
 
     # Add port

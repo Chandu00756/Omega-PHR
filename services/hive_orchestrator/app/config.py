@@ -9,7 +9,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -57,10 +57,10 @@ class HiveConfig:
     )
 
     # Target Configuration
-    target_models: List[str] = field(
+    target_models: list[str] = field(
         default_factory=lambda: os.getenv("HIVE_TARGETS", "gpt-4,claude-3").split(",")
     )
-    target_endpoints: Dict[str, str] = field(default_factory=dict)
+    target_endpoints: dict[str, str] = field(default_factory=dict)
 
     # Safety and Containment
     max_attack_duration: int = field(
@@ -78,7 +78,7 @@ class HiveConfig:
     metrics_enabled: bool = field(
         default_factory=lambda: os.getenv("HIVE_METRICS", "true").lower() == "true"
     )
-    telemetry_endpoint: Optional[str] = field(
+    telemetry_endpoint: str | None = field(
         default_factory=lambda: os.getenv("HIVE_TELEMETRY_ENDPOINT")
     )
 
@@ -94,7 +94,7 @@ class HiveConfig:
     )
 
     # Ray/Distributed Configuration
-    ray_head_host: Optional[str] = field(
+    ray_head_host: str | None = field(
         default_factory=lambda: os.getenv("RAY_HEAD_HOST")
     )
     ray_head_port: int = field(
@@ -124,7 +124,7 @@ class HiveConfig:
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
             "host": self.host,
@@ -149,7 +149,7 @@ class HiveConfig:
         }
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> "HiveConfig":
+    def from_dict(cls, config_dict: dict[str, Any]) -> "HiveConfig":
         """Create configuration from dictionary."""
         return cls(**config_dict)
 

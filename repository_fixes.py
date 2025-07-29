@@ -10,7 +10,7 @@ import re
 def add_connection_checks(file_path):
     """Add connection checks to repository methods."""
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Pattern 1: Add connection check for store_event method (SQLite)

@@ -8,9 +8,9 @@ and timeline structures used throughout the Timeline Lattice service.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 
 class EventType(str, Enum):
@@ -54,12 +54,12 @@ class CausalityVector:
     """Vector representing causal relationships."""
 
     timeline_id: str
-    event_id: Optional[str] = None
+    event_id: str | None = None
     sequence_number: int = 0
-    dependency_chain: List[str] = field(default_factory=list)
+    dependency_chain: list[str] = field(default_factory=list)
     causality_weight: float = 1.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return {
             "timeline_id": self.timeline_id,
@@ -80,16 +80,16 @@ class TimelineEvent:
     parent_id: str
     event_type: EventType
     payload: str
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
     valid_at_us: int
     recorded_at_us: int
     signature: bytes
 
     # Legacy compatibility fields
-    timestamp: Optional[datetime] = None
-    data: Optional[Dict[str, Any]] = None
-    causality_vector: Optional[CausalityVector] = None
-    created_at: Optional[datetime] = None
+    timestamp: datetime | None = None
+    data: dict[str, Any] | None = None
+    causality_vector: CausalityVector | None = None
+    created_at: datetime | None = None
     paradox_risk: float = 0.0
     entropy_level: float = 0.0
 
@@ -97,18 +97,18 @@ class TimelineEvent:
         """Initialize computed fields."""
         if self.timestamp is None:
             self.timestamp = datetime.fromtimestamp(
-                self.valid_at_us / 1_000_000, tz=timezone.utc
+                self.valid_at_us / 1_000_000, tz=UTC
             )
         if self.created_at is None:
             self.created_at = datetime.fromtimestamp(
-                self.recorded_at_us / 1_000_000, tz=timezone.utc
+                self.recorded_at_us / 1_000_000, tz=UTC
             )
         if self.causality_vector is None:
             self.causality_vector = CausalityVector(
                 timeline_id=self.timeline_id, event_id=self.event_id
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary representation."""
         return {
             "event_id": self.event_id,
@@ -131,7 +131,7 @@ class TimelineEvent:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TimelineEvent":
+    def from_dict(cls, data: dict[str, Any]) -> "TimelineEvent":
         """Create event from dictionary representation."""
         causality_data = data.get("causality_vector")
         causality_vector = None
@@ -188,7 +188,7 @@ class TimelineEvent:
         )
 
     @classmethod
-    def from_sqlite_row(cls, row: Dict[str, Any]) -> "TimelineEvent":
+    def from_sqlite_row(cls, row: dict[str, Any]) -> "TimelineEvent":
         """Create event from SQLite row."""
         import json
 
@@ -217,17 +217,17 @@ class TemporalParadox:
     paradox_type: ParadoxType
     severity: float
     description: str
-    affected_events: List[str]  # Changed from involved_events
+    affected_events: list[str]  # Changed from involved_events
     detected_at: datetime
     resolved: bool = False
-    resolution_method: Optional[str] = None
+    resolution_method: str | None = None
 
     def __post_init__(self):
         """Initialize computed fields."""
         if not self.paradox_id:
             self.paradox_id = str(uuid.uuid4())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert paradox to dictionary representation."""
         return {
             "paradox_id": self.paradox_id,
@@ -242,7 +242,7 @@ class TemporalParadox:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TemporalParadox":
+    def from_dict(cls, data: dict[str, Any]) -> "TemporalParadox":
         """Create paradox from dictionary representation."""
         return cls(
             paradox_id=data["paradox_id"],
@@ -279,8 +279,8 @@ class Timeline:
     status: TimelineStatus
     created_at: datetime
     initial_timestamp: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    last_event_timestamp: Optional[datetime] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    last_event_timestamp: datetime | None = None
     event_count: int = 0
     paradox_count: int = 0
     entropy_level: float = 0.0
@@ -291,7 +291,7 @@ class Timeline:
         if not self.timeline_id:
             self.timeline_id = str(uuid.uuid4())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert timeline to dictionary representation."""
         return {
             "timeline_id": self.timeline_id,
@@ -312,7 +312,7 @@ class Timeline:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Timeline":
+    def from_dict(cls, data: dict[str, Any]) -> "Timeline":
         """Create timeline from dictionary representation."""
         return cls(
             timeline_id=data["timeline_id"],
@@ -340,12 +340,12 @@ class TemporalMetrics:
     timeline_id: str
     measurement_timestamp: datetime
     causality_violations: int = 0
-    entropy_fluctuations: List[float] = field(default_factory=list)
+    entropy_fluctuations: list[float] = field(default_factory=list)
     paradox_density: float = 0.0
     temporal_coherence: float = 1.0
     stability_trend: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary representation."""
         return {
             "timeline_id": self.timeline_id,
@@ -359,7 +359,7 @@ class TemporalMetrics:
 
 
 # Type aliases for convenience
-EventDict = Dict[str, Any]
-ParadoxDict = Dict[str, Any]
-TimelineDict = Dict[str, Any]
-MetricsDict = Dict[str, Any]
+EventDict = dict[str, Any]
+ParadoxDict = dict[str, Any]
+TimelineDict = dict[str, Any]
+MetricsDict = dict[str, Any]

@@ -5,19 +5,15 @@ Automates the generation of Python stubs from .proto files with
 proper import handling and directory structure management.
 """
 
-import os
-import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-from typing import List, Optional
 
 
 class ProtoCodeGen:
     """Advanced Protocol Buffer code generation with import optimization."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Path | None = None):
         """
         Initialize code generator.
 
@@ -38,7 +34,7 @@ class ProtoCodeGen:
         return Path.cwd()
 
     def add_proto_directory(
-        self, proto_dir: Path, output_dir: Optional[Path] = None
+        self, proto_dir: Path, output_dir: Path | None = None
     ) -> None:
         """
         Add a directory containing .proto files.
@@ -56,7 +52,7 @@ class ProtoCodeGen:
         self.proto_dirs.append(proto_dir)
         self.output_dirs.append(Path(output_dir))
 
-    def discover_proto_files(self) -> List[tuple[Path, Path]]:
+    def discover_proto_files(self) -> list[tuple[Path, Path]]:
         """
         Discover all .proto files in registered directories.
 
@@ -65,7 +61,9 @@ class ProtoCodeGen:
         """
         proto_files = []
 
-        for proto_dir, output_dir in zip(self.proto_dirs, self.output_dirs):
+        for proto_dir, output_dir in zip(
+            self.proto_dirs, self.output_dirs, strict=False
+        ):
             for proto_file in proto_dir.rglob("*.proto"):
                 proto_files.append((proto_file, output_dir))
 
@@ -73,8 +71,8 @@ class ProtoCodeGen:
 
     def generate_code(
         self,
-        proto_files: Optional[List[Path]] = None,
-        include_dirs: Optional[List[Path]] = None,
+        proto_files: list[Path] | None = None,
+        include_dirs: list[Path] | None = None,
         grpc_python_out: bool = True,
         python_out: bool = True,
         mypy_out: bool = False,
@@ -134,7 +132,7 @@ class ProtoCodeGen:
         self,
         proto_file: Path,
         output_dir: Path,
-        include_dirs: List[Path],
+        include_dirs: list[Path],
         grpc_python_out: bool,
         python_out: bool,
         mypy_out: bool,
@@ -196,7 +194,7 @@ class ProtoCodeGen:
             print(f"Exception compiling {proto_file}: {e}")
             return False
 
-    def _get_well_known_proto_includes(self) -> List[Path]:
+    def _get_well_known_proto_includes(self) -> list[Path]:
         """Get paths to well-known Protocol Buffer includes."""
         includes = []
 
@@ -287,7 +285,7 @@ class ProtoCodeGen:
                         print(f"Warning: Could not remove {generated_file}: {e}")
 
 
-def generate_all_protos(project_root: Optional[Path] = None) -> bool:
+def generate_all_protos(project_root: Path | None = None) -> bool:
     """
     Generate all Protocol Buffer stubs in the project.
 
@@ -300,10 +298,7 @@ def generate_all_protos(project_root: Optional[Path] = None) -> bool:
     codegen = ProtoCodeGen(project_root)
 
     # Auto-discover proto directories
-    if project_root:
-        root = Path(project_root)
-    else:
-        root = codegen.project_root
+    root = Path(project_root) if project_root else codegen.project_root
 
     # Add common proto directories
     for proto_dir in root.rglob("proto"):

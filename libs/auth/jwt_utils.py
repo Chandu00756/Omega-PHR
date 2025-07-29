@@ -7,12 +7,10 @@ security with short-lived tokens and proper key management.
 
 import base64
 import hashlib
-import hmac
 import json
 import time
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
@@ -28,7 +26,7 @@ class AuthError(Exception):
 class JWTUtils:
     """Enterprise-grade JWT utilities with ES256 signing."""
 
-    def __init__(self, key_dir: Optional[Path] = None):
+    def __init__(self, key_dir: Path | None = None):
         """Initialize JWT utilities with key management."""
         self.key_dir = key_dir or Path.home() / ".phr" / "keys"
         self.key_dir.mkdir(parents=True, exist_ok=True)
@@ -140,7 +138,7 @@ class JWTUtils:
         # Return compact JWS
         return f"{encoded_header}.{encoded_payload}.{encoded_signature}"
 
-    def verify_token(self, token: str) -> Dict[str, Any]:
+    def verify_token(self, token: str) -> dict[str, Any]:
         """
         Verify JWT token and return payload.
 
@@ -227,7 +225,7 @@ class JWTUtils:
         }
         return self.issue_token(sub=f"service:{service_name}", ttl_s=3600, **claims)
 
-    def extract_service_info(self, token: str) -> Dict[str, Any]:
+    def extract_service_info(self, token: str) -> dict[str, Any]:
         """Extract service information from token."""
         payload = self.verify_token(token)
 
@@ -259,6 +257,6 @@ def issue_token(sub: str, ttl_s: int = 3600, **claims) -> str:
     return get_jwt_utils().issue_token(sub, ttl_s, **claims)
 
 
-def verify_token(token: str) -> Dict[str, Any]:
+def verify_token(token: str) -> dict[str, Any]:
     """Convenience function to verify token."""
     return get_jwt_utils().verify_token(token)

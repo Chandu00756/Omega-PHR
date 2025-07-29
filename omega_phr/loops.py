@@ -336,9 +336,12 @@ class LoopDetector:
             for ref in ref_map[start]:
                 # Find outputs containing this reference
                 for idx, refs in ref_map.items():
-                    if idx != start and ref in refs:
-                        if self._has_circular_path(ref_map, idx, visited.copy()):
-                            return True
+                    if (
+                        idx != start
+                        and ref in refs
+                        and self._has_circular_path(ref_map, idx, visited.copy())
+                    ):
+                        return True
 
         return False
 
@@ -441,11 +444,17 @@ class RecursiveLoopSynthesizer:
 
         async def self_reference_pattern(context: dict[str, Any]) -> str:
             base = context.get("base_prompt", "This statement")
-            return f"{base} refers to itself and creates: {base} refers to itself and creates..."
+            return (
+                f"{base} refers to itself and creates: {base} refers to itself "
+                "and creates..."
+            )
 
         async def paradox_pattern(context: dict[str, Any]) -> str:
             statement = context.get("statement", "This statement is false")
-            return f"Consider: {statement}. If true, then false. If false, then true. Therefore: {statement}."
+            return (
+                f"Consider: {statement}. If true, then false. If false, then true. "
+                f"Therefore: {statement}."
+            )
 
         async def infinite_question_pattern(context: dict[str, Any]) -> str:
             question = context.get("question", "What is the question?")
@@ -471,7 +480,10 @@ class RecursiveLoopSynthesizer:
         async def memory_modifier_pattern(context: dict[str, Any]) -> str:
             target_memory = context.get("target_memory", "default")
             complexity = context.get("complexity_level", "medium")
-            return f"Modifying memory {target_memory} with {complexity} complexity: recursive memory modification loop initiated"
+            return (
+                f"Modifying memory {target_memory} with {complexity} complexity: "
+                "recursive memory modification loop initiated"
+            )
 
         async def attack_simulation_pattern(context: dict[str, Any]) -> str:
             complexity = context.get("complexity_level", "medium")
@@ -499,7 +511,7 @@ class RecursiveLoopSynthesizer:
 
     async def generate_loop(
         self,
-        pattern_name: str | dict[str, Any],
+        pattern_name: str,
         context: dict[str, Any] | None = None,
         target_model: Any | None = None,
     ) -> str:
@@ -520,25 +532,23 @@ class RecursiveLoopSynthesizer:
         # Support config-based generation for test compatibility
         if isinstance(pattern_name, dict):
             config = pattern_name
-            pattern_name_str = config.get("loop_type", "self_reference")
+            pattern_name = config.get("loop_type", "self_reference")
             context = config
-        else:
-            pattern_name_str = pattern_name
 
-        if pattern_name_str not in self.patterns:
-            raise RecursiveLoopError(f"Unknown loop pattern: {pattern_name_str}")
+        if pattern_name not in self.patterns:
+            raise RecursiveLoopError(f"Unknown loop pattern: {pattern_name}")
 
         context = context or {}
-        pattern = self.patterns[pattern_name_str]
+        pattern = self.patterns[pattern_name]
 
         logger.info(f"Generating loop with pattern '{pattern_name}'")
 
         # Create loop state
         loop_state = LoopState(
-            loop_type=pattern_name_str,
-            generation_source=f"pattern:{pattern_name_str}",
+            loop_type=pattern_name,
+            generation_source=f"pattern:{pattern_name}",
             metadata={
-                "pattern_name": pattern_name_str,
+                "pattern_name": pattern_name,
                 "context": context,
                 "start_time": datetime.now().isoformat(),
                 "target_model": str(target_model) if target_model else None,
@@ -565,7 +575,7 @@ class RecursiveLoopSynthesizer:
             logger.error(f"Loop generation failed: {e}")
             raise RecursiveLoopError(
                 f"Failed to generate loop with pattern {pattern_name}: {str(e)}"
-            )
+            ) from e
 
     async def _execute_loop(
         self, loop_state: LoopState, target_model: Any, context: dict[str, Any]
@@ -720,7 +730,7 @@ class RecursiveLoopSynthesizer:
         except Exception as e:
             logger.error(f"Containment error for loop {loop_id[:8]}: {e}")
             self.containment_failures += 1
-            raise RecursiveLoopError(f"Containment failed: {str(e)}")
+            raise RecursiveLoopError(f"Containment failed: {str(e)}") from e
 
     async def _attempt_containment(
         self, loop_state: LoopState, detection_result: dict[str, Any]

@@ -3,14 +3,10 @@ End-to-End Tests for Omega PHR framework.
 Tests the complete framework functionality for research-grade stability.
 """
 
-import asyncio
 import json
-import os
 import tempfile
-import time
 import unittest
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock, patch
 
 
 class TestE2EWorkflows(unittest.TestCase):
@@ -125,7 +121,7 @@ class TestE2EWorkflows(unittest.TestCase):
 
         # Verify all tasks completed
         self.assertEqual(len(results), 3)
-        for task_id, result in results.items():
+        for _task_id, result in results.items():
             self.assertEqual(result["status"], "completed")
             self.assertGreater(result["duration"], 0)
 

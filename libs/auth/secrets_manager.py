@@ -10,7 +10,6 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +106,7 @@ class SecretsManager:
 
         logger.warning("Using file-based secrets storage - NOT SUITABLE FOR ENTERPRISE")
 
-    def _detect_gcp_project(self) -> Optional[str]:
+    def _detect_gcp_project(self) -> str | None:
         """Detect GCP project from metadata service."""
         try:
             import requests
@@ -272,7 +271,7 @@ class SecretsManager:
         if not secret_file.exists():
             raise SecretsManagerError(f"Secret '{name}' not found")
 
-        with open(secret_file, "r") as f:
+        with open(secret_file) as f:
             data = json.load(f)
 
         return data["value"]

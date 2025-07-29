@@ -8,11 +8,9 @@ including trace correlation, performance metrics, and security audit trails.
 import json
 import logging
 import threading
-import time
 import traceback
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 
 class JSONFormatter(logging.Formatter):
@@ -24,7 +22,7 @@ class JSONFormatter(logging.Formatter):
         version: str = "1.0.0",
         environment: str = "development",
         include_trace: bool = True,
-        sensitive_fields: Optional[set[str]] = None,
+        sensitive_fields: set[str] | None = None,
     ):
         """
         Initialize JSON formatter.
@@ -161,17 +159,17 @@ class JSONFormatter(logging.Formatter):
 
     def _get_timestamp(self) -> str:
         """Get ISO 8601 timestamp with microseconds."""
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
-    def _get_trace_id(self) -> Optional[str]:
+    def _get_trace_id(self) -> str | None:
         """Get current trace ID from context."""
         return getattr(self._local, "trace_id", None)
 
-    def _get_span_id(self) -> Optional[str]:
+    def _get_span_id(self) -> str | None:
         """Get current span ID from context."""
         return getattr(self._local, "span_id", None)
 
-    def set_trace_context(self, trace_id: str, span_id: Optional[str] = None) -> None:
+    def set_trace_context(self, trace_id: str, span_id: str | None = None) -> None:
         """Set trace context for current thread."""
         self._local.trace_id = trace_id
         if span_id:
@@ -274,11 +272,11 @@ class AuditLogFormatter(JSONFormatter):
 class StructuredLogAdapter(logging.LoggerAdapter):
     """Logger adapter that adds structured context to all log messages."""
 
-    def __init__(self, logger: logging.Logger, extra: Optional[Dict[str, Any]] = None):
+    def __init__(self, logger: logging.Logger, extra: dict[str, Any] | None = None):
         """Initialize adapter with context."""
         super().__init__(logger, extra or {})
 
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """Process log message with additional context."""
         if "extra" in kwargs:
             kwargs["extra"].update(self.extra)
@@ -334,7 +332,7 @@ def configure_logging(
     environment: str = "development",
     enable_console: bool = True,
     enable_file: bool = False,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     enable_audit: bool = True,
     enable_performance: bool = True,
 ) -> None:
