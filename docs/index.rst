@@ -1,21 +1,305 @@
 .. raw:: html
 
-   <div class="hero-section">
-     <div class="hero-content">
-       <h1 class="hero-title">Ω-PHR</h1>
-       <p class="hero-subtitle">Omega-Paradox Hive Recursion Framework</p>
-       <p class="hero-description">Revolutionary AI Security Testing Platform</p>
-       <div class="hero-badges">
-         <img src="https://img.shields.io/badge/Python-3.11%2B-blue" alt="Python Version">
-         <img src="https://img.shields.io/badge/License-Apache--2.0-green" alt="License">
-         <img src="https://img.shields.io/badge/Build-Passing-brightgreen" alt="Build Status">
-         <img src="https://img.shields.io/badge/Coverage-85%25-yellow" alt="Coverage">
-         <img src="https://img.shields.io/badge/Security-Advanced-red" alt="Security">
-       </div>
+Omega-Paradox Hive Recursion (Ω-PHR) Framework
+===============================================
+
+.. raw:: html
+
+   <div style="text-align: center; margin: 20px 0;">
+     <h1 style="color: #d32f2f; font-size: 2.5em; margin: 0;">Ω-PHR Framework</h1>
+     <p style="font-size: 1.2em; color: #666; margin: 10px 0;">Revolutionary AI Security Testing & Research Platform</p>
+     <div style="margin: 20px 0;">
+       <img src="https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge" alt="Python Version">
+       <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+       <img src="https://img.shields.io/badge/Status-Research%20Grade-orange?style=for-the-badge" alt="Status">
      </div>
    </div>
 
-Omega-Paradox Hive Recursion (Ω-PHR): Advanced AI Security Testing Framework
+**Omega-Paradox Hive Recursion (Ω-PHR)** represents a groundbreaking advancement in AI security testing, adversarial AI research, and complex system analysis. This research-grade framework implements cutting-edge algorithms for discovering vulnerabilities, testing AI system robustness, and analyzing emergent behaviors in distributed computing environments.
+
+.. attention::
+   🔬 **Research Framework**: This is an advanced research tool designed for AI security professionals,
+   academic researchers, and systems engineers working on complex distributed systems analysis.
+
+Core Architecture Components
+---------------------------
+
+The Ω-PHR framework consists of six interconnected research modules:
+
+.. grid:: 2
+
+    .. grid-item-card:: 🕰️ Timeline Lattice
+        :class-header: sd-bg-primary sd-text-white
+
+        **Temporal Event Analysis Engine**
+
+        Advanced temporal analysis system for tracking event sequences, detecting temporal paradoxes,
+        and analyzing causality chains in complex distributed systems.
+
+        * Multi-dimensional timeline management
+        * Paradox detection algorithms
+        * Temporal correlation analysis
+        * Event sequence reconstruction
+
+    .. grid-item-card:: 🐝 Hive Orchestrator
+        :class-header: sd-bg-success sd-text-white
+
+        **Distributed Attack Coordination**
+
+        Sophisticated orchestration engine for coordinating multiple attack vectors, managing
+        adversarial agents, and executing complex multi-stage security assessments.
+
+        * Multi-agent coordination protocols
+        * Attack vector synchronization
+        * Resource allocation optimization
+        * Scalable agent deployment
+
+    .. grid-item-card:: 🧠 Memory Inverter
+        :class-header: sd-bg-warning sd-text-white
+
+        **Advanced Memory Analysis**
+
+        Revolutionary memory inversion techniques for analyzing system state, recovering
+        hidden information, and reconstructing execution patterns from memory artifacts.
+
+        * Memory state reconstruction
+        * Pattern extraction algorithms
+        * State space exploration
+        * Information recovery techniques
+
+    .. grid-item-card:: 🔄 Recursive Loop Synthesizer
+        :class-header: sd-bg-info sd-text-white
+
+        **Complex Loop Analysis**
+
+        Advanced recursive analysis engine for detecting infinite loops, analyzing recursive
+        patterns, and synthesizing complex computational behaviors in target systems.
+
+        * Recursive pattern detection
+        * Loop complexity analysis
+        * Behavior synthesis algorithms
+        * Computational path tracing
+
+    .. grid-item-card:: 📋 Omega State Register
+        :class-header: sd-bg-danger sd-text-white
+
+        **Critical State Management**
+
+        Advanced system for detecting, registering, and managing critical omega states -
+        system conditions that indicate potential security breaches or system instabilities.
+
+        * Omega state detection algorithms
+        * Critical threshold monitoring
+        * Automatic containment protocols
+        * State propagation analysis
+
+    .. grid-item-card:: 📊 Telemetry Exporter
+        :class-header: sd-bg-secondary sd-text-white
+
+        **Advanced Monitoring System**
+
+        Comprehensive telemetry collection and analysis system for monitoring framework
+        performance, tracking attack progress, and generating detailed research reports.
+
+        * Real-time metrics collection
+        * Advanced visualization tools
+        * Performance profiling
+        * Research data export
+
+Quick Start Guide
+-----------------
+
+.. tabs::
+
+   .. tab:: Installation
+
+      .. code-block:: bash
+
+         # Clone the research framework
+         git clone https://github.com/Chandu00756/Omega-PHR.git
+         cd Omega-PHR
+
+         # Install in development mode
+         pip install -e .
+
+         # Install research dependencies
+         pip install -e ".[research]"
+
+   .. tab:: Basic Research Usage
+
+      .. code-block:: python
+
+         from omega_phr import TimelineLattice, HiveOrchestrator
+         from omega_phr.models import Event, EventType
+
+         # Initialize timeline analysis
+         timeline = TimelineLattice()
+
+         # Create research event
+         event = Event(
+             event_id="research_001",
+             event_type=EventType.SYSTEM_PROBE,
+             payload={"target": "research_system"}
+         )
+
+         # Analyze temporal patterns
+         result = await timeline.analyze_event_sequence([event])
+
+   .. tab:: Advanced Security Testing
+
+      .. code-block:: python
+
+         from omega_phr.hive import HiveOrchestrator, InjectionAttacker
+         from omega_phr.models import AttackStrategy
+
+         # Initialize attack orchestration
+         hive = HiveOrchestrator()
+
+         # Configure adversarial testing
+         attacker = InjectionAttacker(
+             strategy=AttackStrategy.ADVANCED_INJECTION
+         )
+
+         # Execute coordinated security assessment
+         results = await hive.coordinate_attack([attacker])
+
+Framework Capabilities
+---------------------
+
+Research Applications
+~~~~~~~~~~~~~~~~~~~~
+
+* **AI System Vulnerability Assessment**: Advanced testing of AI/ML systems for robustness and security
+* **Adversarial Attack Research**: Development and testing of novel adversarial techniques
+* **Distributed System Analysis**: Complex analysis of distributed computing environments
+* **Temporal Security Analysis**: Time-based security pattern detection and analysis
+* **Emergent Behavior Studies**: Research into emergent behaviors in complex systems
+
+Technical Features
+~~~~~~~~~~~~~~~~~
+
+* **Asynchronous Architecture**: High-performance async/await based design for concurrent operations
+* **Modular Research Components**: Pluggable modules for specialized research applications
+* **Advanced Instrumentation**: Comprehensive monitoring and telemetry for research data collection
+* **Scalable Deployment**: Support for distributed deployment across research clusters
+* **Research-Grade Logging**: Detailed logging and tracing for reproducible research
+
+.. toctree::
+   :maxdepth: 3
+   :caption: 📚 Framework Documentation
+   :hidden:
+
+   introduction
+   installation
+   architecture/index
+   api/modules
+   research/index
+   tutorials/index
+   deployment/index
+   development/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 🔬 Research Applications
+   :hidden:
+
+   research/ai_security_testing
+   research/adversarial_research
+   research/temporal_analysis
+   research/distributed_systems
+   research/vulnerability_discovery
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 🛠️ Developer Resources
+   :hidden:
+
+   development/contributing
+   development/testing
+   development/performance
+   development/security_guidelines
+   api/reference
+
+Research Metrics & Performance
+-----------------------------
+
+.. list-table:: Framework Performance Characteristics
+   :header-rows: 1
+   :widths: 25 25 25 25
+
+   * - Component
+     - Throughput
+     - Analysis Depth
+     - Research Applications
+   * - Timeline Lattice
+     - 50K events/sec
+     - Temporal Paradox Detection
+     - Time-based Attack Analysis
+   * - Hive Orchestrator
+     - 1K+ Concurrent Agents
+     - Multi-Vector Coordination
+     - Advanced Penetration Testing
+   * - Memory Inverter
+     - TB-scale Analysis
+     - Deep Memory Forensics
+     - State Reconstruction Research
+   * - Loop Synthesizer
+     - Complex Pattern Analysis
+     - Recursive Behavior Modeling
+     - Computational Complexity Research
+
+Research Publications & Citations
+--------------------------------
+
+The Ω-PHR framework has been developed as part of advanced research in AI security and distributed systems analysis. Key research areas include:
+
+* **Temporal Security Analysis**: Novel approaches to time-based security pattern detection
+* **Adversarial AI Research**: Advanced techniques for AI system robustness testing
+* **Distributed Attack Coordination**: Multi-agent coordination for complex security assessments
+* **Memory Forensics Research**: Advanced memory analysis and state reconstruction techniques
+
+Getting Started with Research
+-----------------------------
+
+.. grid:: 3
+
+    .. grid-item-card:: 📖 Research Documentation
+        :link: research/index
+        :link-type: doc
+
+        Comprehensive research guides, theoretical background, and advanced usage patterns for academic and professional research.
+
+    .. grid-item-card:: 🧪 Example Research Projects
+        :link: tutorials/index
+        :link-type: doc
+
+        Detailed examples of research applications, case studies, and practical implementations of the framework.
+
+    .. grid-item-card:: 🔧 Development & Contribution
+        :link: development/index
+        :link-type: doc
+
+        Guidelines for contributing to the research framework, extending modules, and developing new research capabilities.
+
+.. warning::
+   **Ethical Research Use Only**: This framework is designed for legitimate security research,
+   academic study, and authorized penetration testing. Users are responsible for ensuring
+   compliance with applicable laws and ethical guidelines.
+
+Community & Support
+------------------
+
+* **Research Discussion**: `GitHub Discussions <https://github.com/Chandu00756/Omega-PHR/discussions>`_
+* **Issue Tracking**: `GitHub Issues <https://github.com/Chandu00756/Omega-PHR/issues>`_
+* **Research Collaboration**: Contact the research team for academic partnerships
+* **Enterprise Integration**: Professional services available for enterprise deployments
+
+Indices and Navigation
+=====================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`Omega-Paradox Hive Recursion (Ω-PHR): Advanced AI Security Testing Framework
 ============================================================================
 
 **Omega-Paradox Hive Recursion (Ω-PHR)** represents a groundbreaking advancement in AI security testing, introducing the world's first comprehensive framework that simultaneously integrates **temporal paradox testing**, **synthetic adversarial hive attacks**, **recursive memory inversion**, and **generative infinite loop fuzzing**.
