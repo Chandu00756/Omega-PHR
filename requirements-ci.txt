@@ -1,0 +1,19 @@
+# Minimal CI requirements - lighter versions for faster CI builds
+pytest>=8.2.0
+pytest-asyncio>=0.23.7
+pytest-cov>=5.0.0
+ruff>=0.5.0
+mypy>=1.10.0
+
+# Core framework dependencies (minimal versions)
+grpcio>=1.63.0
+grpcio-tools>=1.63.0
+protobuf>=4.25.3
+fastapi>=0.111.0
+pydantic>=2.8.0
+click>=8.1.7
+
+# For CI testing - avoid heavy ML dependencies
+# Use CPU-only versions where possible
+ray[default]==2.22.0
+numpy>=1.26.4

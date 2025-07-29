@@ -176,3 +176,7 @@ Thumbs.db
 
 # Benchmarks
 .benchmarks/
+
+# Omega-PHR specific files
+.omega_vault/
+*.omega
