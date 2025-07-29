@@ -917,12 +917,7 @@ class TestPerformance:
 
         start_time = time.time()
 
-        for i in range(agent_count):
-            {
-                "agent_type": "load_test_agent",
-                "target_system": f"target-{i % 10}",  # 10 different targets
-                "parameters": {"load_test": True},
-            }
+        for _i in range(agent_count):
             agent_id = hive.add_attacker(
                 type("MockAttacker", (), {"__init__": lambda self, *args: None}), "test"
             )

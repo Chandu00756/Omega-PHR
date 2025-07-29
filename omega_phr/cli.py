@@ -169,7 +169,7 @@ def validate(
 
         for phase in phases:
             task = progress.add_task(f"[cyan]{phase}...", total=100)
-            for i in range(100):
+            for _i in range(100):
                 time.sleep(0.01)  # Simulate work
                 progress.update(task, advance=1)
 
@@ -310,7 +310,7 @@ def hive_attack(
 
         for phase in phases:
             task = progress.add_task(f"[red]{phase}...", total=100)
-            for i in range(100):
+            for _i in range(100):
                 time.sleep(0.02)
                 progress.update(task, advance=1)
 
@@ -357,7 +357,7 @@ def memory_invert(
         console=console,
     ) as progress:
         task = progress.add_task("Inverting memory state...", total=100)
-        for i in range(100):
+        for _i in range(100):
             time.sleep(0.03)
             progress.update(task, advance=1)
 
@@ -386,7 +386,7 @@ def loops_generate(
         console=console,
     ) as progress:
         task = progress.add_task("Synthesizing recursive patterns...", total=100)
-        for i in range(100):
+        for _i in range(100):
             time.sleep(0.02)
             progress.update(task, advance=1)
 

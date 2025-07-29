@@ -1103,7 +1103,7 @@ class OmegaStateRegister:
             def __init__(self, omega_id: str) -> None:
                 self.state_id = omega_id
 
-        return [MockState(omega_id) for omega_id in self.active_omega_states.keys()]
+        return [MockState(omega_id) for omega_id in self.active_omega_states]
 
     def _determine_system_status(self) -> str:
         """Determine overall system status."""

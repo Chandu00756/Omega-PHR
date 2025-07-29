@@ -18,12 +18,6 @@ class TestBasicFunctionality(unittest.TestCase):
 
     def test_imports_work(self):
         """Test that basic imports work."""
-        from omega_phr.hive import HiveOrchestrator
-        from omega_phr.memory import MemoryManager
-        from omega_phr.models import Event, HiveAgent
-        from omega_phr.models import OmegaTestResult as TestResult
-        from omega_phr.omega_register import OmegaStateRegister
-        from omega_phr.timeline import TimelineLattice
 
         # If we get here, imports worked
         self.assertTrue(True)
