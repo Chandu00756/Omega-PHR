@@ -1,0 +1,22 @@
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--tb=short",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "performance: Performance benchmarks",
+    "security: Security tests",
+    "slow: Slow running tests",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"

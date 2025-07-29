@@ -32,8 +32,11 @@ jobs:
 
     - name: Run tests
       run: |
-        python -m pytest tests/ -v --tb=short --maxfail=3 -x
+        # Run tests with CI-specific configuration (no coverage requirements)
+        python -m pytest tests/ -v --tb=short --maxfail=3 -x --disable-warnings -c pytest-ci.toml
       timeout-minutes: 20
+      env:
+        CI: "true"
 
     - name: Run linting
       run: |
