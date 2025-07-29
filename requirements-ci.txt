@@ -2,9 +2,12 @@
 pytest>=8.2.0
 pytest-asyncio>=0.23.7
 
+# Code quality tools (lightweight versions)
+ruff>=0.5.0
+mypy>=1.10.0
+
 # Essential for basic framework functionality
 pydantic>=2.8.0
 structlog>=24.2.0
 
-# Note: All other dependencies are optional for basic testing
-# Ray, gRPC, FastAPI, etc. will be mocked or skipped if not available
+# Note: Ray, gRPC, FastAPI, etc. are optional - tests will use local fallbacks
