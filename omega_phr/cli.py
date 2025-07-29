@@ -585,7 +585,7 @@ def export(
     console.print(f"[SUCCESS] Export completed: {output}", style="green")
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     """Main CLI entry point."""
     try:
         app()

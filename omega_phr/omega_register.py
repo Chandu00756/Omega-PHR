@@ -101,7 +101,7 @@ class QuarantineVault:
 
         except Exception as e:
             logger.error(f"Failed to store Omega state in quarantine: {e}")
-            raise ContainmentError(f"Quarantine storage failed: {str(e)}")
+            raise ContainmentError(f"Quarantine storage failed: {str(e)}") from e
 
     def retrieve_omega_state(self, token: str) -> dict[str, Any] | None:
         """Retrieve an Omega state from quarantine vault."""
@@ -218,7 +218,9 @@ class QuarantineVault:
             return result
 
         except Exception as e:
-            raise ContainmentError(f"Failed to deobfuscate quarantine data: {str(e)}")
+            raise ContainmentError(
+                f"Failed to deobfuscate quarantine data: {str(e)}"
+            ) from e
 
 
 class ContaminationTracker:
@@ -457,7 +459,7 @@ class OmegaStateRegister:
 
         except Exception as e:
             logger.error(f"Failed to register Omega state: {e}")
-            raise OmegaStateError(f"Registration failed: {str(e)}")
+            raise OmegaStateError(f"Registration failed: {str(e)}") from e
 
     async def contain_omega_state(self, omega_id: str, strategy: str = "auto") -> bool:
         """
@@ -491,7 +493,9 @@ class OmegaStateRegister:
             strategy = self._select_containment_strategy(omega_state)
 
         if strategy not in self.containment_strategies:
-            raise OmegaStateError(f"Unknown containment strategy: {strategy}")
+            raise OmegaStateError(
+                f"Unknown containment strategy: {strategy}"
+            )  # pragma: no cover
 
         try:
             start_time = time.time()

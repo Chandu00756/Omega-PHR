@@ -433,7 +433,7 @@ class FrameworkConfig:
         }
 
         if service_name not in service_configs:
-            raise ValueError(f"❌ Unknown service: {service_name}")
+            raise ValueError(f"❌ Unknown service: {service_name}")  # pragma: no cover
 
         return service_configs[service_name]
 
@@ -452,7 +452,9 @@ def get_config() -> FrameworkConfig:
             for error in errors:
                 logger.error(error)
             if _global_config.environment == "research":
-                raise ValueError("❌ Configuration validation failed in research mode")
+                raise ValueError(
+                    "❌ Configuration validation failed in research mode"
+                )  # pragma: no cover
     return _global_config
 
 

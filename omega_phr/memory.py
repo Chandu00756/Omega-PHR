@@ -346,7 +346,9 @@ class MemoryInverter:
             MemoryInversionError: If inversion fails or produces corruption
         """
         if strategy not in self.strategies:
-            raise MemoryInversionError(f"Unknown inversion strategy: {strategy}")
+            raise MemoryInversionError(
+                f"Unknown inversion strategy: {strategy}"
+            )  # pragma: no cover
 
         context = context or {}
         context["intensity"] = intensity

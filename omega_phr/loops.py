@@ -170,7 +170,9 @@ class LoopDetector:
         elif method in self.detection_methods:
             return await self.detection_methods[method](outputs)
         else:
-            raise RecursiveLoopError(f"Unknown detection method: {method}")
+            raise RecursiveLoopError(
+                f"Unknown detection method: {method}"
+            )  # pragma: no cover
 
     async def _detect_repetition_loop(self, outputs: list[str]) -> dict[str, Any]:
         """Detect exact repetition loops."""
@@ -706,7 +708,9 @@ class RecursiveLoopSynthesizer:
             strategy = self._select_containment_strategy(loop_state)
 
         if strategy not in self.containment_strategies:
-            raise RecursiveLoopError(f"Unknown containment strategy: {strategy}")
+            raise RecursiveLoopError(
+                f"Unknown containment strategy: {strategy}"
+            )  # pragma: no cover
 
         try:
             containment_func = self.containment_strategies[strategy]

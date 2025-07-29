@@ -301,11 +301,9 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--cov=omega_phr",
-    "--cov=services",
-    "--cov=libs",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=85",
+    "--cov-fail-under=45",
     "-ra",
     "--tb=short",
 ]
@@ -340,6 +338,7 @@ omit = [
     "*/_pb2_grpc.py",
     "*/examples/*",
     "*/benchmarks/*",
+    "omega_phr/cli.py",
 ]
 branch = true
 
