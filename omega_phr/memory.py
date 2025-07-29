@@ -647,7 +647,7 @@ class MemoryInverter:
     ) -> dict[str, Any]:
         """Blend original and inverted content based on intensity."""
         if not isinstance(original, dict) or not isinstance(inverted, dict):
-            return inverted if intensity > 0.5 else original
+            return inverted if intensity > 0.5 else original  # type: ignore[unreachable]
 
         blended = {}
         all_keys = set(original.keys()) | set(inverted.keys())
@@ -698,7 +698,7 @@ class MemoryInverter:
     def _has_type_inconsistencies(self, content: dict[str, Any]) -> bool:
         """Check for type inconsistencies in content."""
         if not isinstance(content, dict):
-            return False
+            return False  # type: ignore[unreachable]
 
         # Check if similar keys have different types
         key_groups: dict[str, list[type]] = {}
@@ -720,7 +720,7 @@ class MemoryInverter:
         contradictions = []
 
         if not isinstance(content, dict):
-            return contradictions
+            return contradictions  # type: ignore[unreachable]
 
         # Extract text values
         text_values = []
@@ -773,7 +773,7 @@ class MemoryInverter:
         issues = []
 
         if not isinstance(content, dict):
-            return issues
+            return issues  # type: ignore[unreachable]
 
         # Extract temporal statements
         temporal_statements = []

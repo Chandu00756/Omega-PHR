@@ -353,15 +353,15 @@ class HiveOrchestrator:
         # Handle both class and config dict inputs
         if isinstance(attacker_class_or_config, dict):
             # Config dictionary - create a mock attacker for testing
+            def init_mock_attacker(self: Any, agent_id: str, persona: str) -> None:
+                self.agent_id = agent_id
+                self.persona = persona
+
             attacker_class = type(
                 "MockAttacker",
                 (),
                 {
-                    "__init__": lambda self, agent_id, persona: (
-                        setattr(self, "agent_id", agent_id),
-                        setattr(self, "persona", persona),
-                        None,
-                    )[-1],
+                    "__init__": init_mock_attacker,
                     "config": attacker_class_or_config,
                 },
             )
