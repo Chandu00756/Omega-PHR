@@ -5,6 +5,7 @@ This module provides unit, integration, and end-to-end tests for all framework c
 """
 
 import asyncio
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -915,8 +916,6 @@ class TestPerformance:
 
         # Should complete within reasonable time
         # CI environments are slower, so we use a more generous timeout
-        import os
-
         is_ci = os.getenv("CI", "").lower() in ("true", "1", "yes")
         timeout = 600.0 if is_ci else 300.0  # 10 minutes for CI, 5 minutes locally
         assert (
@@ -960,8 +959,6 @@ class TestPerformance:
 
         # Performance assertions
         # CI environments are slower, so we use more generous timeouts
-        import os
-
         is_ci = os.getenv("CI", "").lower() in ("true", "1", "yes")
         creation_timeout = (
             120.0 if is_ci else 30.0
