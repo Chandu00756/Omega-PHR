@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .exceptions import ContainmentError, OmegaStateError
-from .models import Event, OmegaState, OmegaStateLevel
+from .models import Event, EventType, OmegaState, OmegaStateLevel
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +212,10 @@ class QuarantineVault:
             if actual_checksum != expected_checksum:
                 raise ContainmentError("Quarantine data integrity check failed")
 
-            return json.loads(json_str)
+            result = json.loads(json_str)
+            if not isinstance(result, dict):
+                raise ContainmentError("Invalid quarantine data format")
+            return result
 
         except Exception as e:
             raise ContainmentError(f"Failed to deobfuscate quarantine data: {str(e)}")
@@ -437,12 +440,12 @@ class OmegaStateRegister:
                     # Also make it dict-like for backward compatibility
                     self["state_id"] = state_id
 
-                def __getitem__(self, key):
+                def __getitem__(self, key: str) -> Any:
                     if key == "state_id":
                         return self.state_id
                     raise KeyError(key)
 
-                def __setitem__(self, key, value):
+                def __setitem__(self, key: str, value: Any) -> None:
                     if key == "state_id":
                         self.state_id = value
 
@@ -909,7 +912,7 @@ class OmegaStateRegister:
 
         # Check for event type concentration
         event_types = [event.event_type for event in events]
-        type_counts = defaultdict(int)
+        type_counts: defaultdict[EventType, int] = defaultdict(int)
         for event_type in event_types:
             type_counts[event_type] += 1
 
@@ -1019,14 +1022,14 @@ class OmegaStateRegister:
 
         # Mock result object for test compatibility
         class ContaminationResult:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.success_rate = 0.75
                 self.affected_states = affected_states
 
-            def __contains__(self, key):
+            def __contains__(self, key: str) -> bool:
                 return key == "affected_states"
 
-            def __getitem__(self, key):
+            def __getitem__(self, key: str) -> Any:
                 if key == "affected_states":
                     return self.affected_states
                 raise KeyError(key)
@@ -1093,7 +1096,7 @@ class OmegaStateRegister:
         """List all registered omega states."""
 
         class MockState:
-            def __init__(self, omega_id):
+            def __init__(self, omega_id: str) -> None:
                 self.state_id = omega_id
 
         return [MockState(omega_id) for omega_id in self.active_omega_states.keys()]

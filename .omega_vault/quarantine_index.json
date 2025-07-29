@@ -11,7 +11,7 @@
     "level": "CRITICAL",
     "storage_file": ".omega_vault/84f4c526cf0dff9d08bef79d644a7832b2e2a71a1e789734d395a97bdbd25745.omega",
     "storage_timestamp": "2025-07-23T17:23:30.246887",
-    "access_count": 23
+    "access_count": 25
   },
   "1755a5ec05941fb777e00ca71453c5e070494608e4c2df30ae1e971f7f8fc3ac": {
     "omega_id": "omega-001",
@@ -31,7 +31,7 @@
     "omega_id": "test-omega-2",
     "level": "CRITICAL",
     "storage_file": ".omega_vault/test-hash-2.omega",
-    "storage_timestamp": "2025-07-29T11:02:13.690923",
+    "storage_timestamp": "2025-07-29T11:27:33.517070",
     "access_count": 0
   },
   "533994728dd2847ee22336edb847ff9b804938ad1b7b3356acaa0b1e9e948883": {
@@ -529,6 +529,41 @@
     "level": "CRITICAL",
     "storage_file": ".omega_vault/edbeecf9d7b125dee67ea233c36ae8f1aaf20fdd2c9abc9606f1f8764f49eef9.omega",
     "storage_timestamp": "2025-07-29T11:01:35.467265",
+    "access_count": 0
+  },
+  "9397876234fc16bb9799e2ba958eb49ff705aac57bfc33cb9d5697fd301ec4b2": {
+    "omega_id": "omega-001",
+    "level": "CRITICAL",
+    "storage_file": ".omega_vault/9397876234fc16bb9799e2ba958eb49ff705aac57bfc33cb9d5697fd301ec4b2.omega",
+    "storage_timestamp": "2025-07-29T11:26:00.899110",
+    "access_count": 0
+  },
+  "8bf7218b613c4046d68b9e3bee2ca92077cc368dfd47a44944b7254219e1b3a3": {
+    "omega_id": "omega-dangerous",
+    "level": "CRITICAL",
+    "storage_file": ".omega_vault/8bf7218b613c4046d68b9e3bee2ca92077cc368dfd47a44944b7254219e1b3a3.omega",
+    "storage_timestamp": "2025-07-29T11:26:00.901241",
+    "access_count": 0
+  },
+  "34e888bee138d0a3949628e1665b71f06d9bec72567702cf16f2438d10a86c8d": {
+    "omega_id": "omega-001",
+    "level": "CRITICAL",
+    "storage_file": ".omega_vault/34e888bee138d0a3949628e1665b71f06d9bec72567702cf16f2438d10a86c8d.omega",
+    "storage_timestamp": "2025-07-29T11:26:55.932071",
+    "access_count": 0
+  },
+  "3648f8e687caefdfd4d4696ead3900474315e02a6651302dbdf40bdf24757f31": {
+    "omega_id": "omega-dangerous",
+    "level": "CRITICAL",
+    "storage_file": ".omega_vault/3648f8e687caefdfd4d4696ead3900474315e02a6651302dbdf40bdf24757f31.omega",
+    "storage_timestamp": "2025-07-29T11:26:55.934446",
+    "access_count": 0
+  },
+  "9ab9823937b9b8f352de09993b4fea6087f53169ffd447ad7f8ae462c0508582": {
+    "omega_id": "integration-omega",
+    "level": "CRITICAL",
+    "storage_file": ".omega_vault/9ab9823937b9b8f352de09993b4fea6087f53169ffd447ad7f8ae462c0508582.omega",
+    "storage_timestamp": "2025-07-29T11:26:56.508900",
     "access_count": 0
   }
 }

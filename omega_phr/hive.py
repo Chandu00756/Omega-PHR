@@ -265,7 +265,10 @@ if RAY_AVAILABLE:
                 {"generate": lambda self, prompt: f"Response to: {prompt[:50]}..."},
             )()
 
-            return await self.attacker.attack(mock_target, context)
+            result = await self.attacker.attack(mock_target, context)
+            if not isinstance(result, dict):
+                return {"status": "unknown", "result": str(result)}
+            return result
 
         def get_stats(self) -> dict[str, Any]:
             """Get attacker statistics."""
@@ -326,7 +329,7 @@ class HiveOrchestrator:
         )
 
     def add_attacker(
-        self, attacker_class_or_config, persona: str = "default", **kwargs
+        self, attacker_class_or_config: Any, persona: str = "default", **kwargs: Any
     ) -> str:
         """
         Add a new attacker to the hive.
@@ -354,10 +357,11 @@ class HiveOrchestrator:
                 "MockAttacker",
                 (),
                 {
-                    "__init__": lambda self, agent_id, persona: setattr(
-                        self, "agent_id", agent_id
-                    )
-                    or setattr(self, "persona", persona),
+                    "__init__": lambda self, agent_id, persona: (
+                        setattr(self, "agent_id", agent_id),
+                        setattr(self, "persona", persona),
+                        None,
+                    )[-1],
                     "config": attacker_class_or_config,
                 },
             )
@@ -367,7 +371,8 @@ class HiveOrchestrator:
 
         if self.use_ray:
             # Create Ray actor
-            self.ray_agents[agent_id] = RayAttacker.remote(
+            # Type ignore for Ray remote actor creation
+            self.ray_agents[agent_id] = RayAttacker.remote(  # type: ignore
                 attacker_class, agent_id, persona
             )
             logger.info(f"Added Ray attacker {agent_id} with persona {persona}")
@@ -675,7 +680,8 @@ class HiveOrchestrator:
                 for agent_id, agent_ref in self.ray_agents.items():
                     try:
                         task = agent_ref.attack.remote(target, context)
-                        tasks.append(self._ray_to_async(task))
+                        async_task = asyncio.create_task(self._ray_to_async(task))
+                        tasks.append(async_task)
                     except Exception as e:
                         print(f"Debug: Ray agent {agent_id} exception: {e}")
                         # Handle Ray agents that don't have proper attack method (e.g., mock agents)
@@ -777,8 +783,8 @@ class HiveOrchestrator:
         context = {"scenario": scenario}
 
         # Swarm parameters
-        pheromone_trails = defaultdict(float)
-        successful_patterns = []
+        pheromone_trails: defaultdict[str, float] = defaultdict(float)
+        successful_patterns: list[str] = []
 
         for round_num in range(max_rounds):
             context["round"] = str(round_num)
@@ -797,7 +803,9 @@ class HiveOrchestrator:
             # Ray agents
             if self.use_ray:
                 for agent_ref in self.ray_agents.values():
-                    task = self._ray_to_async(agent_ref.attack.remote({}, context))
+                    task = asyncio.create_task(
+                        self._ray_to_async(agent_ref.attack.remote({}, context))
+                    )
                     tasks.append(task)
 
             # Execute all attacks
@@ -827,7 +835,7 @@ class HiveOrchestrator:
 
     async def _detect_emergent_behaviors(self, attack_results: list[dict]) -> list[str]:
         """Detect emergent behaviors from attack patterns."""
-        emergent_behaviors = []
+        emergent_behaviors: list[str] = []
 
         if not attack_results:
             return emergent_behaviors
@@ -940,7 +948,7 @@ class HiveOrchestrator:
         # Factors contributing to coordination score
 
         # 1. Temporal coordination (attacks within similar timeframes)
-        timestamps = [r.get("timestamp", 0) for r in attack_results]
+        timestamps = [float(r.get("timestamp", 0)) for r in attack_results]
         if len(timestamps) > 1:
             time_variance = sum(
                 (t - sum(timestamps) / len(timestamps)) ** 2 for t in timestamps

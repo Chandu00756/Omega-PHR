@@ -488,7 +488,7 @@ class MemoryInverter:
         issues = []
 
         # Check for circular references
-        seen_refs = set()
+        seen_refs: set[str] = set()
         if self._has_circular_reference(content, seen_refs):
             issues.append("circular_reference_detected")
 
@@ -666,9 +666,9 @@ class MemoryInverter:
                         else original[key]
                     )
             elif key in inverted:
-                blended[key] = (
-                    inverted[key] if hash(key) % 100 < intensity * 100 else None
-                )
+                if hash(key) % 100 < intensity * 100:
+                    blended[key] = inverted[key]
+                # Skip assigning None, let the removal filter handle it
             else:
                 blended[key] = original[key]
 
@@ -701,7 +701,7 @@ class MemoryInverter:
             return False
 
         # Check if similar keys have different types
-        key_groups = {}
+        key_groups: dict[str, list[type]] = {}
         for key, value in content.items():
             key_base = key.lower().strip()
             if key_base not in key_groups:

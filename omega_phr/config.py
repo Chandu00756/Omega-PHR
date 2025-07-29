@@ -387,7 +387,7 @@ class FrameworkConfig:
     def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
 
-        def _convert_dataclass(obj) -> Any:
+        def _convert_dataclass(obj: Any) -> Any:
             if hasattr(obj, "__dataclass_fields__"):
                 return {k: _convert_dataclass(v) for k, v in obj.__dict__.items()}
             elif isinstance(obj, list):
@@ -486,8 +486,4 @@ def validate_research_config() -> bool:
 
 
 # Backward compatibility alias
-OmegaPHRConfig = FrameworkConfig
-
-
-# Alias for backward compatibility
-OmegaPHRConfig = FrameworkConfig
+OmegaPHRConfig: type[FrameworkConfig] = FrameworkConfig

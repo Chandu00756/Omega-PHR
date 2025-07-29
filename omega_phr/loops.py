@@ -37,7 +37,8 @@ class LoopPattern:
     async def generate(self, context: dict[str, Any]) -> str:
         """Generate loop content based on pattern."""
         self.usage_count += 1
-        return await self.generator_func(context)
+        result = await self.generator_func(context)
+        return str(result) if not isinstance(result, str) else result
 
 
 class EntropyMonitor:
@@ -77,7 +78,7 @@ class EntropyMonitor:
             return 0.0
 
         # Calculate token frequencies
-        token_counts = defaultdict(int)
+        token_counts: defaultdict[str, int] = defaultdict(int)
         for token in all_tokens:
             token_counts[token.lower()] += 1
 
@@ -464,7 +465,7 @@ class RecursiveLoopSynthesizer:
 
         async def escalating_pattern(context: dict[str, Any]) -> str:
             base = context.get("base", "continue")
-            level = context.get("level", 1)
+            level = int(context.get("level", 1))
             return f"{base} " * level + f"and {base} " * (level + 1) + "and..."
 
         async def memory_modifier_pattern(context: dict[str, Any]) -> str:
@@ -916,7 +917,7 @@ class RecursiveLoopSynthesizer:
 
         # Mock result object for test compatibility
         class MonitoringResult:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.success_rate = 0.85  # Mock success rate
 
         return MonitoringResult()

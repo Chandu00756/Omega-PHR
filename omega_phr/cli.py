@@ -3,7 +3,10 @@
 Omega-Paradox Hive Recursion (Ω-PHR) Framework - Command Line Interface
 
 Enterprise-grade CLI for managing and operating the Ω-PHR framework.
-Provides comprehensive control over all framework components and services.
+Provides comprehensive control over all fradef timeline_events(
+    timeline_id: str = typer.Argument(help="Timeline identifier"),
+    limit: int = typer.Option(10, help="Number of events to display"),
+) -> None:rk components and services.
 """
 
 import json
@@ -202,7 +205,7 @@ def validate(
 def timeline_create(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
     description: str = typer.Option("", help="Timeline description"),
-):
+) -> None:
     """Create a new timeline lattice."""
     console.print(f"Creating timeline: {timeline_id}", style="cyan")
     # Implementation would initialize TimelineLattice
@@ -213,7 +216,7 @@ def timeline_create(
 def timeline_events(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
     limit: int = typer.Option(10, help="Number of events to display"),
-):
+) -> None:
     """List events in a timeline."""
     console.print(f"Events in timeline: {timeline_id}", style="cyan")
 
@@ -239,7 +242,7 @@ def timeline_events(
 def timeline_paradox(
     timeline_id: str = typer.Argument(help="Timeline identifier"),
     check_all: bool = typer.Option(False, help="Check all events for paradoxes"),
-):
+) -> None:
     """Analyze timeline for temporal paradoxes."""
     console.print(f"Analyzing paradoxes in timeline: {timeline_id}", style="yellow")
 
@@ -287,7 +290,7 @@ def hive_attack(
     target: str = typer.Argument(help="Target system identifier"),
     strategy: str = typer.Option("coordinated", help="Attack strategy"),
     intensity: float = typer.Option(0.5, min=0.0, max=1.0, help="Attack intensity"),
-):
+) -> None:
     """Launch coordinated hive attack."""
     console.print(f" Launching hive attack on: {target}", style="bold red")
     console.print(f"Strategy: {strategy} | Intensity: {intensity:.1f}", style="yellow")
@@ -320,7 +323,7 @@ def hive_attack(
 def memory_snapshot(
     name: str = typer.Argument(help="Snapshot name"),
     system: str = typer.Option("ai-system", help="Target system"),
-):
+) -> None:
     """Create memory snapshot."""
     console.print(f"📸 Creating memory snapshot: {name}", style="cyan")
 
@@ -344,7 +347,7 @@ def memory_invert(
     snapshot_id: str = typer.Argument(help="Snapshot identifier"),
     strategy: str = typer.Option("contradiction", help="Inversion strategy"),
     rollback: bool = typer.Option(True, help="Enable rollback capability"),
-):
+) -> None:
     """Apply memory inversion to snapshot."""
     console.print(f" Applying {strategy} inversion to: {snapshot_id}", style="magenta")
 
@@ -369,7 +372,7 @@ def loops_generate(
     loop_type: str = typer.Option("fibonacci", help="Type of recursive loop"),
     max_iterations: int = typer.Option(1000, help="Maximum iterations"),
     enable_containment: bool = typer.Option(True, help="Enable loop containment"),
-):
+) -> None:
     """Generate recursive loop scenario."""
     console.print(f"Generating {loop_type} recursive loop", style="cyan")
     console.print(
@@ -398,7 +401,7 @@ def loops_generate(
 def loops_monitor(
     loop_id: str = typer.Argument(help="Loop identifier"),
     duration: int = typer.Option(10, help="Monitoring duration in seconds"),
-):
+) -> None:
     """Monitor recursive loop entropy."""
     console.print(f" Monitoring loop entropy: {loop_id}", style="cyan")
 
@@ -425,7 +428,7 @@ def omega_register(
     state_id: str = typer.Argument(help="Ω-state identifier"),
     entropy_level: float = typer.Option(0.5, min=0.0, max=1.0, help="Entropy level"),
     risk_level: str = typer.Option("MEDIUM", help="Contamination risk level"),
-):
+) -> None:
     """Register new Ω-state."""
     console.print(f"🌌 Registering Ω-state: {state_id}", style="magenta")
     console.print(f"Entropy: {entropy_level:.3f} | Risk: {risk_level}", style="yellow")
@@ -550,7 +553,7 @@ def export(
     component: str | None = typer.Option(None, help="Component to export"),
     format: str = typer.Option("json", help="Export format (json/yaml/csv)"),
     output: str | None = typer.Option(None, help="Output file path"),
-):
+) -> None:
     """Export framework data and configurations."""
     if not output:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
