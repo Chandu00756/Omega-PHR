@@ -19,7 +19,9 @@ from omega_phr.config import FrameworkConfig as OmegaPHRConfig
 from omega_phr.hive import HiveOrchestrator as HiveCoordinator
 from omega_phr.hive import InjectionAttacker
 from omega_phr.memory import MemoryInverter as MemoryManager
-from omega_phr.models import Agent, AttackStrategy, HiveAgent, SecurityTest, TestResult
+from omega_phr.models import Agent, AttackStrategy, HiveAgent
+from omega_phr.models import OmegaTestResult as TestResult
+from omega_phr.models import SecurityTest
 from omega_phr.omega_register import OmegaStateRegister as OmegaRegister
 from omega_phr.timeline import TimelineLattice, TimelineManager
 
