@@ -4,13 +4,11 @@ Research-grade stability testing.
 """
 
 import asyncio
-import json
 import os
 
 # Import modules from the framework
 import sys
 import unittest
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -19,7 +17,7 @@ from omega_phr.config import FrameworkConfig as OmegaPHRConfig
 from omega_phr.hive import HiveOrchestrator as HiveCoordinator
 from omega_phr.hive import InjectionAttacker
 from omega_phr.memory import MemoryInverter as MemoryManager
-from omega_phr.models import Agent, AttackStrategy, HiveAgent
+from omega_phr.models import Agent, AttackStrategy
 from omega_phr.models import OmegaTestResult as TestResult
 from omega_phr.models import SecurityTest
 from omega_phr.omega_register import OmegaStateRegister as OmegaRegister
@@ -169,7 +167,7 @@ class TestHiveCoordinator(unittest.TestCase):
     def test_task_assignment(self):
         """Test task assignment to agents."""
         # Register an agent first
-        agent_id = self.hive.add_attacker(InjectionAttacker, "Test Agent")
+        _agent_id = self.hive.add_attacker(InjectionAttacker, "Test Agent")
 
         # Create a mock target and coordinate attack
         mock_target = Mock()
@@ -277,7 +275,6 @@ class TestOmegaRegister(unittest.TestCase):
 
     def test_omega_state_registration(self):
         """Test omega state registration."""
-        from datetime import datetime
 
         from omega_phr.models import OmegaState, OmegaStateLevel
 
@@ -445,7 +442,7 @@ class TestAsyncOperations(AsyncTestCase):
         """Test async timeline operations."""
 
         async def run_test():
-            config = OmegaPHRConfig()
+            _config = OmegaPHRConfig()
             timeline_manager = TimelineManager(max_timelines=100)
 
             # Simulate async timeline operations
