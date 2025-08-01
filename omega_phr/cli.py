@@ -3,10 +3,7 @@
 Omega-Paradox Hive Recursion (Ω-PHR) Framework - Command Line Interface
 
 Enterprise-grade CLI for managing and operating the Ω-PHR framework.
-Provides comprehensive control over all fradef timeline_events(
-    timeline_id: str = typer.Argument(help="Timeline identifier"),
-    limit: int = typer.Option(10, help="Number of events to display"),
-) -> None:rk components and services.
+Provides comprehensive control over all framework components and services.
 """
 
 import json
@@ -16,8 +13,11 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-import click
-import structlog
+try:
+    import structlog
+except ImportError:
+    import logging as structlog
+
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
@@ -52,22 +52,8 @@ app.add_typer(omega_app)
 app.add_typer(system_app)
 
 
-# Global options
-@click.group()
-@click.option("--debug", is_flag=True, help="Enable debug logging")
-@click.option("--config", type=click.Path(exists=True), help="Configuration file path")
-@click.pass_context
-def global_options(ctx: Any, debug: bool, config: str | None) -> None:
-    """Global CLI options and configuration."""
-    ctx.ensure_object(dict)
-    ctx.obj["debug"] = debug
-    ctx.obj["config"] = config
-
-    if debug:
-        import logging
-
-        logging.basicConfig(level=logging.DEBUG)
-        console.print("🐛 Debug mode enabled", style="yellow")
+# Global options - Note: Typer handles global options differently than Click
+# These would need to be implemented as Typer callbacks or context managers
 
 
 # Main commands
