@@ -46,7 +46,9 @@ def create_server(config: HiveServiceConfig) -> aio.Server | None:
     server = aio.server()
 
     # Add servicer to server
-    HiveOrchestratorServicer(config)
+    servicer = HiveOrchestratorServicer(config)
+    # Note: In a full implementation, you would add the actual gRPC servicer here:
+    # hive_pb2_grpc.add_HiveOrchestratorServicer_to_server(servicer, server)
 
     # Configure server options
     options = [

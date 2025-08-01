@@ -98,7 +98,7 @@ class Event:
             event_id=data["event_id"],
             actor_id=data["actor_id"],
             timeline_id=data["timeline_id"],
-            parent_id=data["parent_id"],
+            parent_id=data.get("parent_id", ""),
             event_type=EventType[data["event_type"]],
             payload=data["payload"],
             valid_at_us=data["valid_at_us"],

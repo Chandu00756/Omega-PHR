@@ -16,10 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from services.timeline_lattice.config import get_config  # noqa: E402
-
-# from services.timeline_lattice.server import (
-#     TimelineLatticeServer,
-# )
+from services.timeline_lattice.server import serve  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -36,35 +33,24 @@ async def main():
     logger.info("Starting Timeline Lattice Service")
 
     # Load configuration
-    get_config()
-
-    # Create and start server
-    # server = TimelineLatticeServer(config)
-    logger.info(
-        "Timeline Lattice service would start here - class needs implementation"
-    )
+    config = get_config()
 
     # Setup signal handlers for graceful shutdown
     def signal_handler(signum, frame):
         logger.info(f"Received signal {signum}, initiating shutdown...")
-        # asyncio.create_task(server.stop())
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
-        # await server.start()
+        # Start the gRPC server
+        await serve(host=config.host, port=config.port)
         logger.info("Timeline Lattice Service started successfully")
-
-        # Keep the server running
-        # await server.wait_for_termination()
-        await asyncio.sleep(1)  # Placeholder
 
     except Exception as e:
         logger.error(f"Server error: {e}")
         raise
     finally:
-        # await server.stop()
         logger.info("Timeline Lattice Service stopped")
 
 
